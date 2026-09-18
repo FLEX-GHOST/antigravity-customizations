@@ -348,6 +348,8 @@ def get_all_search_paths() -> List[Path]:
         HOME_DIR / ".gemini/skills-catalog",
         HOME_DIR / ".gemini/antigravity-ide/builtin/skills",
         HOME_DIR / ".gemini/antigravity-ide/builtin/rules",
+        HOME_DIR / ".gemini/antigravity-cli/builtin/skills",
+        HOME_DIR / ".gemini/antigravity-cli/builtin/rules",
     ]
     repo_root = Path(__file__).resolve().parent.parent.parent
     if repo_root.exists() and repo_root not in paths:
@@ -364,6 +366,12 @@ def get_all_search_paths() -> List[Path]:
             if agent_dir.is_dir():
                 paths.append(agent_dir)
         paths.append(bots_dir)
+    matrx_dir = HOME_DIR / "matrx"
+    if matrx_dir.exists():
+        for agent_dir in sorted(matrx_dir.glob("*/.agents")):
+            if agent_dir.is_dir():
+                paths.append(agent_dir)
+        paths.append(matrx_dir)
     return paths
 
 SEARCH_PATHS = get_all_search_paths()
@@ -920,19 +928,22 @@ def clean_description(desc: str, content: str = "", max_len: int = 150) -> str:
 
 def compute_quality_score(path_str: str, content: str) -> Tuple[int, str]:
     length = len(content.strip())
-    if length < 300 or "Insert instructions below" in content or "Replace with description" in content:
+    if length < 50 or "Insert instructions below" in content or "Replace with description" in content or "TODO: Add description" in content:
         return (5, "stub")
 
     score = 0
     tier = "community"
 
-    if "anthropics-skills" in path_str or "anti_slop_official_rules" in path_str:
+    if "antigravity-customizations" in path_str or ".agents" in path_str:
         score += 35
         tier = "official"
-    elif "alirezarezvani" in path_str or "awesome-cursorrules" in path_str or "composiohq" in path_str:
+    elif "anthropics-skills" in path_str or "anti_slop_official_rules" in path_str:
+        score += 35
+        tier = "official"
+    elif "alirezarezvani" in path_str or "awesome-cursorrules" in path_str or "composiohq" in path_str or ".omni-skills" in path_str:
         score += 25
         tier = "top-starred"
-    elif "config" in path_str:
+    elif "config" in path_str or "builtin" in path_str:
         score += 20
         tier = "core"
 
@@ -1052,7 +1063,7 @@ def sync_all_directories(force: bool = False):
                 mtime = p.stat().st_mtime
                 q_score, tier = compute_quality_score(str(p), content)
 
-                if q_score <= 10:
+                if tier == "stub" or q_score < 5:
                     purged_stubs.append(item_id)
                     continue
 
@@ -1092,7 +1103,7 @@ def sync_all_directories(force: bool = False):
                 mtime = p.stat().st_mtime
                 q_score, tier = compute_quality_score(str(p), content)
 
-                if q_score <= 10:
+                if tier == "stub" or q_score < 5:
                     purged_stubs.append(item_id)
                     continue
 
