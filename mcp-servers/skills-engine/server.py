@@ -837,6 +837,8 @@ def index_single_file(path: Path):
             """,
             (item_id, name, desc, trigs_str, lang, str(cat), body[:3000])
         )
+        vec = generate_quantized_vector(f"{name} {desc} {trigs_str} {cat}")
+        conn.execute("INSERT OR REPLACE INTO item_vectors (id, vec) VALUES (?, ?)", (item_id, vec))
         conn.commit()
     except Exception:
         pass
@@ -1109,6 +1111,67 @@ def compute_trigram_jaccard(s1: str, s2: str) -> float:
     t2 = set(s2[i:i+3] for i in range(len(s2)-2))
     return len(t1 & t2) / max(1, len(t1 | t2))
 
+
+import hashlib
+
+def get_active_workspace() -> Path:
+    for env_var in ("WORKSPACE_DIR", "GEMINI_WORKSPACE", "PROJECT_DIR", "ANTIGRAVITY_WORKSPACE"):
+        val = os.environ.get(env_var)
+        if val and Path(val).is_dir():
+            return Path(val)
+    cwd = Path.cwd()
+    if (cwd / "Cargo.toml").exists() or (cwd / "package.json").exists() or (cwd / "go.mod").exists() or (cwd / ".git").exists():
+        return cwd
+    default_factory = HOME_DIR / "bots/factory"
+    if default_factory.exists():
+        return default_factory
+    return cwd
+
+def generate_quantized_vector(text: str, dim: int = 64) -> bytes:
+    vec = [0.0] * dim
+    words = re.findall(r"\b[a-zA-Z0-9_-]{2,}\b", text.lower())
+    for w in words:
+        h = int(hashlib.md5(w.encode()).hexdigest(), 16) % dim
+        vec[h] += 1.0
+        for i in range(len(w) - 2):
+            ng = w[i:i+3]
+            h_ng = int(hashlib.md5(ng.encode()).hexdigest(), 16) % dim
+            vec[h_ng] += 0.5
+    norm = math.sqrt(sum(x * x for x in vec))
+    if norm > 0:
+        vec = [x / norm for x in vec]
+    return bytes(int(max(-128, min(127, round(x * 127)))) & 0xFF for x in vec)
+
+def cosine_similarity_quantized(b1: bytes, b2: bytes) -> float:
+    if len(b1) != len(b2) or not b1:
+        return 0.0
+    dot = 0
+    for byte1, byte2 in zip(b1, b2):
+        s1 = byte1 if byte1 < 128 else byte1 - 256
+        s2 = byte2 if byte2 < 128 else byte2 - 256
+        dot += s1 * s2
+    return max(0.0, min(1.0, dot / (127.0 * 127.0)))
+
+TOOL_SUITES = {
+    "telegram": {
+        "description": "Telegram bot engineering, WebRTC VoIP, and webhook automation",
+        "tools": ["simulate_bot_pipeline", "simulate_telegram_load", "audit_webhook_health", "resolve_bot_service", "explain_ecosystem_map"]
+    },
+    "architecture": {
+        "description": "Clean architecture, DDIA patterns, and system design",
+        "tools": ["plan_agentic_workflow", "detect_project_stack", "get_core_governance_rules", "get_exact_rule", "list_rules_overview"]
+    },
+    "quality": {
+        "description": "Code verification, UI audits, and anti-sycophancy defense",
+        "tools": ["audit_anti_sycophancy", "audit_ui_design", "audit_web_application_quality", "audit_skill_quality", "benchmark_search_performance", "fix_code_rule_violations"]
+    },
+    "catalog": {
+        "description": "Catalog management and dynamic skill authoring",
+        "tools": ["get_exact_skill", "get_skill_toc", "get_skill_section", "get_top_rated_skills", "list_skills_overview", "create_new_skill", "register_custom_directory", "reload_skills_index"]
+    }
+}
+_ACTIVE_SUITES = set(["telegram", "architecture", "quality", "catalog"])
+
 INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
     "telegram_music": {
         "keywords": ["music", "audio", "voice-chat", "stream", "pytgcalls", "rusttgcalls", "gotgcall", "playback", "webrtc", "ffmpeg", "flexmusic"],
@@ -1261,9 +1324,9 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
     return tuple(out)
 
 @mcp.tool()
-def search_agent_capabilities(query: str, domain: Optional[str] = None, language: Optional[str] = None, min_quality: int = 40, limit: int = 8) -> List[Dict[str, Any]]:
+def search_agent_capabilities(query: str, domain: Optional[str] = None, language: Optional[str] = None, min_quality: int = 40, limit: int = 8, output_format: str = "json") -> Any:
     rows = _cached_search_capabilities(query.strip(), domain, language, min_quality, limit)
-    return [
+    results = [
         {
             "id": r[0],
             "type": r[1],
@@ -1277,6 +1340,12 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
         }
         for r in rows
     ]
+    if output_format in ("table", "compact"):
+        lines = ["| Name | Type | Quality | Lang | Description |", "| :--- | :---: | :---: | :---: | :--- |"]
+        for r in results:
+            lines.append(f"| `{r['name']}` | {r['type']} | {r['quality_score']} | {r['language']} | {r['description'][:100]} |")
+        return "\n".join(lines)
+    return results
 
 @mcp.tool()
 def get_smart_skill_summary(name: str) -> Dict[str, Any]:
@@ -1587,7 +1656,9 @@ def create_new_skill(name: str, description: str, triggers: List[str], instructi
     }
 
 @mcp.tool()
-def detect_project_stack(directory_path: str = "/root/bots/factory") -> Dict[str, Any]:
+def detect_project_stack(directory_path: Optional[str] = None) -> Dict[str, Any]:
+    if not directory_path:
+        directory_path = str(get_active_workspace())
     p = Path(directory_path).resolve()
     if not p.exists():
         return {"error": f"Path {directory_path} does not exist."}
@@ -1799,6 +1870,35 @@ def verify_code_rules(code_content: str, language: str) -> Dict[str, Any]:
     }
 
 @mcp.tool()
+
+@mcp.tool()
+def activate_tool_suite(suite_name: str) -> Dict[str, Any]:
+    """Dynamically activate a specialized tool suite (telegram, architecture, quality, catalog)."""
+    s_key = suite_name.lower().strip()
+    if s_key not in TOOL_SUITES:
+        return {
+            "status": "ERROR",
+            "message": f"Suite '{suite_name}' not recognized. Available suites: {list(TOOL_SUITES.keys())}"
+        }
+    _ACTIVE_SUITES.add(s_key)
+    suite = TOOL_SUITES[s_key]
+    return {
+        "status": "ACTIVATED",
+        "suite": s_key,
+        "description": suite["description"],
+        "tools_enabled": suite["tools"],
+        "active_suites": list(_ACTIVE_SUITES),
+    }
+
+@mcp.tool()
+def list_available_suites() -> Dict[str, Any]:
+    """List all available tool suites, their description, and their tools."""
+    return {
+        "active_suites": list(_ACTIVE_SUITES),
+        "available_suites": TOOL_SUITES,
+        "total_suites": len(TOOL_SUITES),
+    }
+
 def list_skills_overview(category: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
     conn = get_db_conn()
     query = "SELECT id, name, category, language, quality_score, source_tier, description, content FROM items WHERE item_type = 'skill'"
