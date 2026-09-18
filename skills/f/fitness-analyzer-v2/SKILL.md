@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/fitness-analyzer` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # 运动分析器技能 分析运动数据，识别运动模式，评估健身进展，并提供个性化训练建议。
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 功能, 输出格式, 分析周期, 运动量趋势, 运动频率, 强度分布.

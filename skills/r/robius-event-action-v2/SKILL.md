@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/robius-event-action` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Robius Event and Action Patterns Skill Best practices for event handling and action patterns in Makepad applications based on Robrix and Moly codebases. Source codebases: - Robrix: Matrix chat client - MessageAction, RoomsListAction, AppStateAction - Moly: AI chat application - StoreAction, ChatAction, NavigationAction, Timer patterns
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Custom Action Pattern, Centralized Action Handling in App, Action Types, Event Handling Patterns, Action Chaining Pattern, Limitations.

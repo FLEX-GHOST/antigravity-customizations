@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/tdd-workflows-tdd-cycle` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Configuration, Phase 1: Test Specification and Design, Phase 2: RED - Write Failing Tests, Phase 3: GREEN - Make Tests Pass, Phase 4: REFACTOR - Improve Code Quality, Phase 5: Integration and System Tests.
 
 ## When to Use This Skill

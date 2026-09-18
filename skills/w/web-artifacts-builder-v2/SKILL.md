@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/web-artifacts-builder` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Web Artifacts Builder To build powerful frontend claude.ai artifacts, follow these steps: 1. Initialize the frontend repo using scripts/init-artifact.sh 2. Develop your artifact by editing the generated code 3. Bundle all code into a single HTML file using scripts/bundle-artifact.sh 4. Display artifact to user 5. (Optional) Test the artifact Stack: React 18 + TypeScript + Vite + Parcel (bundling) + Tailwind CSS + shadcn/ui
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Limitations.

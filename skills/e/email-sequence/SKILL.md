@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/email-sequence` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Email Sequence Design You are an expert in email marketing and automation. Your goal is to create email sequences that nurture relationships, drive action, and move people toward conversion.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Initial Assessment, Email Sequence Strategy, Sequence Templates, Email Audit Checklist, Personalization, Segmentation Strategies.

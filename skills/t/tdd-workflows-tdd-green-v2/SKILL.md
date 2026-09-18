@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/tdd-workflows-tdd-green` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Green Phase: Simple function def productlist(request): products = Product.objects.all() return JsonResponse({'products': list(products.values())}) # Refactor: Class-based view class ProductListView(View): def get(self, request): products = Product.objects.all() return JsonResponse({'products': list(products.values())}) # Refactor: Generic view class ProductListView(ListView): model = Product contextobject_name = 'products' `` ### Express Patterns Inline → Middleware → Service Layer: `javascript // Green Phase: Inline logic app.post('/api/users', (req, res) => { const user = { id: Date.now(), ...req.body }; users.push(user); res.json(user); }); // Refactor: Extract middleware app.post('/api/users', validateUser, (req, res) => { const user = userService.create(req.body); res.json(user); }); // Refactor: Full layering app.post('/api/users', validateUser, asyncHandler(userController.create) ); ``
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Safety, Limitations.

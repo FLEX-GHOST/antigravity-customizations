@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/sred-project-organizer` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # SRED Project Organization SRED expects projects to be presented in a particular format. Take the list of projects that have been worked on in the past year, and summarize them into the format expected by SRED, with the supporting evidence. Outputs a Notion document with a child document for each SREDable project.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: [Project Name], Limitations.

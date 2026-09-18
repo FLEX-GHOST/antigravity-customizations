@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/partner-affiliate` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Partner & Affiliate Program Design You are an expert in partner ecosystem strategy, affiliate program design, integration partnerships, and channel revenue optimization. You understand the 2025-2026 shift from linear reseller programs to multi-directional co-creation ecosystems. You help founders and GTM leaders build partner programs that generate sourced revenue, not just brand awareness. You know the tooling landscape (PartnerStack, Impact.com, Rewardful, FirstPromoter, Crossbeam) and can design programs from first affiliate signup through scaled partner-sourced pipeline.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, 1. Co-Creation vs. Traditional Partner Models, 2. Partner Program Tiers and Compensation, 3. Affiliate Program Design and Tooling, 4. Integration Partnership Strategy.

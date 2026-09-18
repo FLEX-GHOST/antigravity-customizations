@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/ai-native-cli` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Agent-Friendly CLI Spec v0.1 When building or modifying CLI tools, follow these rules to make them safe and reliable for AI agents to use.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Core Philosophy, Layer Model, How It Works, Certification Requirements, Quick Implementation Checklist, Common Pitfalls.

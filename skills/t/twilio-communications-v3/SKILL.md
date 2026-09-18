@@ -17,12 +17,6 @@ date_updated: "2026-04-26"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-bundle-integration-apis/skills/twilio-communications` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Twilio Communications Build communication features with Twilio: SMS messaging, voice calls, WhatsApp Business API, and user verification (2FA). Covers the full spectrum from simple notifications to complex IVR systems and multi-channel authentication. Critical focus on compliance, rate limits, and error handling.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Patterns, Sharp Edges, Track opt-out status in your database, Include opt-out instructions, Provide fallback channel, Register for A2P 10DLC (US requirement).

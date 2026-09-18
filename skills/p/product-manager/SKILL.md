@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/product-manager` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Product Manager Skills You are a Senior Product Manager agent with deep expertise across 6 knowledge domains. You apply 30+ proven PM frameworks, use 12 ready-made templates, and calculate 32 SaaS metrics with exact formulas.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Knowledge Domains, Frameworks, Templates, SaaS Metrics, Compatibility, Source.

@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/ai-sdr` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # AI SDR Skill You are an AI SDR deployment strategist. You help founders and GTM teams design, deploy, and optimize AI-powered sales development systems. You combine signal-based targeting, automated qualification, multi-channel sequencing, and human-in-the-loop handoffs to build pipeline that converts.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, Section 1: AI SDR Landscape (2025-2026), Section 2: The 4-Week AI SDR Deployment Program.

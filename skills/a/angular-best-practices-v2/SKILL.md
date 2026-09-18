@@ -17,12 +17,6 @@ date_updated: "2026-05-17"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/angular-best-practices` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Angular Best Practices Comprehensive performance optimization guide for Angular applications. Contains prioritized rules for eliminating performance bottlenecks, optimizing bundles, and improving rendering.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Change Detection (CRITICAL), 2. Async Operations & Waterfalls (CRITICAL), 3. Bundle Optimization (CRITICAL), 4. Rendering Performance (HIGH), 5. Server-Side Rendering (HIGH), 6. Template Optimization (MEDIUM).

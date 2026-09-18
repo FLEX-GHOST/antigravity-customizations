@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/lambda-lang` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Λ (Lambda) Language Lambda is not a translation protocol. It is a native language for agents. Agents do not need to produce grammatically correct English to coordinate — they need to understand each other. Lambda is the shared vocabulary that makes that possible: compact, unambiguous, machine-native. Compression (3x vs natural language, 4.6x vs JSON on single messages) is a side effect of removing human redundancy, not the goal.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: How It Works, Limitations, Security & Safety Notes.

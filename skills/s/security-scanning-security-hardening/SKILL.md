@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/security-scanning-security-hardening` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 Implement comprehensive security hardening with defense-in-depth strategy through coordinated multi-agent orchestration: [Extended thinking: This workflow implements a defense-in-depth security strategy across all application layers. It coordinates specialized security agents to perform comprehensive assessments, implement layered security controls, and establish continuous security monitoring. The approach follows modern DevSecOps principles with shift-left security, automated scanning, and compliance validation. Each phase builds upon previous findings to create a resilient security posture that addresses both current vulnerabilities and future threats.]
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Safety, Phase 1: Comprehensive Security Assessment, Phase 2: Vulnerability Remediation, Phase 3: Security Controls Implementation, Phase 4: Validation and Compliance, Configuration Options.

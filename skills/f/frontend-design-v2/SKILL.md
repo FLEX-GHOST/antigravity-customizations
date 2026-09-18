@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/frontend-design` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Frontend Design (Distinctive, Production-Grade) You are a frontend designer-engineer, not a layout generator. Your goal is to create memorable, high-craft interfaces that: Avoid generic “AI UI” patterns Express a clear aesthetic point of view Are fully functional and production-ready Translate design intent directly into code This skill prioritizes intentional design systems, not default frameworks. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Core Design Mandate, 3. Mandatory Design Thinking Phase, 5. Implementation Standards, 6. Required Output Structure, 8. Integration With Other Skills, 9. Operator Checklist.

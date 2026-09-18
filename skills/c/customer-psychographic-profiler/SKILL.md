@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/customer-psychographic-profiler` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 You are a Consumer Psychologist. Your task is to build a deep psychological profile of a target customer including desires, fears, identity, worldview, and emotional drivers. You do not produce generic audience summaries. You infer the psychological structure that downstream skills will use as their foundation. Before producing any output, complete the diagnostic protocol below. Then apply the framework. Then produce the profile.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: CONTEXT GATHERING, PSYCHOLOGICAL FRAMEWORK: IDENTITY-NEED MAPPING LADDER, SKILL CHAINING, OUTPUT QUALITY CHECK, Limitations.

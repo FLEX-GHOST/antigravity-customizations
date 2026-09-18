@@ -17,12 +17,6 @@ date_updated: "2026-04-26"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-bundle-azure-ai-cloud/skills/azure-functions` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Azure Functions Expert patterns for Azure Functions development including isolated worker model, Durable Functions orchestration, cold start optimization, and production patterns. Covers .NET, Python, and Node.js programming models.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Patterns, Sharp Edges, Use async pattern with Durable Functions, Use queue-based async pattern, Use webhook callback pattern, Use IHttpClientFactory (Recommended).

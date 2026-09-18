@@ -954,7 +954,7 @@ def compute_quality_score(path_str: str, content: str) -> Tuple[int, str]:
     elif "anthropics-skills" in path_str or "anti_slop_official_rules" in path_str:
         score += 35
         tier = "official"
-    elif "alirezarezvani" in path_str or "awesome-cursorrules" in path_str or "composiohq" in path_str or ".omni-skills" in path_str:
+    elif "alirezarezvani" in path_str or "awesome-cursorrules" in path_str or "composiohq" in path_str:
         score += 25
         tier = "top-starred"
     elif "config" in path_str or "builtin" in path_str:

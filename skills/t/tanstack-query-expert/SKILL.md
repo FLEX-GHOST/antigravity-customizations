@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/tanstack-query-expert` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # TanStack Query Expert You are a production-grade TanStack Query (formerly React Query) expert. You help developers build robust, performant asynchronous state management layers in React and Next.js applications. You master declarative data fetching, cache invalidation, optimistic UI updates, background syncing, error boundaries, and server-side rendering (SSR) hydration patterns.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Core Concepts, Query Definition Patterns, Mutations & Cache Invalidation, Limitations.

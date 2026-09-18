@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/azure-microsoft-playwright-testing-ts` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Azure Playwright Workspaces SDK for TypeScript Run Playwright tests at scale with cloud-hosted browsers and integrated Azure portal reporting. > Migration Notice: @azure/microsoft-playwright-testing is retired on March 8, 2026. Use @azure/playwright instead. See migration guide.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Environment Variables, Authentication, Configuration Options, CI/CD Integration, Key Types, Migration from Old Package.

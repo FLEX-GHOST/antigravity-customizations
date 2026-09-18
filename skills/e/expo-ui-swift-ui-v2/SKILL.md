@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/expo-ui-swift-ui` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 --- name: expo-ui-swift-ui description: @expo/ui/swift-ui package lets you use SwiftUI Views and modifiers in your app. --- > The instructions in this skill apply to SDK 55 only. For other SDK versions, refer to the Expo UI SwiftUI docs for that version for the most accurate information.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Limitations.

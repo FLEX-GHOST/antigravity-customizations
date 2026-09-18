@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/busybox-on-windows` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 BusyBox is a single binary that implements many common Unix tools. Use this skill only on Windows. If you are on UNIX, then stop here. Run the following steps only if you cannot find a busybox.exe file in the same directory as this document is. These are PowerShell commands, if you have a classic cmd.exe terminal, then you must use powershell -Command "..." to run them. 1. Print the type of CPU: Get-CimInstance -ClassName Win32_Processor | Select-Object Name, NumberOfCores, MaxClockSpeed 2. Print the OS versions: Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" | Select-Object ProductName, DisplayVersion, CurrentBuild 3. Download a suitable build of BusyBox by running one of these PowerShell commands: - 32-bit x86 (ANSI): $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri https://frippery.org/files/busybox/busybox.exe -OutFile busybox.exe - 64-bit x86 (ANSI): $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri https://frippery.org/files/busybox/busybox64.exe -OutFile busybox.exe - 64-bit x86 (Unicode): $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri https://frippery.org/files/busybox/busybox64u.exe -OutFile busybox.exe - 64-bit ARM (Unicode): $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri https://frippery.org/files/busybox/busybox64a.exe -OutFile busybox.exe Useful commands: - Help: busybox.exe --list - Available UNIX commands: busybox.exe --list Usage: Prefix the UNIX command with busybox.exe, for example: busybox.exe ls -1 If you need to run a UNIX command under another CWD, then use the absolute path to busybox.exe. Documentation: https://frippery.org/busybox/ Original BusyBox: https://busybox.net/
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Limitations.

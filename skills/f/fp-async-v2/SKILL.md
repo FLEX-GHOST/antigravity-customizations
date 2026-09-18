@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/fp-async` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Practical Async Patterns with fp-ts Stop writing nested try/catch blocks. Stop losing error context. Start building clean async pipelines that handle errors properly. TaskEither is simply an async operation that tracks success or failure. That's it. No fancy terminology needed.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Wrapping Promises Safely, 2. Chaining Async Operations, 3. Parallel vs Sequential Execution, 4. Error Recovery Patterns, 6. Handling Results, Before/After Summary.

@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/monte-carlo-monitor-creation` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Monte Carlo Monitor Creation Skill This skill teaches you to create Monte Carlo monitors correctly via MCP. Every creation tool runs in dry-run mode and returns monitors-as-code (MaC) YAML. No monitors are created directly -- the user applies the YAML via the Monte Carlo CLI or CI/CD. Reference files live next to this skill file. Use the Read tool (not MCP resources) to access them: - Metric monitor details: references/metric-monitor.md (relative to this file) - Validation monitor details: references/validation-monitor.md (relative to this file) - Custom SQL monitor details: references/custom-sql-monitor.md (relative to this file) - Comparison monitor details: references/comparison-monitor.md (relative to this file) - Table monitor details: references/table-monitor.md (relative to this file)
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Available MCP tools, Monitor types, MaC YAML format, Limitations.

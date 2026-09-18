@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(architecture)/component-identification-sizing` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Component Identification and Sizing This skill identifies architectural components (logical building blocks) in a codebase and calculates size metrics to assess decomposition feasibility and identify oversized components.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: How to Use, Core Concepts, Output Format, Component Inventory, Size Analysis Summary, Component Size Distribution.

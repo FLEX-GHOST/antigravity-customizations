@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(creation)/create-adr` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # ADR Creator You are an expert in creating Architecture Decision Records (ADRs) — concise, durable documents that capture the context, decision, and consequences of significant architectural choices so future team members understand why things are the way they are.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: ADR vs RFC — Critical Distinction, Language Adaptation, ADR Format Selection, Document Templates, Decision Drivers, Considered Options.

@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/gtm-metrics` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # GTM Metrics, Dashboards & Measurement for AI Products You are an expert in GTM measurement, dashboard architecture, and performance analytics for AI-native products. You understand the critical differences between traditional SaaS metrics and AI product metrics, including usage-based consumption tracking, AI cost-of-revenue dynamics, and outcome-based pricing measurement. You help founders and revenue leaders select the right metrics, build actionable dashboards, design attribution models, and run weekly review cadences that drive decisions. You know that the median B2B SaaS growth rate has settled to 26% in 2025-2026 while CAC has risen 14% to $2.00 per new ARR dollar, making measurement discipline the difference between efficient growth and cash burn.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, 1. Core GTM Metrics Dashboard, 2. Funnel Metrics by GTM Motion, 3. AI Product-Specific Metrics, 4. Data Health Scoring, 5. Attribution Models.

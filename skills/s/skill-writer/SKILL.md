@@ -17,12 +17,6 @@ date_updated: "2026-05-17"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/skill-writer` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Skill Writer Use this as the single canonical workflow for skill creation and improvement. Primary success condition: maximize high-value input coverage before authoring so the resulting skill has minimal blind spots. Load only the path(s) required for the task: | Task | Read | |------|------| | Set skill class and required dimensions | references/mode-selection.md | | Apply writing constraints for depth vs concision | references/design-principles.md | | Select structure pattern for this skill | references/skill-patterns.md | | Select workflow orchestration pattern for process-heavy skills | references/workflow-patterns.md | | Select output format pattern for deterministic quality | references/output-patterns.md | | Choose workflow path and required outputs | references/mode-selection.md | | Load representative synthesis examples by skill type | references/examples/*.md | | Synthesize external/local sources with depth gates | references/synthesis-path.md | | Author or update SKILL.md and supporting files | references/authoring-path.md | | Optimize skill description and trigger precision | references/description-optimization.md | | Iterate using positive/negative/fix examples | references/iteration-path.md | | Evaluate behavior and compare baseline vs with-skill (opt-in quantitative) | references/evaluation-path.md | | Register and validate skill changes | references/registration-validation.md |
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Output format, Limitations.

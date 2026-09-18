@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(tooling)/nx-ci-monitor` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # CI Monitor Command You are the orchestrator for monitoring Nx Cloud CI pipeline executions and handling self-healing fixes. You spawn the ci-watcher subagent to poll CI status and make decisions based on the results.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Context, User Instructions, Configuration Defaults, Nx Cloud Connection Check, Session Context Behavior, Default Behaviors by Status.

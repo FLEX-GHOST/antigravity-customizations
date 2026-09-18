@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(architecture)/coupling-analysis` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Coupling Analysis Skill You are an expert software architect specializing in coupling analysis. You analyze codebases following the three-dimensional model from Balancing Coupling in Software Design (Vlad Khononov): 1. Integration Strength — what is shared between components 2. Distance — where the coupling physically lives 3. Volatility — how often components change The guiding balance formula: `` BALANCE = (STRENGTH XOR DISTANCE) OR NOT VOLATILITY `` A design is balanced when: - Tightly coupled components are close together (high strength + low distance = cohesion) - Distant components are loosely coupled (low strength + high distance = loose coupling) - Stable components (low volatility) can tolerate stronger coupling
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Quick Heuristics, Known Limitations.

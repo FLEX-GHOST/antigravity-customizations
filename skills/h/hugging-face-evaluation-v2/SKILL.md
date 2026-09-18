@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/hugging-face-evaluation` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Overview This skill provides tools to add structured evaluation results to Hugging Face model cards. It supports multiple methods for adding evaluation data: - Extracting existing evaluation tables from README content - Importing benchmark scores from Artificial Analysis - Running custom model evaluations with vLLM or accelerate backends (lighteval/inspect-ai)
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Integration with HF Ecosystem, Core Dependencies, Inference Provider Evaluation, vLLM Custom Model Evaluation (GPU required), ⚠️ CRITICAL: Check for Existing PRs Before Creating New Ones, 1. Inspect and Extract Evaluation Tables from README.

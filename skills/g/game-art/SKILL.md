@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/game-development/game-art` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Game Art Principles > Visual design thinking for games - style selection, asset pipelines, and art direction. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Art Style Selection, 2. Asset Pipeline Decisions, 3. Color Theory Decisions, 5. Resolution & Scale Decisions, 6. Asset Organization, 7. Anti-Patterns.

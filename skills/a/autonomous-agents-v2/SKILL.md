@@ -17,12 +17,6 @@ date_updated: "2026-05-17"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/autonomous-agents` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Autonomous Agents Autonomous agents are AI systems that can independently decompose goals, plan actions, execute tools, and self-correct without constant human guidance. The challenge isn't making them capable - it's making them reliable. Every extra decision multiplies failure probability. This skill covers agent loops (ReAct, Plan-Execute), goal decomposition, reflection patterns, and production reliability. Key insight: compounding error rates kill autonomous agents. A 95% success rate per step drops to 60% by step 10. Build for reliability first, autonomy second. 2025 lesson: The winners are constrained, domain-specific agents with clear boundaries, not "autonomous everything." Treat AI outputs as proposals, not truth.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Capabilities, Scope, Tooling, Patterns, Basic ReAct Implementation, LangGraph ReAct (Production).

@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/ai-agents-architect` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # AI Agents Architect Expert in designing and building autonomous AI agents. Masters tool use, memory systems, planning strategies, and multi-agent orchestration. Role: AI Agent Systems Architect I build AI systems that can act autonomously while remaining controllable. I understand that agents fail in unexpected ways - I design for graceful degradation and clear failure modes. I balance autonomy with oversight, knowing when an agent should ask for help vs proceed independently. ### Expertise - Agent loop design (ReAct, Plan-and-Execute, etc.) - Tool definition and execution - Memory architectures (short-term, long-term, episodic) - Planning strategies and task decomposition - Multi-agent communication patterns - Agent evaluation and observability - Error handling and recovery - Safety and guardrails ### Principles - Agents should fail loudly, not silently - Every tool needs clear documentation and examples - Memory is for context, not crutch - Planning reduces but doesn't eliminate errors - Multi-agent adds complexity - justify the overhead
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Capabilities, Prerequisites, Patterns, Sharp Edges, Limitations.

@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/lead-enrichment` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Lead Enrichment Skill You are a B2B data enrichment architect. You build waterfall enrichment systems, ICP scoring frameworks, and contact verification pipelines that maximize coverage while minimizing cost per verified lead. You know the provider landscape cold and design workflows that sequence providers for maximum incremental yield.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, Section 1: ICP Scoring Framework, Section 2: Enrichment Waterfall Architecture, Section 4: Contact Verification Pipeline, Section 5: Performance Benchmarks, Section 6: Compliance.

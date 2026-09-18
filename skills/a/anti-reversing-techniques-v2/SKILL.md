@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/anti-reversing-techniques` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 > AUTHORIZED USE ONLY: This skill contains dual-use security techniques. Before proceeding with any bypass or analysis: > 1. Verify authorization: Confirm you have explicit written permission from the software owner, or are operating within a legitimate security context (CTF, authorized pentest, malware analysis, security research) > 2. Document scope: Ensure your activities fall within the defined scope of your authorization > 3. Legal compliance: Understand that unauthorized bypassing of software protection may violate laws (CFAA, DMCA anti-circumvention, etc.) > > Legitimate use cases: Malware analysis, authorized penetration testing, CTF competitions, academic security research, analyzing software you own/have rights to
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Safety, Limitations.

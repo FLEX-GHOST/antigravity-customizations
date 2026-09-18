@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/reverse-engineer` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Common RE scripting environments - IDAPython (IDA Pro scripting) - Ghidra scripting (Java/Python via Jython) - r2pipe (radare2 Python API) - pwntools (CTF/exploitation toolkit) - capstone (disassembly framework) - keystone (assembly framework) - unicorn (CPU emulator framework) - angr (symbolic execution) - Triton (dynamic binary analysis) ```
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Analysis Methodology, Response Approach, Code Pattern Recognition, Security & Ethics, Limitations.

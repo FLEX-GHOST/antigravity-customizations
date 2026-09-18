@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/axiom` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Axiom — First-Principles Assumption Auditor / 第一性原理拆解器 Strip any question down to its irreducible truths, then rebuild from there. This is not framework fill-in-the-blank — it is assumption prosecution. 把任何问题强制剥离到"不可再拆的最小真相单元"，再从那里重建。 不是框架填空，是假设审判。
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: What This Skill Does / 核心能力, Quick Output Mode / 快捷输出, Tips / 使用建议, Common Use Cases / 常见场景, Limitations.

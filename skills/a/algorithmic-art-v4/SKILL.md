@@ -17,12 +17,6 @@ date_updated: "2026-04-26"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-bundle-indie-game-dev/skills/algorithmic-art` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 Algorithmic philosophies are computational aesthetic movements that are then expressed through code. Output .md files (philosophy), .html files (interactive viewer), and .js files (generative algorithms). This happens in two steps: 1. Algorithmic Philosophy Creation (.md file) 2. Express by creating p5.js generative art (.html + .js files) First, undertake this task:
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: ALGORITHMIC PHILOSOPHY CREATION, DEDUCING THE CONCEPTUAL SEED, P5.JS IMPLEMENTATION, INTERACTIVE ARTIFACT CREATION, VARIATIONS & EXPLORATION, Limitations.

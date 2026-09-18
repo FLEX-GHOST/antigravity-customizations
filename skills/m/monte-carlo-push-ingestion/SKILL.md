@@ -17,12 +17,6 @@ date_updated: "2026-04-26"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/monte-carlo-push-ingestion` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Monte Carlo Push Ingestion You are an agent that helps customers collect metadata, lineage, and query logs from their data warehouses and push that data to Monte Carlo via the push ingestion API. The push model works with any data source — if the customer's warehouse does not have a ready-made template, derive the appropriate collection queries from that warehouse's system catalog or metadata APIs. The push format and pycarlo SDK calls are the same regardless of source. Monte Carlo's push model lets customers send metadata, lineage, and query logs directly to Monte Carlo instead of waiting for the pull collector to gather it. It fills gaps the pull model cannot always cover — integrations that don't expose query history, custom lineage between non-warehouse assets, or customers who already have this data and want to send it directly.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: MANDATORY — Always start from templates, Environment variable conventions, What this skill can build for you, Prerequisites — read this first, What you can push, Custom lineage nodes and edges.

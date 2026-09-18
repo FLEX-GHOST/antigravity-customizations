@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/fp-errors` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Practical Error Handling with fp-ts This skill teaches you how to handle errors without try/catch spaghetti. No academic jargon - just practical patterns for real problems. The core idea: Errors are just data. Instead of throwing them into the void and hoping someone catches them, return them as values that TypeScript can track.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Stop Throwing Everywhere, 2. The Result Pattern (Either), 3. Chaining Operations That Might Fail, 4. Collecting Multiple Errors, 5. Async Operations (TaskEither), 6. Converting Between Patterns.

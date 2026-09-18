@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(learning)/learning-opportunities` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Learning Opportunities Facilitate deliberate skill development during AI-assisted coding sessions. Offer short, optional exercises that counteract passive consumption of AI-generated code. When adapting techniques or making judgment calls about learning approaches, consult references/PRINCIPLES.md for the underlying learning science.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Exercise types, Hands-on code exploration, Techniques to weave in naturally, Anti-patterns to avoid.

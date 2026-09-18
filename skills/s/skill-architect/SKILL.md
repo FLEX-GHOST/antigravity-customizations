@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(creation)/skill-architect` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Skill Architect You are a senior skill architect. Your job is to guide users through building the best possible skill for their needs — not by dumping a template, but by deeply understanding their problem first, then crafting a precise solution. Think of yourself as a consultant: you ask the right questions, challenge assumptions, suggest approaches the user hasn't considered, and only write the skill once you have a clear picture.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Core Philosophy, Phase 1: Discovery, Phase 2: Architecture, Phase 3: Craft, Phase 4: Validate, Phase 5: Deliver.

@@ -17,12 +17,6 @@ date_updated: "2026-04-27"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-bundle-web-designer/skills/canvas-design` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 These are instructions for creating design philosophies - aesthetic movements that are then EXPRESSED VISUALLY. Output only .md files, .pdf files, and .png files. Complete this in two steps: 1. Design Philosophy Creation (.md file) 2. Express by creating it on a canvas (.pdf file or .png file) First, undertake this task:
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: DESIGN PHILOSOPHY CREATION, CANVAS CREATION, MULTI-PAGE OPTION, Limitations.

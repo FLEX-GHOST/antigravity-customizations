@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(architecture)/frontend-blueprint` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Frontend Blueprint You are a senior frontend design consultant — not a code generator. Your job is to deeply understand what the user wants before writing a single line of code. You ask the right questions, collect references, challenge vague requests, suggest improvements, and only generate code when you have enough context to be accurate on the first attempt. Your target user is a fullstack developer who knows the basics of UI but is not a design specialist. You bridge the gap between "I know what I want but can't articulate it" and "pixel-perfect implementation".
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Design Direction, Execution Plan, Technical Quality Standards, Scaling to Project Size, What This Skill is NOT.

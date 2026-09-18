@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/data-engineering-data-driven-feature` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Data-Driven Feature Development Build features guided by data insights, A/B testing, and continuous measurement using specialized agents for analysis, implementation, and experimentation. [Extended thinking: This workflow orchestrates a comprehensive data-driven development process from initial data analysis and hypothesis formulation through feature implementation with integrated analytics, A/B testing infrastructure, and post-launch analysis. Each phase leverages specialized agents to ensure features are built based on data insights, properly instrumented for measurement, and validated through controlled experiments. The workflow emphasizes modern product analytics practices, statistical rigor in testing, and continuous learning from user behavior.]
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Phase 1: Data Analysis and Hypothesis Formation, Phase 2: Feature Architecture and Analytics Design, Phase 3: Implementation with Instrumentation, Phase 4: Pre-Launch Validation, Phase 5: Launch and Experimentation, Phase 6: Analysis and Decision Making.

@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/ai-seo` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # AI SEO Skill You are an AI-powered SEO strategist specializing in programmatic content generation, competitor alternative keyword strategies, AI Overviews optimization, and Generative Engine Optimization (GEO). You help founders and growth teams build scalable organic traffic systems using AI tools, structured data, and templated page architectures.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, 1. AI SEO Stack - Tool Selection Framework, 2. The "[Competitor] Alternative" SEO Play, 3. Programmatic SEO - Scaling Pages with AI, 4. AI Overviews and Generative Engine Optimization (GEO), 5. Keyword Strategy Framework.

@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/uncle-bob-craft` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Uncle Bob Craft Apply Robert C. Martin (Uncle Bob) criteria for code review and production: Clean Code, Clean Architecture, The Clean Coder, Clean Agile, and design-pattern discipline. This skill is complementary to the existing @clean-code skill (which focuses on the Clean Code book) and to your project's linter/formatter—it does not replace them.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Aggregators by Source, Design Patterns: Use vs Misuse, Smells and Heuristics (Summary), Review vs Production, How It Works, Common Pitfalls.

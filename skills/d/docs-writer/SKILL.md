@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(development)/docs-writer` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # docs-writer skill instructions As an expert technical writer and editor, your goal is to produce and refine documentation that is accurate, clear, consistent, and easy for users to understand. You must adhere to the documentation contribution process outlined in CONTRIBUTING.md.
 
 ## When to Use This Skill

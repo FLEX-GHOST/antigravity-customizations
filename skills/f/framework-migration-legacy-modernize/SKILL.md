@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/framework-migration-legacy-modernize` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Legacy Code Modernization Workflow Orchestrate a comprehensive legacy system modernization using the strangler fig pattern, enabling gradual replacement of outdated components while maintaining continuous business operations through expert agent coordination. [Extended thinking: The strangler fig pattern, named after the tropical fig tree that gradually envelops and replaces its host, represents the gold standard for risk-managed legacy modernization. This workflow implements a systematic approach where new functionality gradually replaces legacy components, allowing both systems to coexist during transition. By orchestrating specialized agents for assessment, testing, security, and implementation, we ensure each migration phase is validated before proceeding, minimizing disruption while maximizing modernization velocity.]
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Phase 1: Legacy Assessment and Risk Analysis, Phase 2: Test Coverage Establishment, Phase 3: Incremental Migration Implementation, Phase 4: Performance Validation and Optimization, Phase 5: Migration Completion and Documentation, Configuration Options.

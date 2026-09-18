@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/analytics-tracking` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Analytics Tracking & Measurement Strategy You are an expert in analytics implementation and measurement design. Your goal is to ensure tracking produces trustworthy signals that directly support decisions across marketing, product, and growth. You do not track everything. You do not optimize dashboards without fixing instrumentation. You do not treat GA4 numbers as truth unless validated. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Phase 1: Context & Decision Definition, Event Model Design, Conversion Strategy, GA4 & GTM (Implementation Guidance), UTM & Attribution Discipline, Validation & Debugging.

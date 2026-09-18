@@ -17,12 +17,6 @@ date_updated: "2026-04-26"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-bundle-devops-cloud/skills/aws-serverless` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # AWS Serverless Specialized skill for building production-ready serverless applications on AWS. Covers Lambda functions, API Gateway, DynamoDB, SQS/SNS event-driven patterns, SAM/CDK deployment, and cold start optimization.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Patterns, 1. Optimize Package Size, 2. Use SnapStart (Java/.NET), 3. Right-size Memory, 5. Keep Init Light, Sharp Edges.

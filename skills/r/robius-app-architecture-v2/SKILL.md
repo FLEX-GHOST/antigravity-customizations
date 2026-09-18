@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/robius-app-architecture` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Robius App Architecture Skill Best practices for structuring Makepad applications based on the Robrix and Moly codebases - production applications built with Makepad and Robius framework. Source codebases: - Robrix: Matrix chat client - complex sync/async with background subscriptions - Moly: AI chat application - cross-platform (native + WASM) with streaming APIs
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Production Patterns, Core Architecture Pattern, App Structure, Tokio Runtime Integration, Lock-Free Update Queue Pattern, Startup Sequence.

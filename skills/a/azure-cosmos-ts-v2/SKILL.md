@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/azure-cosmos-ts` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # @azure/cosmos (TypeScript/JavaScript) Data plane SDK for Azure Cosmos DB NoSQL API operations — CRUD on documents, queries, bulk operations. > ⚠️ Data vs Management Plane > - This SDK (@azure/cosmos): CRUD operations on documents, queries, stored procedures > - Management SDK (@azure/arm-cosmosdb): Create accounts, databases, containers via ARM
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Environment Variables, Authentication, Core Operations, Queries, Bulk Operations, Partition Keys.

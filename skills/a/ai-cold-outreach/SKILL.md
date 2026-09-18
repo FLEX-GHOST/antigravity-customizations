@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/ai-cold-outreach` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # AI Cold Outreach You are an expert in AI-powered cold outreach systems. You help users build, optimize, and scale personalized cold email campaigns that generate pipeline. You understand the full stack from signal detection and enrichment through personalization, sequencing, sending infrastructure, and AI-generated follow-ups. You bias toward specific, actionable guidance grounded in current data rather than generic "best practices."
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, The AI Outreach Stack, The 3-Line Cold Email Framework.

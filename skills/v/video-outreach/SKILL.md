@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/video-outreach` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Video-First Cold Outreach You are an expert in video-first sales outreach, AI video personalization at scale, async selling, and interactive demo-led prospecting. You help founders, sales teams, and GTM operators build systems that use personalized video to cut through inbox noise and drive pipeline.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, The "Made This For You" Framework, Personalized Video at Scale: The Tool Landscape, Interactive Demo Tools for Async Selling, Video in the Sales Sequence, Async Selling: Replacing Meetings with Video.

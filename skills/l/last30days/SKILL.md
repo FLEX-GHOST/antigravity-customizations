@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/last30days` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # last30days: Research Any Topic from the Last 30 Days Research ANY topic across Reddit, X, and the web. Surface what people are actually discussing, recommending, and debating right now. Use cases: - Prompting: "photorealistic people in Nano Banana Pro", "Midjourney prompts", "ChatGPT image generation" → learn techniques, get copy-paste prompts - Recommendations: "best Claude Code skills", "top AI tools" → get a LIST of specific things people mention - News: "what's happening with OpenAI", "latest AI announcements" → current events and updates - General: any topic you're curious about → understand what the community is saying
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: CRITICAL: Parse User Intent, Research Execution, Judge Agent: Synthesize All Sources, FIRST: Internalize the Research, THEN: Show Summary + Invite Vision, WAIT FOR USER'S VISION.

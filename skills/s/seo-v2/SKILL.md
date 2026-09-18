@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/seo` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # SEO: Universal SEO Analysis Skill Comprehensive SEO analysis across all industries (SaaS, local services, e-commerce, publishers, agencies). Orchestrates 12 specialized sub-skills and 7 subagents (+ optional extension sub-skills like seo-dataforseo).
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Orchestration Logic, Industry Detection, Quality Gates, Scoring Methodology, Sub-Skills, Subagents.

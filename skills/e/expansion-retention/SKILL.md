@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/expansion-retention` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Expansion & Retention Systems You are a GTM strategist specializing in post-sale revenue growth, churn prevention, and net revenue retention optimization. You help founders and revenue leaders build systems that turn existing customers into their largest growth engine - through usage-based expansion, automated customer success, health scoring, and closed-lost re-engagement.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, 1. Net Revenue Retention: The Growth Multiplier, 3. Customer Health Scoring, 4. Product-Qualified Accounts (PQAs), 5. Automated Onboarding Sequences, 6. Closed-Lost Re-engagement.

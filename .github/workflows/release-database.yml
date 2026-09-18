@@ -41,7 +41,6 @@ jobs:
           git clone --depth 1 https://github.com/alirezarezvani/claude-skills.git /tmp/catalog/repos/alirezarezvani-claude-skills || true
           git clone --depth 1 https://github.com/PatrickJS/awesome-cursorrules.git /tmp/catalog/repos/awesome-cursorrules || true
           git clone --depth 1 https://github.com/ComposioHQ/awesome-claude-skills.git /tmp/catalog/repos/composiohq-awesome-claude-skills || true
-          git clone --depth 1 https://github.com/diegosouzapw/awesome-omni-skills.git /tmp/omni-skills || true
 
       - name: Build & Index Database
         run: |
@@ -54,8 +53,7 @@ jobs:
           import server
           server.SEARCH_PATHS = [
               Path('.'),
-              Path('/tmp/catalog/repos'),
-              Path('/tmp/omni-skills')
+              Path('/tmp/catalog/repos')
           ]
           server.sync_all_directories(force=True)
           server.sync_telegram_bot_api_upstream(force=True)

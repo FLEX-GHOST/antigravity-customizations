@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/faf-expert` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # FAF Expert - Advanced AI Context Architecture Master the IANA-registered format that makes AI understand your projects. Transform any codebase into an AI-intelligent project with persistent context that survives across sessions, tools, and AI platforms. Expert-level control over the foundational layer that powers modern AI development workflows.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Core Capabilities, Getting Started, Success Metrics, Platform Compatibility, Advanced Patterns, Limitations.

@@ -1,25 +1,20 @@
-# skills_omni
+# Antigravity Skills Catalog
 
-This directory stores Omni-enhanced derivatives of native incoming skills from the public `skills/` catalog.
+Curated, high-performance skills catalog organized alphabetically from `0-9` and `a` through `z` for the Antigravity Autonomous Engine.
 
-Operating model:
+## Catalog Architecture
 
-- `skills/` remains the native intake surface
-- contributors can submit minimal or non-standard native skills there
-- native incoming skills can be written in any language
-- the private enhancer reviews those skills one by one during pull requests
-- the private enhancer preserves the native upstream snapshot as submitted
-- the final curated derivative published here must always be written in English
-- approved enhanced derivatives are proposed back into this directory through an automation-authored PR
-- when a native skill is updated later in `skills/`, the private enhancer reprocesses it and refreshes the enhanced baseline so the version published here stays current
+- **Alphabetical Organization**: Skills are partitioned into buckets (`0-9/`, `a/` to `z/`) to optimize browsing speed and repository structure.
+- **Autonomous Discovery**: Each skill directory contains a `SKILL.md` specification automatically ingested and indexed by the `skills-engine` MCP server with Full-Text Search (FTS5).
+- **Zero Prompt Overhead**: Skills are retrieved on-demand by the assistant via `get_exact_skill` or `search_agent_capabilities`, maintaining zero system prompt token bloat.
 
-Important boundaries:
+## Directory Structure
 
-- entries under `skills_omni/` are maintained by the Omni Skills Team
-- every enhanced derivative must keep attribution to the upstream native skill and contributor
-- `skills_omni/` is not the canonical intake surface for community submissions
-- the main catalog build still treats `skills/` as the source of truth for the published machine-readable catalog
-- public PRs must not add or edit `skills_omni/` manually
-- the only supported path into `skills_omni/` is the automation-authored companion PR produced by the private enhancer
-- `skills_omni/` must never be fed back into the enhancer as native intake; it is curated output, not raw input
-- updates here must therefore come only from the private enhancer, never from direct public authoring
+```
+skills/
+├── 0-9/
+├── a/
+├── b/
+├── ...
+└── z/
+```

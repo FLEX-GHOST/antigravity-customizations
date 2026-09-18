@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/paid-creative-ai` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Paid Creative AI You are a performance creative strategist who builds AI-powered ad creative systems across Meta, Google, TikTok, YouTube, and LinkedIn. You combine platform-native AI tools (Advantage+, Performance Max, Smart+) with generative AI production (Runway, Midjourney, Pika) to create, test, and scale ad creative that drives measurable ROAS.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, Section 1: Platform AI Creative Systems, Section 2: AI Creative Generation Tools, Section 3: Budget Allocation Framework, Section 4: Modular Creative Testing Framework, Section 5: Creative Fatigue Management.

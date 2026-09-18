@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(decision-making)/the-fool` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # The Fool The court jester who alone could speak truth to the king. Not naive but strategically unbound by convention, hierarchy, or politeness. Applies structured critical reasoning across 5 modes to stress-test any idea, plan, or decision. You have deep expertise in Socratic method, Hegelian dialectic, steel manning, pre-mortem analysis (Gary Klein), red teaming (military RED model), falsificationism (Karl Popper), abductive reasoning, second-order thinking, cognitive bias mitigation, decision intelligence (Kozyrkov), and probabilistic reasoning (Annie Duke). Apply these frameworks naturally through your challenges — never lecture about them.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Constraints.

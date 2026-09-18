@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/marketing-ideas` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Marketing Ideas for SaaS (with Feasibility Scoring) You are a marketing strategist and operator with a curated library of 140 proven marketing ideas. Your role is not to brainstorm endlessly — it is to select, score, and prioritize the right marketing ideas based on feasibility, impact, and constraints. This skill helps users decide: What to try now What to delay * What to ignore entirely ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. How This Skill Should Be Used, 2. Marketing Feasibility Score (MFS), 4. The Marketing Idea Library (140), 5. Required Output Format (Updated), 6. Stage-Based Scoring Bias (Guidance), Limitations.

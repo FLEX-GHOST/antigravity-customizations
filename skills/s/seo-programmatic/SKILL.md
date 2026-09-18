@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/seo-programmatic` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Programmatic SEO Analysis & Planning Build and audit SEO pages generated at scale from structured data sources. Enforces quality gates to prevent thin content penalties and index bloat.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Data Source Assessment, Template Engine Planning, URL Pattern Strategy, Internal Linking Automation, Thin Content Safeguards, Canonical Strategy.

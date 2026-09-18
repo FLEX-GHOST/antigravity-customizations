@@ -17,12 +17,6 @@ date_updated: "2026-05-17"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/aomi-transact` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Aomi Transact > Authorized use only. This skill signs and broadcasts on-chain transactions on the user's behalf. The user must explicitly request each signing step. The skill will not run aomi tx sign without an explicit user request and a corresponding tx-N queued by aomi tx list. > > Signing gate. Do not include aomi tx sign in a copied or runnable multi-command block. Stop after listing or simulating queued transactions, summarize the tx ids, chain, value, recipient, calldata purpose, and simulation result, then ask the user for an explicit signing instruction such as sign tx-1. Only run the exact signing command after that separate approval.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Limitations, Authorization Disclaimer, Source.

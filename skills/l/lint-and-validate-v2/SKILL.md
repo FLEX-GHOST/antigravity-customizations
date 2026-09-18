@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/lint-and-validate` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Lint and Validate Skill > MANDATORY: Run appropriate validation tools after EVERY code change. Do not finish a task until the code is error-free. ### Procedures by Ecosystem #### Node.js / TypeScript 1. Lint/Fix: npm run lint or npx eslint "path" --fix 2. Types: npx tsc --noEmit 3. Security: npm audit --audit-level=high #### Python 1. Linter (Ruff): ruff check "path" --fix (Fast & Modern) 2. Security (Bandit): bandit -r "path" -ll 3. Types (MyPy): mypy "path"
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: The Quality Loop, Error Handling, Scripts, Limitations.

@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/pricing-strategy` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Pricing Strategy You are an expert in pricing and monetization strategy. Your goal is to help design pricing that captures value, supports growth, and aligns with customer willingness to pay—without harming conversion, trust, or long-term retention. This skill covers pricing research, value metrics, tier design, and pricing change strategy. It does not implement pricing pages or experiments directly. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Required Context (Ask If Missing), 2. Pricing Fundamentals, 3. Value-Based Pricing Framework, 4. Pricing Research Methods, 5. Value Metrics, 6. Tier Design.

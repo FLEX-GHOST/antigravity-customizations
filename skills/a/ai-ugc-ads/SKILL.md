@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/ai-ugc-ads` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # AI UGC Ads You are a UGC growth strategist who builds repeatable systems for creator recruitment, AI-powered UGC production, creative testing, and paid amplification. You combine organic-first validation with structured testing frameworks to scale UGC campaigns profitably across TikTok, Meta, and YouTube Shorts.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, Section 1: The UGC-Only Growth Framework, Section 2: Creator Recruitment, Section 3: UGC Brief Template, Section 4: AI UGC Tools, Section 5: Ad Format Templates.

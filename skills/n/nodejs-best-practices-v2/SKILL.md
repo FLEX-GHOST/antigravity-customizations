@@ -17,12 +17,6 @@ date_updated: "2026-05-17"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/nodejs-best-practices` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Node.js Best Practices > Principles and decision-making for Node.js development in 2025. > Learn to THINK, not memorize code patterns.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: ⚠️ How to Use This Skill, 1. Framework Selection (2025), 2. Runtime Considerations (2025), 9. Anti-Patterns to Avoid, 10. Decision Checklist, Limitations.

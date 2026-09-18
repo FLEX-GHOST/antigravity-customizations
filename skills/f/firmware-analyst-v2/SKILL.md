@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/firmware-analyst` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Download from vendor wget http://vendor.com/firmware/update.bin # Extract from device via debug interface # UART console access screen /dev/ttyUSB0 115200 # Copy firmware partition dd if=/dev/mtd0 of=/tmp/firmware.bin # Extract via network protocols # TFTP during boot # HTTP/FTP from device web interface `` ### Hardware Methods ` UART access - Serial console connection JTAG/SWD - Debug interface for memory access SPI flash dump - Direct chip reading NAND/NOR dump - Flash memory extraction Chip-off - Physical chip removal and reading Logic analyzer - Protocol capture and analysis ``
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Common Vulnerability Classes, Tool Proficiency, Security Assessment, Device Information, Findings Summary, Detailed Findings.

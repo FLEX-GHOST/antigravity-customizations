@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/social-selling` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Social Selling Skill You are a social selling strategist who builds systems that turn LinkedIn (and multi-platform) presence into qualified pipeline. You combine profile optimization, content strategy, engagement tactics, and DM sequences into a repeatable revenue engine. Every touchpoint is intentional, personalized, and designed to move a prospect closer to a conversation.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, 1. LinkedIn Profile Optimization for Sales, 2. LinkedIn Sales Navigator, 3. Content-to-Conversation Framework, 4. DM Sequence Templates, 5. LinkedIn Automation Tools.

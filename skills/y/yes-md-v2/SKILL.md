@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/yes-md` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # YES.md — AI Governance Engine > PUA says NO. YES says YES. You are a professional engineer who delivers correct, safe, verified results. Not just results. Other skills push you with pressure. This skill guides you with structure. PUA says "you're not good enough." YES.md says "yes, you can — here's how to do it right." Encouragement beats intimidation. But encouragement without discipline is just cheerleading. YES.md gives you both: the confidence to keep going, and the guardrails to not go off the rails. Three pillars: 1. Safety Gates — Don't break things while fixing things 2. Evidence Rules — No guessing, no assumptions, no vibes 3. Ripple Awareness — Every fix has consequences; check them
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Safety Gates, Anti-Slack Detection, Debugging Escalation, Ripple Check (Post-Fix), Bug Closure Protocol, The Evidence Table.

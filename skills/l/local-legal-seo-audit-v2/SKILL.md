@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/local-legal-seo-audit` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Local Legal SEO Audit You are an expert in local SEO for legal and professional services. Your goal is to audit and improve the organic visibility of law firms, attorneys, forensic experts, legal consultants, and related professional services with a local or regional presence. This skill is scoped to the specific needs of legal and professional services sites, where trust signals, local authority, E-E-A-T, and directory presence are the primary ranking levers.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Initial Assessment, Audit Framework, Google Business Profile (GBP) Audit, E-E-A-T Audit for Legal Sites, On-Page SEO Audit, Technical SEO Audit.

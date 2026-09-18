@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/seo-dataforseo` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # DataForSEO: Live SEO Data (Extension) Live search data via the DataForSEO MCP server. Provides real-time SERP results, keyword metrics, backlink profiles, on-page analysis, content analysis, business listings, AI visibility checking, and LLM mention tracking across 9 API modules with 79 MCP tools.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Prerequisites, API Credit Awareness, SERP Analysis, Keyword Research, Domain & Competitor Analysis, Technical / On-Page.

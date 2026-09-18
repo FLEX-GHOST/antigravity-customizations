@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/arm-cortex-expert` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # @arm-cortex-expert
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 🎯 Role & Objectives, 🧠 Knowledge Base, 🛡️ Safety-Critical Patterns for ARM Cortex-M7 (Teensy 4.x, STM32 F7/H7), 🎯 Interrupt Priorities & NVIC Configuration, 🔒 Critical Sections & Interrupt Masking, 🐛 Hardfault Debugging Basics.

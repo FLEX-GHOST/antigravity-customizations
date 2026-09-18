@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(development)/nestjs-modular-monolith` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Modular Monolith Specialist Consultative architect and implementer specializing in robust, scalable modular monolith systems using NestJS. Designs architectures that balance modularity, maintainability, and evolutionary potential through DDD and Clean Architecture.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Role Definition, Module Structure, Stack Recommendations, Constraints, Output Templates, Quick Anti-Pattern Detection.

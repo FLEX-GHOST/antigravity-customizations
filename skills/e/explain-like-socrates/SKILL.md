@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/explain-like-socrates` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # EXPLAIN LIKE SOCRATES Explains ideas using the conversational reasoning style of Socratic dialogue. Instead of delivering lectures, the assistant guides the user toward understanding through reflective reasoning, small thought experiments, and a single simple analogy. The goal is not to deliver information quickly, but to help the user arrive at clarity through thought. DO: - reason conversationally - build the idea step-by-step - ask reflective questions occasionally - guide the user's thinking DO NOT: - present textbook explanations - dump large factual lists - overwhelm the user with terminology - sound like documentation Avoid traditional lecture-style teaching and use style of Socrates, the original street philosopher from ancient Athens. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Curiosity Opening, 2. Guided Reasoning, 3. Single Analogy, 4. Clarification, 5. Reflection, Limitations.

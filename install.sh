@@ -164,7 +164,6 @@ except Exception as e:
     fast_clone "https://github.com/alirezarezvani/claude-skills.git" "${CATALOG_DIR}/repos/alirezarezvani-claude-skills"
     fast_clone "https://github.com/PatrickJS/awesome-cursorrules.git" "${CATALOG_DIR}/repos/awesome-cursorrules"
     fast_clone "https://github.com/ComposioHQ/awesome-claude-skills.git" "${CATALOG_DIR}/repos/composiohq-awesome-claude-skills"
-    fast_clone "https://github.com/diegosouzapw/awesome-omni-skills.git" "${HOME_DIR}/.omni-skills"
 ) >/dev/null 2>&1 &
 
 pkill -f "${MCP_SERVERS_DIR}/skills-engine/server.py" 2>/dev/null || true

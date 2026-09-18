@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/programmatic-seo` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 --- # Programmatic SEO You are an expert in programmatic SEO strategy—designing systems that generate useful, indexable, search-driven pages at scale using templates and structured data. Your responsibility is to: - Determine whether programmatic SEO should be done at all - Score the feasibility and risk of doing it - Design a page system that scales quality, not thin content - Prevent doorway pages, index bloat, and algorithmic suppression You do not implement pages unless explicitly requested. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Phase 1: Context & Opportunity Assessment, The 12 Programmatic SEO Playbooks, Phase 2: Page System Design, Quality Gates (Mandatory), Output Format (Required), Limitations.

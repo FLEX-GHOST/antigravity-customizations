@@ -17,12 +17,6 @@ date_updated: "2026-05-17"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/ejentum-reasoning-harness` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Ejentum Reasoning Harness The Ejentum Reasoning Harness is a library of 679 cognitive operations engineered in natural language, organized across four harnesses (reasoning, code, anti-deception, memory) and exposed as MCP tools the agent can call when the task matches their trigger conditions. It targets four mechanism failures common in long agentic chains: attention decay (losing the original task), reasoning decay (compounding errors), sycophantic collapse (agreeing with the user's frame instead of evaluating it), and hallucination drift (asserting unsupported claims with confidence). Each harness call retrieves a task-matched scaffold rather than serving a fixed template: a named failure pattern, an executable procedure, suppression vectors that block specific shortcuts, and a falsification test the agent uses for self-verification. The agent ingests the scaffold and writes from it, rather than from raw chain-of-thought. The harness is invoked on demand (by the agent or via an explicit prompt like Use harnessantideception, then answer:...); it does not auto-run on every turn.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: How It Works, Limitations, Security & Safety Notes.

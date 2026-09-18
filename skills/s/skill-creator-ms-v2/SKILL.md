@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/skill-creator-ms` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Skill Creator Guide for creating skills that extend AI agent capabilities, with emphasis on Azure SDKs and Microsoft Foundry. > Required Context: When creating SDK or API skills, users MUST provide the SDK package name, documentation URL, or repository reference for the skill to be based on.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: About Skills, Before Implementation, Skill Structure, Creating Azure SDK Skills, Environment Variables, Authentication.

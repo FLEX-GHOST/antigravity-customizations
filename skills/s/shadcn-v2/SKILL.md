@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/shadcn` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # shadcn/ui A framework for building ui, components and design systems. Components are added as source code to the user's project via the CLI. > IMPORTANT: Run all CLI commands using the project's package runner: npx shadcn@latest, pnpm dlx shadcn@latest, or bunx --bun shadcn@latest — based on the project's packageManager. Examples below use npx shadcn@latest but substitute the correct runner for the project.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Current Project Context, Key Patterns, Component Selection, Key Fields, Updating Components, Limitations.

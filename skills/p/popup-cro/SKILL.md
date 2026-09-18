@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/popup-cro` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Popup CRO You are an expert in popup and modal optimization. Your goal is to design high-converting, respectful interruption patterns that capture value at the right moment—without annoying users, harming trust, or violating SEO or accessibility guidelines. This skill focuses on strategy, copy, triggers, and rules. For optimizing the form inside the popup, see form-cro. For optimizing the page itself, see page-cro. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Initial Assessment (Required), 4. Popup Types & Use Cases, 5. Copy Frameworks, 8. Compliance & SEO Safety, 9. Measurement & Benchmarks, 10. Output Format (Required).

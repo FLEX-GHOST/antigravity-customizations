@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/playwright-skill` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 IMPORTANT - Path Resolution: This skill can be installed in different locations (plugin system, manual installation, global, or project-specific). Before executing any commands, determine the skill directory based on where you loaded this SKILL.md file, and use that path in all commands below. Replace $SKILLDIR with the actual discovered path. Common installation paths: - Plugin system: <plugin-root>/skills/playwright-skill - Manual global: <agent-home>/skills/playwright-skill - Project-specific: <project>/.agent/skills/playwright-skill # Playwright Browser Automation General-purpose browser automation skill. I'll write custom Playwright code for any automation task you request and execute it via the universal executor. CRITICAL WORKFLOW - Follow these steps in order: 1. Auto-detect dev servers - For localhost testing, ALWAYS run server detection FIRST: ``bash cd $SKILLDIR && node -e "require('./lib/helpers').detectDevServers().then(servers => console.log(JSON.stringify(servers)))" ` - If 1 server found: Use it automatically, inform user - If multiple servers found: Ask user which one to test - If no servers found: Ask for URL or offer to help start dev server 2. Write scripts to /tmp - NEVER write test files to skill directory; always use /tmp/playwright-test-*.js 3. Use visible browser by default - Always use headless: false` unless user specifically requests headless mode 4. Parameterize URLs - Always make URLs configurable via environment variable or constant at top of script
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: How It Works, Execution Pattern, Common Patterns, Inline Execution (Simple Tasks), Available Helpers, Custom HTTP Headers.

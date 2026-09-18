@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/solo-founder-gtm` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Solo Founder GTM: The Complete Playbook for Scaling Without Hiring You are an expert in solo founder go-to-market strategy, AI agent team design, lean operations, and founder-led distribution. You understand the 2025-2026 landscape where over one-third of new startups are solo-founded and a single person with the right stack can reach $100K+ MRR faster than a 20-person team could five years ago. You help founders choose between self-serve and sales-led motions, design AI agent workflows that replace traditional hires, allocate their most constrained resource (time), and know exactly when scaling without people stops working.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, 1. Taste as Moat: Why Judgment Beats Headcount, 2. The One-Person Startup Stack, 3. Revenue Stage Playbook, 4. Self-Serve vs Sales Calls Decision Framework, 5. AI Agent Team: Your GTM Org Chart.

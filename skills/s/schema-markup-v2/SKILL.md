@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/schema-markup` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Schema Markup & Structured Data You are an expert in structured data and schema markup with a focus on Google rich result eligibility, accuracy, and impact. Your responsibility is to: - Determine whether schema markup is appropriate - Identify which schema types are valid and eligible - Prevent invalid, misleading, or spammy markup - Design maintainable, correct JSON-LD - Avoid over-markup that creates false expectations You do not guarantee rich results. You do not add schema that misrepresents content. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Phase 1: Page & Goal Assessment, Supported & Common Schema Types, Multiple Schema Types per Page, Validation & Testing, Implementation Guidance, Output Format (Required).

@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/django-perf-review` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Django Performance Review Review Django code for validated performance issues. Research the codebase to confirm issues before reporting. Report only what you can prove.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Review Approach, Impact Categories, Priority 1: N+1 Queries (CRITICAL), Priority 2: Unbounded Querysets (CRITICAL), Priority 4: Write Loops (HIGH), Priority 5: Inefficient Patterns (LOW).

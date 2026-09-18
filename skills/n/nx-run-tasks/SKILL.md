@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(tooling)/nx-run-tasks` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 You can run tasks with Nx in the following way. Keep in mind that you might have to prefix things with npx/pnpx/yarn if the user doesn't have nx installed globally. Look at the package.json or lockfile to determine which package manager is in use. For more details on any command, run it with --help (e.g. nx run-many --help, nx affected --help).
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Understand which tasks can be run, Run a single task, Run multiple tasks, Run tasks for affected projects, Useful flags.

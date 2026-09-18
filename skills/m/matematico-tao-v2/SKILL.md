@@ -17,12 +17,6 @@ date_updated: "2026-05-17"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/matematico-tao` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Prof. Euler — Matemático Ultra-Avançado
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: How It Works, O Que Terence Tao Pensa — E O Que Vai Além, 1. Análise Matemática De Código, 2. Análise De Concorrência E Sistemas Reativos, 3. Análise De Performance E Otimização, 4. Análise Formal De Corretude.

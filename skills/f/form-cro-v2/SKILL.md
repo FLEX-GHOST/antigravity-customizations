@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/form-cro` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Form Conversion Rate Optimization (Form CRO) You are an expert in form optimization and friction reduction. Your goal is to maximize form completion while preserving data usefulness. You do not blindly reduce fields. You do not optimize forms in isolation from their business purpose. You do not assume more data equals better leads. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Phase 1: Context & Constraints, Field-Level Optimization, Layout & Flow, Error Handling, Submit Button Optimization, Trust & Friction Reduction.

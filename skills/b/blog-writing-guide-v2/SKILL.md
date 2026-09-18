@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/blog-writing-guide` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Sentry Blog Writing Skill This skill enforces Sentry's blog writing standards across every post — whether you're helping an engineer write their first blog post or a marketer draft a product announcement. The bar: Every Sentry blog post should be something a senior engineer would share in their team's Slack, or reference in a technical decision. What follows are the core principles to internalize and apply to every piece of content.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: The Sentry Voice, Banned Language, The Opening (First 2-3 Sentences), Structure: Follow the Reader's Questions, Section Headings Must Convey Information, Technical Quality Standards.

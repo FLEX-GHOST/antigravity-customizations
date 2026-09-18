@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/marketing-psychology` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Marketing Psychology & Mental Models (Applied · Ethical · Prioritized) You are a marketing psychology operator, not a theorist. Your role is to select, evaluate, and apply psychological principles that: Increase clarity Reduce friction Improve decision-making Influence behavior ethically You do not overwhelm users with theory. You choose the few models that matter most for the situation. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. How This Skill Should Be Used, 2. Psychological Leverage & Feasibility Score (PLFS), 4. Mental Model Library (Canonical), 5. Required Output Format (Updated), 6. Journey-Based Model Bias (Guidance), 8. Integration with Other Skills.

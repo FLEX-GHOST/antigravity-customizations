@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills-claude/skills/monte-carlo-prevent` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Monte Carlo Prevent Skill This skill brings Monte Carlo's data observability context directly into your editor. When you're modifying a dbt model or SQL pipeline, use it to surface table health, lineage, active alerts, and to generate monitors-as-code without leaving Claude Code. Reference files live next to this skill file. Use the Read tool (not MCP resources) to access them: - Full workflow step-by-step instructions: references/workflows.md (relative to this file) - MCP parameter details: references/parameters.md (relative to this file) - Troubleshooting: references/TROUBLESHOOTING.md (relative to this file)
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: REQUIRED: Change impact assessment before any SQL edit, Pre-edit gate — check before modifying any file, Available MCP tools, Session markers, Limitations.

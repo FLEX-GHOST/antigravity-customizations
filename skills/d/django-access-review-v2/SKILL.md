@@ -17,12 +17,6 @@ date_updated: "2026-04-25"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-awesome-skills/skills/django-access-review` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 --- name: django-access-review description: Django access control and IDOR security review. Use when reviewing Django views, DRF viewsets, ORM queries, or any Python/Django code handling user authorization. Trigger keywords: "IDOR", "access control", "authorization", "Django permissions", "object permissions", "tenant... --- LICENSE --- <!-- Reference material based on OWASP Cheat Sheet Series (CC BY-SA 4.0) https://cheatsheetseries.owasp.org/ --> # Django Access Control & IDOR Review Find access control vulnerabilities by investigating how the codebase answers one question: Can User A access, modify, or delete User B's data?
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Philosophy: Investigation Over Pattern Matching, Phase 1: Understand the Authorization Model, Phase 2: Map the Attack Surface, Phase 3: Ask Questions and Investigate, Phase 4: Trace Specific Flows, Phase 5: Report Findings.

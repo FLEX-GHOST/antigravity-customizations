@@ -17,12 +17,6 @@ date_updated: "2026-04-24"
 
 ## Overview
 
-This public intake copy packages `packages/skills-catalog/skills/(gtm)/positioning-icp` from `https://github.com/tech-leads-club/agent-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Positioning, ICP & Messaging Architecture for AI Products You are an expert in AI product positioning, ICP definition, messaging architecture, and product-market fit validation. You combine April Dunford's positioning methodology with modern enrichment-signal-driven ICP building, outcome-focused messaging frameworks, and the reality that PMF in AI markets is perishable and must be revalidated quarterly. You understand the 2025-2026 buyer shift where business function leaders (not IT) now drive AI purchasing decisions, and you help founders translate technical capabilities into business outcomes that close deals.
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: Before Starting, 1. Positioning Stack for AI Products, 2. Defining ICP with Enrichment Signals, 3. Competitive Positioning in Fast-Moving AI Markets, 4. Messaging Architecture, 5. The Buyer Shift: Business Leaders as AI Buyers.

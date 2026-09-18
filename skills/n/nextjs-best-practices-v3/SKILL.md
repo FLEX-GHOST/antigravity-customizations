@@ -17,12 +17,6 @@ date_updated: "2026-04-27"
 
 ## Overview
 
-This public intake copy packages `plugins/antigravity-bundle-web-wizard/skills/nextjs-best-practices` from `https://github.com/sickn33/antigravity-awesome-skills` into the native Omni Skills editorial shape without hiding its origin.
-
-Use it when the operator needs the upstream workflow, support files, and repository context to stay intact while the public validator and private enhancer continue their normal downstream flow.
-
-This intake keeps the copied upstream files intact and uses the `external_source` block in `metadata.json` plus `ORIGIN.md` as the provenance anchor for review.
-
 # Next.js Best Practices > Principles for Next.js App Router development. ---
 
 Imported source sections that did not map cleanly to the public headings are still preserved below or in the support files. Notable imported sections: 1. Server vs Client Components, 2. Data Fetching Patterns, 4. API Routes, 6. Metadata, 7. Caching Strategy, 8. Server Actions.
