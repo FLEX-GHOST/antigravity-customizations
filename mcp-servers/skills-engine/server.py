@@ -1064,7 +1064,6 @@ def sync_all_directories(force: bool = False):
                 q_score, tier = compute_quality_score(str(p), content)
 
                 if tier == "stub" or q_score < 40:
-                    purged_stubs.append(item_id)
                     continue
 
                 if item_id in existing_items:
@@ -1104,7 +1103,6 @@ def sync_all_directories(force: bool = False):
                 q_score, tier = compute_quality_score(str(p), content)
 
                 if tier == "stub" or q_score < 40:
-                    purged_stubs.append(item_id)
                     continue
 
                 if item_id in existing_items:
@@ -1125,9 +1123,11 @@ def sync_all_directories(force: bool = False):
                 continue
 
     with conn:
-        for sid in purged_stubs:
-            conn.execute("DELETE FROM items WHERE id = ?", (sid,))
-            conn.execute("DELETE FROM items_fts WHERE id = ?", (sid,))
+        valid_inserted_ids = {row[0] for row in to_insert_items}
+        for sid in set(purged_stubs):
+            if sid not in valid_inserted_ids:
+                conn.execute("DELETE FROM items WHERE id = ?", (sid,))
+                conn.execute("DELETE FROM items_fts WHERE id = ?", (sid,))
 
         if to_insert_items:
             for i in range(0, len(to_insert_items), 500):
