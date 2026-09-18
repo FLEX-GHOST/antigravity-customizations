@@ -8,47 +8,43 @@ MCP_SERVERS_DIR="${HOME_DIR}/.gemini/mcp-servers"
 MCP_SCHEMAS_DIR="${HOME_DIR}/.gemini/antigravity-ide/mcp/skills-engine"
 CATALOG_DIR="${HOME_DIR}/.gemini/skills-catalog"
 
-echo "========================================================="
-echo "   Antigravity Customizations & MCP Server"
-echo "========================================================="
+echo "[*] Installing Antigravity Customizations..."
 
-# 1. Fast prerequisites verification
+# 1. System packages
 if ! command -v python3 >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
-    echo "[+] Installing core tools via system package manager..."
     if command -v apt-get >/dev/null 2>&1; then
-        apt-get update -qq && apt-get install -y -qq python3 python3-pip python3-yaml git curl sqlite3
+        apt-get update -qq && apt-get install -y -qq python3 python3-pip git curl sqlite3
     elif command -v yum >/dev/null 2>&1; then
         yum install -y -q python3 python3-pip git curl sqlite
     fi
 fi
 
-# 2. Fast Python deps check (bypasses debian PyJWT uninstall-no-record-file)
-echo "[+] Checking Python runtime..."
-python3 -c "from mcp.server.fastmcp import FastMCP" 2>/dev/null || python3 -c "from mcp.server.mcpserver import MCPServer" 2>/dev/null || python3 -c "from mcp.server import FastMCP" 2>/dev/null || {
-
-    python3 -m pip install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" pyyaml 2>/dev/null || \
-    pip3 install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" pyyaml
+# 2. Python runtime
+python3 -c "from mcp.server.fastmcp import FastMCP" 2>/dev/null || \
+python3 -c "from mcp.server.mcpserver import MCPServer" 2>/dev/null || \
+python3 -c "from mcp.server import FastMCP" 2>/dev/null || {
+    echo "[*] Installing mcp..."
+    python3 -m pip install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" 2>/dev/null || \
+    pip3 install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2"
 }
 
-# 3. Fast source retrieval via streaming tarball (10x faster than git clone)
+# 3. Download files
 TMP_SOURCE=""
 if [ -d "$(dirname "${BASH_SOURCE[0]}")/rules" ]; then
     SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
-    echo "[+] Streaming repository tarball (zero git overhead)..."
     TMP_SOURCE=$(mktemp -d)
     curl -fsSL "${REPO_URL}/archive/refs/heads/main.tar.gz" | tar -xz -C "$TMP_SOURCE" --strip-components=1
     SOURCE_DIR="$TMP_SOURCE"
 fi
 trap 'rm -rf "$TMP_SOURCE"' EXIT
 
-# 4. Instant directory scaffolding
+# 4. Scaffolding
 mkdir -p "${CONFIG_DIR}/rules" "${CONFIG_DIR}/plugins" "${CONFIG_DIR}/skills" \
          "${MCP_SERVERS_DIR}/skills-engine" "${MCP_SCHEMAS_DIR}" \
          "${CATALOG_DIR}/skills" "${CATALOG_DIR}/repos"
 
-# 5. Core Rules & Skills deployment
-echo "[+] Deploying governance rules & curated skills..."
+# 5. Deploy rules, skills, plugins
 cp -rf "${SOURCE_DIR}/rules/"*.md "${CONFIG_DIR}/rules/"
 rm -f "${CONFIG_DIR}/rules/mandatory_skills_activation.md" 2>/dev/null || true
 rm -rf "${CONFIG_DIR}/skills/"* 2>/dev/null || true
@@ -81,7 +77,7 @@ cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
 EOF_MCP
 sed -i "s|/root|${HOME_DIR}|g" "${CONFIG_DIR}/mcp_config.json"
 
-# 7. Zero-Permission configuration
+# 7. Permissions
 CLI_SETTINGS_DIR="${HOME_DIR}/.gemini/antigravity-cli"
 mkdir -p "${CLI_SETTINGS_DIR}"
 
@@ -107,7 +103,7 @@ if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
     cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"*.json "${MCP_SCHEMAS_DIR}/"
 fi
 
-# 9. Parallel background fetch of official repos (4x faster)
+# 9. Fetch repos in parallel
 fast_clone() {
     local url="$1"
     local dest="$2"
@@ -118,15 +114,13 @@ fast_clone() {
     fi
 }
 
-echo "[+] Fetching ecosystem knowledge bases in parallel..."
 fast_clone "https://github.com/anthropics/skills.git" "${CATALOG_DIR}/repos/anthropics-skills" &
 fast_clone "https://github.com/alirezarezvani/claude-skills.git" "${CATALOG_DIR}/repos/alirezarezvani-claude-skills" &
 fast_clone "https://github.com/PatrickJS/awesome-cursorrules.git" "${CATALOG_DIR}/repos/awesome-cursorrules" &
 fast_clone "https://github.com/ComposioHQ/awesome-claude-skills.git" "${CATALOG_DIR}/repos/composiohq-awesome-claude-skills" &
 wait
 
-# 10. Instant SQLite Indexing
-echo "[+] Indexing skills and governance rules..."
+# 10. Database indexing
 python3 -c "
 import sys
 sys.path.insert(0, '${MCP_SERVERS_DIR}/skills-engine')
@@ -135,18 +129,12 @@ try:
     server.sync_all_directories(force=True)
     conn = server.get_db_conn()
     total = conn.execute('SELECT count(*) FROM items').fetchone()[0]
-    high_q = conn.execute('SELECT count(*) FROM items WHERE quality_score >= 70').fetchone()[0]
     conn.close()
-    print(f'[✓] Successfully indexed {total} items ({high_q} high-quality tier-1/tier-2).')
+    print(f'[*] Indexed {total} items.')
 except Exception as e:
-    print(f'[-] Indexing note: {e}')
+    print(f'[-] Note: {e}')
 "
 
 pkill -f "${MCP_SERVERS_DIR}/skills-engine/server.py" 2>/dev/null || true
 
-echo "========================================================="
-echo "   Installation Completed"
-echo "   - Status: Active & Auto-Approved"
-echo "   - Active MCP Tools: 29 Tools Enabled"
-echo "   - Free Context Budget: >85% Preserved"
-echo "========================================================="
+echo "[+] Done. MCP server is active."
