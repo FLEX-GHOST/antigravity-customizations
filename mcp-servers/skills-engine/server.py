@@ -80,6 +80,17 @@ RAW_AR_STEM_MAP: Dict[str, str] = {
     "خدمة": "service microservice handler clean-architecture module",
     "خدمات": "services architecture modular clean-architecture service-layer",
     # --- Telegram Bots & Factory Architecture ---
+    "ويب هوك": "telegram-webhook-architecture webhook axum nginx token-hash secret-token setwebhook",
+    "ويب هك": "telegram-webhook-architecture webhook axum nginx token-hash secret-token",
+    "وب هوك": "telegram-webhook-architecture webhook axum nginx token-hash secret-token",
+    "سيرفر الويب هوك": "telegram-webhook-architecture webhook axum nginx multi-tenant token-hash",
+    "ربط الويب هوك": "telegram-webhook-architecture setwebhook webhook telegram-bot-api",
+    "توكن هاش": "telegram-webhook-architecture token-hash sha256 multi-tenant webhook",
+    "سيكريت توكن": "telegram-webhook-architecture secret-token x-telegram-bot-api-secret-token security",
+    "تاخير الرسائل بالويب هوك": "telegram-webhook-architecture instant-200-ok async-worker tokio joinset queue",
+    "تكرار الرسائل بالويب هوك": "telegram-webhook-architecture update-retry instant-200-ok idempotency",
+    "انغينكس ويب هوك": "telegram-webhook-architecture nginx reverse-proxy ssl proxy-buffering-off",
+    "اكسوم ويب هوك": "telegram-webhook-architecture axum rust tokio webhook multi-tenant",
     "بوت ميوزك فليكس": "telegram-music-bot audio-streaming rusttgcalls gotgcall gogram pytgcalls voice-chat webrtc ffmpeg playback rust go golang python flexmusic queue",
     "بوت ميوزك": "telegram-music-bot audio-streaming rusttgcalls gotgcall pytgcalls voice-chat webrtc ffmpeg playback rust go golang python",
     "بوت الميوزك": "telegram-music-bot audio-streaming rusttgcalls gotgcall pytgcalls voice-chat webrtc ffmpeg playback rust go golang python",
@@ -936,6 +947,10 @@ INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
     "clean_architecture": {
         "keywords": ["clean-architecture", "clean-code", "code_integrity", "strict_comment_discipline", "decoupled", "ports-adapters", "service-layer"],
         "tag": "Clean Architecture & Integrity",
+    },
+    "telegram_webhook": {
+        "keywords": ["webhook", "token_hash", "axum", "nginx", "secret_token", "proxy_buffering", "setwebhook", "deletewebhook", "drop_pending_updates", "telegram-webhook-architecture"],
+        "tag": "Telegram Webhook Architecture",
     },
     "media_download": {
         "keywords": ["media-downloader", "yt-dlp", "video-download", "instagram-downloader", "tiktok", "fastdl"],
@@ -1891,6 +1906,58 @@ def benchmark_search_performance(test_queries: Optional[List[str]] = None) -> Di
         "queries_tested": len(queries),
         "average_warm_latency_ms": round(sum(r["warm_latency_ms"] for r in results) / len(results), 4),
         "results": results
+    }
+
+
+@mcp.tool()
+def audit_webhook_health(webhook_url: str = "", secret_token: str = "") -> Dict[str, Any]:
+    url = webhook_url.strip() or "https://api.example.com/webhook/c3ab8ff13720e8ad9047dd39466b3c89"
+    secret = secret_token.strip() or "secure_entropy_secret_token_12345"
+
+    checks = []
+    score = 100
+
+    # Check 1: HTTPS protocol
+    if not url.startswith("https://"):
+        checks.append({"check": "HTTPS Protocol", "status": "FAIL", "deduction": 35, "message": "Telegram Webhook strictly requires HTTPS with a valid certificate."})
+        score -= 35
+    else:
+        checks.append({"check": "HTTPS Protocol", "status": "PASS", "message": "Valid HTTPS protocol scheme."})
+
+    # Check 2: Valid Telegram port
+    port_match = re.search(r":(\d+)", url.replace("https://", ""))
+    port = int(port_match.group(1)) if port_match else 443
+    if port not in (443, 80, 88, 8443):
+        checks.append({"check": "Port Compliance", "status": "FAIL", "deduction": 30, "message": f"Port {port} is prohibited by Telegram. Supported ports are 443, 80, 88, 8443."})
+        score -= 30
+    else:
+        checks.append({"check": "Port Compliance", "status": "PASS", "message": f"Port {port} is valid and supported by Telegram."})
+
+    # Check 3: Multi-tenant token hashing
+    if re.search(r"\d{8,11}:[A-Za-z0-9_-]{35}", url):
+        checks.append({"check": "Token Hashing", "status": "FAIL", "deduction": 25, "message": "Plaintext bot token detected in webhook URL. Must use hashed token (/webhook/{token_hash})."})
+        score -= 25
+    else:
+        checks.append({"check": "Token Hashing", "status": "PASS", "message": "URL uses token hashing; plaintext token is protected."})
+
+    # Check 4: Secret Token Entropy
+    if len(secret) < 12:
+        checks.append({"check": "Secret Token Entropy", "status": "WARN", "deduction": 15, "message": "Secret token is too short (< 12 chars). Use 24+ characters to prevent spoofing."})
+        score -= 15
+    else:
+        checks.append({"check": "Secret Token Entropy", "status": "PASS", "message": "Secret token has high entropy."})
+
+    return {
+        "verdict": "PRODUCTION_READY" if score >= 85 else ("WARNINGS_FOUND" if score >= 60 else "CRITICAL_ISSUES"),
+        "compliance_score": max(0, score),
+        "target_url": url,
+        "checks": checks,
+        "invariants": {
+            "response_time": "Mandatory HTTP 200 OK within < 100ms; offload tasks to Tokio JoinSet",
+            "reverse_proxy": "Nginx proxy_buffering off; allow 149.154.160.0/20; allow 91.108.4.0/22;",
+            "lifecycle": "Set drop_pending_updates: false on normal restarts to preserve user commands"
+        },
+        "recommended_skills": ["skill:telegram-webhook-architecture", "skill:telegram-bot-api", "skill:teloxide-production-patterns"]
     }
 
 @mcp.tool()

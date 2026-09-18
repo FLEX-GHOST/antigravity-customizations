@@ -35,7 +35,7 @@ cd ~/.gemini/antigravity-customizations
                                +--------------------------------------------+
                                       |                              |
             [Always-On Core Rules: 11.6%]             [On-Demand MCP: 0.7%]
-            - anti_ai_design.md                       skills-engine (23 Tools)
+            - anti_ai_design.md                       skills-engine (24 Tools)
             - honest_engineering.md                                  |
             - strict_comment_discipline.md                           v
             - code_integrity.md                       +-----------------------------+
@@ -85,7 +85,7 @@ Integrated directly with:
 
 ---
 
-## 23 Built-in MCP Tools
+## 24 Built-in MCP Tools
 
 | Tool | Purpose |
 | :--- | :--- |
