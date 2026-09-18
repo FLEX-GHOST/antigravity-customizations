@@ -2,16 +2,16 @@
 
 [![Antigravity IDE](https://img.shields.io/badge/Google%20Antigravity-IDE%20%7C%20CLI%20%7C%202.0-blue.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot%20API-10.3%20(185%20Methods%20%7C%20400%20Types)-2CA5E0?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
-[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-48%20Tools%20(100%25%20Alphabetical)-success.svg)](#mcp-tool-suite)
+[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-48%20Tools%20(100%25%20Alphabetical)-success.svg)](#complete-mcp-tool-suite-48-enterprise-tools)
 [![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-4%2C800%2B%20(SQLite%20FTS5)-orange.svg)](#)
-[![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#zero-prompt-permissions)
+[![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
 [![Autonomous CI/CD](https://img.shields.io/badge/GitHub%20Actions-Auto--Sync%20Bot-blueviolet.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions)
 
-Enterprise-grade customization framework, sovereign engineering rules, full Telegram Bot API master specification, and autonomous Model Context Protocol (MCP) skills engine engineered for **Google Antigravity IDE**, **Antigravity CLI (`agy`)**, and agentic AI systems.
+Enterprise-grade customization framework, sovereign engineering rules, complete Telegram Bot API master specification, and autonomous Model Context Protocol (MCP) skills engine engineered for **Google Antigravity IDE**, **Antigravity CLI (`agy`)**, and agentic AI systems.
 
 ---
 
-## ⚡ Quick Start: One-Command Installation (التثبيت بأمر واحد)
+## Quick Start: One-Command Installation (التثبيت بأمر واحد)
 
 Run this single command on **any Linux server or cloud environment** (Ubuntu, Debian, CentOS, RHEL, Fedora, macOS, etc.) to set up the entire ecosystem automatically:
 
@@ -27,7 +27,7 @@ cd ~/.gemini/antigravity-customizations
 ./install.sh
 ```
 
-### What This Command Automatically Provisions:
+### What This Command Provisions:
 1. **Zero-Prompt Permissions**: Configures `permissionPreset: turbo` and `toolExecutionPolicy: always-proceed` across IDE and CLI to permanently eliminate confirmation dialogs.
 2. **Core Sovereign Rules**: Deploys anti-slop, honest engineering, strict comments, and memory safety rules to `~/.gemini/config/rules/`.
 3. **Complete 48 MCP Tools**: Installs and hot-activates the `skills-engine` MCP server with strict alphabetical caching standards.
@@ -36,7 +36,7 @@ cd ~/.gemini/antigravity-customizations
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```
                                +-------------------------------------------------------+
@@ -66,7 +66,7 @@ cd ~/.gemini/antigravity-customizations
 
 ---
 
-## 🤖 Dual Autonomous Update Pipeline (Zero-Server Maintenance)
+## Dual Autonomous Update Pipeline (Zero-Server Maintenance)
 
 The repository maintains an automated, self-healing synchronization loop that ensures Telegram Bot API specifications never become stale:
 
@@ -97,7 +97,7 @@ The repository maintains an automated, self-healing synchronization loop that en
 
 ---
 
-## 📱 Telegram Bot API 10.3 Master Reference
+## Telegram Bot API 10.3 Master Reference
 
 Full official specification with real-time sub-millisecond retrieval (< 0.2ms):
 
@@ -119,7 +119,7 @@ All button constructs adhere strictly to modern Telegram specifications:
 
 ---
 
-## 🛠️ Complete MCP Tool Suite (48 Enterprise Tools)
+## Complete MCP Tool Suite (48 Enterprise Tools)
 
 The MCP server exposes 48 deterministic tools, sorted strictly in alphabetical order to maximize LLM prompt caching hit rates (>95%):
 
@@ -183,12 +183,12 @@ The MCP server exposes 48 deterministic tools, sorted strictly in alphabetical o
 
 ---
 
-## 🔒 Sovereign Engineering Rules
+## Sovereign Engineering Rules
 
 The repository strictly enforces four non-negotiable governance pillars across all code generation:
 
 1. **Anti-AI UI Slop & Color Discipline (`anti_ai_design.md`)**:
-   - Banned: Purple/violet gradients (`#7c3aed`), glowing blur blobs, centered floating cards, unstyled emojis in buttons.
+   - Banned: Purple/violet gradients (`#7c3aed`), glowing blur blobs, centered floating cards, raw emojis in buttons.
    - Mandated: 6 interactive button states (`rest`, `hover`, `active`, `focus-visible`, `disabled`, `loading`), WCAG 2.2 AA contrast, and disciplined lightness ramps.
 2. **Honest Engineering & Zero Sycophancy (`honest_engineering.md`)**:
    - Banned: Servile flattery ("Great question", "You are absolutely right", Arabic conversational pleasantries like "من عيوني" or "تدلل").
@@ -203,6 +203,6 @@ The repository strictly enforces four non-negotiable governance pillars across a
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the **MIT License**. Engineered for enterprise-grade autonomous development in Google Antigravity, Claude Code, and Cursor.
