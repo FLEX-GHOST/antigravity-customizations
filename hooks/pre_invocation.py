@@ -47,10 +47,13 @@ CONCEPT_MAP = {
     "زر": ["button", "telegram_button_styling", "inline_keyboard"],
     "ازرار": ["button", "telegram_button_styling", "inline_keyboard"],
     "دكم": ["button", "telegram_button_styling"],
-    "بوت": ["telegram", "bot", "telego", "teloxide"],
-    "تلكرام": ["telegram", "bot", "inline_keyboard"],
-    "تيليجرام": ["telegram", "bot", "inline_keyboard"],
-    "تليجرام": ["telegram", "bot", "inline_keyboard"],
+    "بوت": ["telegram", "bot", "telego", "teloxide", "telegram-bot-api-methods"],
+    "تلكرام": ["telegram", "bot", "inline_keyboard", "telegram-bot-api-methods"],
+    "تيليجرام": ["telegram", "bot", "inline_keyboard", "telegram-bot-api-methods"],
+    "تليجرام": ["telegram", "bot", "inline_keyboard", "telegram-bot-api-methods"],
+    "ميثود": ["telegram-bot-api-methods", "telegram", "botapi"],
+    "ميثودات": ["telegram-bot-api-methods", "telegram", "botapi"],
+    "دوال": ["telegram-bot-api-methods", "telegram", "botapi"],
     "تصميم": ["better-ui", "better-typography", "arabic-design", "anti_ai_design"],
     "واجهه": ["better-ui", "telegram-mini-app", "better-typography"],
     "واجهة": ["better-ui", "telegram-mini-app", "better-typography"],
@@ -80,6 +83,41 @@ CONCEPT_MAP = {
     "مهاره": ["skills-engine", "synthesize_and_learn_skill"],
     "مهارة": ["skills-engine", "synthesize_and_learn_skill"],
     "mcp": ["mcp", "skills-engine", "tools"],
+}
+
+TG_QUICK_DETECTION = {
+    "sendmessage": "sendMessage",
+    "sendphoto": "sendPhoto",
+    "sendvideo": "sendVideo",
+    "sendvoice": "sendVoice",
+    "sendaudio": "sendAudio",
+    "sendpaidmedia": "sendPaidMedia",
+    "sendsticker": "sendSticker",
+    "senddice": "sendDice",
+    "banchatmember": "banChatMember",
+    "unbanchatmember": "unbanChatMember",
+    "restrictchatmember": "restrictChatMember",
+    "promotechatmember": "promoteChatMember",
+    "exportchatinvitelink": "exportChatInviteLink",
+    "createchatinvitelink": "createChatInviteLink",
+    "pinchatmessage": "pinChatMessage",
+    "answercallbackquery": "answerCallbackQuery",
+    "inlinekeyboardbutton": "InlineKeyboardButton",
+    "inlinekeyboardmarkup": "InlineKeyboardMarkup",
+    "setwebhook": "setWebhook",
+    "getupdates": "getUpdates",
+    "getme": "getMe",
+    "حظر": "banChatMember",
+    "طرد": "banChatMember",
+    "كتم": "restrictChatMember",
+    "تقييد": "restrictChatMember",
+    "ازرار": "InlineKeyboardButton (style: primary/success/danger)",
+    "كيبورد": "InlineKeyboardMarkup",
+    "رابط دعوة": "createChatInviteLink",
+    "نجوم": "sendPaidMedia (Telegram Stars)",
+    "هدية": "sendGift",
+    "ويب هوك": "setWebhook / Axum router",
+    "ميثود": "Telegram Bot API 10.3 (185 methods)",
 }
 
 def extract_latest_user_prompt(transcript_path: str) -> str:
@@ -151,6 +189,13 @@ def route_intent(prompt: str, db_path: str):
     except Exception:
         return [], []
 
+def detect_telegram_method(prompt: str) -> Optional[str]:
+    p_lower = prompt.lower()
+    for trigger, target in TG_QUICK_DETECTION.items():
+        if trigger in p_lower:
+            return target
+    return None
+
 def main():
     try:
         raw_input = sys.stdin.read()
@@ -167,7 +212,7 @@ def main():
     if (ws / "Cargo.toml").exists():
         stack_items.append("Rust (Telegram Factory Core)")
         pinned_rules.extend(["rust_standards", "no_lazy_fallbacks", "telegram_button_styling"])
-        pinned_skills.extend(["telegram-bot", "rust-skills"])
+        pinned_skills.extend(["telegram-bot", "telegram-bot-api-methods", "rust-skills"])
     if (ws / "package.json").exists():
         stack_items.append("Node.js/React (Frontend)")
         pinned_rules.append("anti_ai_design")
@@ -198,10 +243,13 @@ def main():
     skills_str = ", ".join(active_skills_set[:4])
     rules_str = ", ".join(active_rules_set[:4])
 
+    detected_tg = detect_telegram_method(prompt)
+    tg_banner = f" | 🎯 Telegram Target: [{detected_tg}]" if detected_tg else ""
+
     msg = (
         f"⚡ [skills-engine Active] Workspace: {stack_desc}. "
-        f"📌 Active Skills: [{skills_str}] | Active Rules: [{rules_str}]. "
-        "Autonomous protocol: Zero skill/rule loss active. Inspect details via get_exact_skill / get_exact_rule."
+        f"📌 Active Skills: [{skills_str}] | Active Rules: [{rules_str}]{tg_banner}. "
+        "Autonomous protocol: Use get_telegram_bot_api_spec(query='...') for instant method parameters & Rust snippets."
     )
 
     out = {

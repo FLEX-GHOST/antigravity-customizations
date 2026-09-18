@@ -1,0 +1,36 @@
+{
+  "name": "get_telegram_bot_api_spec",
+  "description": "Retrieve full official specification, parameters, return types, and Rust execution pattern for any Telegram Bot API method or type (Bot API 10.3 / 9.4+).\n    Supports English method names (e.g. 'sendMessage', 'sendPaidMedia', 'InlineKeyboardButton') and Arabic intents (e.g. 'حظر عضو', 'أزرار ملونة', 'رابط دعوة').",
+  "inputSchema": {
+    "properties": {
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "query_type": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Query Type"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "get_telegram_bot_api_specArguments",
+    "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
+  }
+}

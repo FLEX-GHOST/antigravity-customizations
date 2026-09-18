@@ -3864,6 +3864,154 @@ if hasattr(mcp, "resource"):
         """Standard MCP resource exposing latest OpenTelemetry trace spans in JSON format."""
         return json.dumps({"spans": otel_tracer.get_spans(limit=50)}, indent=2)
 
+
+# =========================================================
+# Telegram Bot API Official Spec & Autonomous Query Engine
+# =========================================================
+
+_TG_API_CACHE: Dict[str, Any] = {}
+
+def get_telegram_api_specs() -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    global _TG_API_CACHE
+    if "methods" in _TG_API_CACHE and "types" in _TG_API_CACHE:
+        return _TG_API_CACHE["methods"], _TG_API_CACHE["types"]
+
+    spec_paths = [
+        Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/references"),
+        Path("/root/antigravity-customizations/skills/telegram-bot-api-methods/references"),
+        HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references"
+    ]
+    methods, types = {}, {}
+    for p in spec_paths:
+        m_file = p / "api_methods.json"
+        t_file = p / "api_types.json"
+        if m_file.exists() and t_file.exists():
+            try:
+                with open(m_file, "r", encoding="utf-8") as f:
+                    methods = json.load(f)
+                with open(t_file, "r", encoding="utf-8") as f:
+                    types = json.load(f)
+                break
+            except Exception:
+                pass
+
+    _TG_API_CACHE["methods"] = methods
+    _TG_API_CACHE["types"] = types
+    return methods, types
+
+TG_ARABIC_INTENT_MAP = {
+    "حظر": "banChatMember",
+    "طرد": "banChatMember",
+    "كتم": "restrictChatMember",
+    "تقييد": "restrictChatMember",
+    "رفع مشرف": "promoteChatMember",
+    "ترقية": "promoteChatMember",
+    "تنزيل": "restrictChatMember",
+    "تثبيت": "pinChatMessage",
+    "الغاء تثبيت": "unpinChatMessage",
+    "رابط": "createChatInviteLink",
+    "رابط دعوة": "createChatInviteLink",
+    "اشتراك": "createChatSubscriptionInviteLink",
+    "ازرار": "InlineKeyboardButton",
+    "كيبورد": "InlineKeyboardMarkup",
+    "دكم": "InlineKeyboardButton",
+    "رسالة": "sendMessage",
+    "رسائل": "sendMessage",
+    "مسح": "deleteMessages",
+    "حذف": "deleteMessage",
+    "تعديل": "editMessageText",
+    "صورة": "sendPhoto",
+    "فيديو": "sendVideo",
+    "صوت": "sendVoice",
+    "اغنية": "sendAudio",
+    "ستيكر": "sendSticker",
+    "ملصق": "sendSticker",
+    "نجوم": "sendPaidMedia",
+    "مدفوعة": "sendPaidMedia",
+    "ويب هوك": "setWebhook",
+    "معلومات البوت": "getMe",
+    "اوامر": "setMyCommands",
+    "موضوع": "createForumTopic",
+    "منتدى": "createForumTopic",
+    "تفاعل": "setMessageReaction",
+    "ايموجي": "setMessageReaction",
+    "هدية": "sendGift",
+    "هدايا": "sendGift",
+}
+
+@mcp.tool()
+def get_telegram_bot_api_spec(query: str, query_type: Optional[str] = None) -> Dict[str, Any]:
+    """Retrieve full official specification, parameters, return types, and Rust execution pattern for any Telegram Bot API method or type (Bot API 10.3 / 9.4+).
+    Supports English method names (e.g. 'sendMessage', 'sendPaidMedia', 'InlineKeyboardButton') and Arabic intents (e.g. 'حظر عضو', 'أزرار ملونة', 'رابط دعوة')."""
+    t0 = time.perf_counter()
+    methods, types = get_telegram_api_specs()
+    q = query.strip()
+    target = q
+
+    for ar_key, mapped_name in sorted(TG_ARABIC_INTENT_MAP.items(), key=lambda x: len(x[0]), reverse=True):
+        if ar_key in q:
+            target = mapped_name
+            break
+
+    match_m = [m for m in methods if m.lower() == target.lower()]
+    if match_m:
+        m_name = match_m[0]
+        m_data = methods[m_name]
+        fields = m_data.get("fields", [])
+        required_params = [f["name"] for f in fields if f.get("required")]
+        optional_params = [f["name"] for f in fields if not f.get("required")]
+
+        rust_snippet = (
+            f"// Rust implementation for Telegram {m_name}\n"
+            f"let url = format!(\"https://api.telegram.org/bot{{}}/{m_name}\", bot_token);\n"
+            f"let res = client.post(&url).json(&payload).send().await?;\n"
+        )
+
+        return {
+            "query": query,
+            "resolved_name": m_name,
+            "kind": "method",
+            "bot_api_version": "10.3 (Late 2026)",
+            "description": "".join(m_data.get("description", [])) if isinstance(m_data.get("description"), list) else m_data.get("description", ""),
+            "returns": m_data.get("returns", []),
+            "required_parameters": required_params,
+            "optional_parameters": optional_params,
+            "fields": fields,
+            "rust_execution_pattern": rust_snippet,
+            "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2)
+        }
+
+    match_t = [t for t in types if t.lower() == target.lower()]
+    if match_t:
+        t_name = match_t[0]
+        t_data = types[t_name]
+        fields = t_data.get("fields", [])
+        required_fields = [f["name"] for f in fields if f.get("required")]
+
+        return {
+            "query": query,
+            "resolved_name": t_name,
+            "kind": "type",
+            "bot_api_version": "10.3 (Late 2026)",
+            "description": "".join(t_data.get("description", [])) if isinstance(t_data.get("description"), list) else t_data.get("description", ""),
+            "required_fields": required_fields,
+            "fields": fields,
+            "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2)
+        }
+
+    candidates_m = [m for m in methods if target.lower() in m.lower()][:8]
+    candidates_t = [t for t in types if target.lower() in t.lower()][:8]
+
+    return {
+        "query": query,
+        "resolved_name": None,
+        "status": "NOT_FOUND",
+        "similar_methods": candidates_m,
+        "similar_types": candidates_t,
+        "hint": "Try using standard Telegram method names like 'sendMessage', 'sendPhoto', or Arabic keywords like 'حظر', 'ازرار', 'رابط'.",
+        "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2)
+    }
+
 def enforce_mcp_deterministic_standards():
     """Enforce July 2026 MCP specification: deterministic tool ordering & safety metadata."""
     if hasattr(mcp, "_tool_manager") and hasattr(mcp._tool_manager, "_tools"):
