@@ -1,0 +1,31 @@
+{
+  "skills-engine-governance": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 /root/.gemini/config/hooks/pre_invocation.py",
+        "timeout": 5
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /root/.gemini/config/hooks/post_tool.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 /root/.gemini/config/hooks/stop_hook.py",
+        "timeout": 5
+      }
+    ]
+  }
+}

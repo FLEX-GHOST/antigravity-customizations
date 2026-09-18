@@ -83,6 +83,15 @@ if [ -d "${SOURCE_DIR}/plugins" ]; then
     cp -rf "${SOURCE_DIR}/plugins/"* "${CONFIG_DIR}/plugins/" 2>/dev/null || true
 fi
 
+if [ -f "${SOURCE_DIR}/hooks.json" ]; then
+    cp -f "${SOURCE_DIR}/hooks.json" "${CONFIG_DIR}/hooks.json"
+fi
+
+if [ -d "${SOURCE_DIR}/hooks" ]; then
+    mkdir -p "${CONFIG_DIR}/hooks"
+    cp -rf "${SOURCE_DIR}/hooks/"* "${CONFIG_DIR}/hooks/"
+fi
+
 cp -f "${SOURCE_DIR}/mcp-servers/skills-engine/server.py" "${MCP_SERVERS_DIR}/skills-engine/server.py"
 
 # 6. Configure MCP server

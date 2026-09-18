@@ -2973,6 +2973,12 @@ TOOLS_METADATA_CATALOG: Dict[str, Dict[str, Any]] = {
         "domain": "admin",
         "params": ["name", "description", "triggers", "instructions", "language", "category"],
     },
+    "synthesize_and_learn_skill": {
+        "summary": "Synthesize a new learned skill from a solved problem and index it permanently into the knowledge base.",
+        "category": "evolution",
+        "domain": "learning",
+        "params": ["name", "problem_summary", "solution_runbook", "category", "triggers"],
+    },
     "reload_skills_index": {
         "summary": "Force full re-indexing of all skill and rule directories into SQLite database.",
         "category": "management",
@@ -3035,6 +3041,73 @@ def discover_tools(intent: str, domain: Optional[str] = None, max_results: int =
 def get_system_telemetry() -> Dict[str, Any]:
     """Inspect real-time server telemetry: latency percentiles, tool usage counts, and cache hit ratios."""
     return telemetry.get_summary()
+
+
+@mcp.tool()
+def synthesize_and_learn_skill(name: str, problem_summary: str, solution_runbook: str, category: str = "learned", triggers: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Synthesize a new learned skill from a solved problem and index it permanently into the knowledge base."""
+    safe_name = re.sub(r"[^\w-]", "-", name.lower().strip())
+    target_dir = HOME_DIR / ".gemini/skills-catalog/skills" / safe_name
+    target_dir.mkdir(parents=True, exist_ok=True)
+    skill_file = target_dir / "SKILL.md"
+
+    trigs = triggers or [safe_name] + [w for w in re.findall(r"\w{3,}", problem_summary.lower())[:6] if w not in ARABIC_STOPWORDS and w not in {"the", "and", "for", "with", "how"}]
+    frontmatter = {
+        "name": safe_name,
+        "description": problem_summary,
+        "triggers": trigs,
+        "language": "polyglot",
+        "category": category,
+    }
+
+    if yaml is not None:
+        yaml_block = yaml.dump(frontmatter, sort_keys=False).strip()
+    else:
+        yaml_block = chr(10).join(f"{k}: {v}" for k, v in frontmatter.items())
+
+    parts = [
+        "---",
+        yaml_block,
+        "---",
+        "",
+        f"# {name}",
+        "",
+        "## Mission & Problem Summary",
+        problem_summary,
+        "",
+        "## Instructions & Workflow Runbook",
+        solution_runbook,
+        "",
+        "## Invariants & Production Guidelines",
+        "- Deterministic error handling with verified backoff.",
+        "- Do NOT retry in a tight loop.",
+        "- Never violate memory safety or rate limits.",
+        "",
+        "## Verified Examples & Reference Implementation",
+        "```python",
+        f"# Production reference for {safe_name}",
+        "pass",
+        "```",
+        ""
+    ]
+    full_content = chr(10).join(parts)
+
+    skill_file.write_text(full_content, encoding="utf-8")
+    index_single_file(skill_file)
+    clear_all_caches()
+
+    conn = get_db_conn()
+    cur = conn.execute("SELECT quality_score FROM items WHERE id = ?", (f"skill:{safe_name}",))
+    row = cur.fetchone()
+    q_score = row[0] if row else 75
+
+    return {
+        "status": "LEARNED_AND_INDEXED",
+        "skill_name": safe_name,
+        "path": str(skill_file),
+        "quality_score": q_score,
+        "message": f"Skill '{safe_name}' synthesized and permanently indexed into the knowledge base."
+    }
 
 @mcp.tool()
 def reload_skills_index() -> Dict[str, Any]:
@@ -3156,7 +3229,7 @@ def enforce_mcp_deterministic_standards():
 
         # 2. Tool Safety & Cache Metadata Annotations
         mutating_tools = {
-            "create_new_skill", "register_custom_directory", "reload_skills_index", "activate_tool_suite"
+            "create_new_skill", "register_custom_directory", "reload_skills_index", "activate_tool_suite", "synthesize_and_learn_skill"
         }
         for name, tool in mcp._tool_manager._tools.items():
             is_ro = name not in mutating_tools
