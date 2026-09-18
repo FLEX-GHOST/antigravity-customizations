@@ -1,3 +1,101 @@
+from typing import List, Dict, Any, Optional, Set, Tuple
+
+def generate_rust_telegram_model(m_name: str, fields: List[Dict[str, Any]], returns: List[str]) -> str:
+    """Generate production-grade, type-safe Rust payload struct conforming to Bot API 9.4+ and 10.3 standards."""
+    pascal_name = m_name[0].upper() + m_name[1:] + "Payload"
+    lines = [
+        "// Production Rust struct conforming to Telegram Bot API 10.3 / 9.4+ button styling standards",
+        "#[derive(Debug, Clone, Serialize, Deserialize)]",
+        f"pub struct {pascal_name} {{"
+    ]
+
+    type_mapping = {
+        "Integer": "i64",
+        "String": "String",
+        "Boolean": "bool",
+        "Float": "f64",
+        "InlineKeyboardMarkup": "InlineKeyboardMarkup",
+        "ReplyKeyboardMarkup": "ReplyKeyboardMarkup",
+        "InputFile": "InputFile",
+        "Array of MessageEntity": "Vec<MessageEntity>",
+    }
+
+    for f in fields:
+        f_name = f.get("name", "")
+        f_types = f.get("types", ["String"])
+        raw_type = f_types[0] if f_types else "String"
+        rust_t = type_mapping.get(raw_type, "serde_json::Value")
+        is_req = f.get("required", False)
+
+        if not is_req:
+            lines.append('    #[serde(skip_serializing_if = "Option::is_none")]')
+            lines.append(f"    pub {f_name}: Option<{rust_t}>,")
+        else:
+            lines.append(f"    pub {f_name}: {rust_t},")
+
+    lines.append("}")
+    lines.append("")
+    lines.append("// Execution Pattern (Tokio / reqwest)")
+    lines.append(f"pub async fn execute_{m_name}(client: &reqwest::Client, bot_token: &str, payload: &{pascal_name}) -> anyhow::Result<serde_json::Value> {{")
+    lines.append('    let url = format!("https://api.telegram.org/bot{}/' + m_name + '", bot_token);')
+    lines.append("    let res = client.post(&url).json(payload).send().await?.error_for_status()?.json().await?;")
+    lines.append("    Ok(res)")
+    lines.append("}")
+
+    if "InlineKeyboardButton" in m_name or "Keyboard" in m_name or "button" in m_name.lower():
+        lines.append("")
+        lines.append("// Bot API 9.4+ Strict Button Styling Construct")
+        lines.append("let button = InlineKeyboardButton {")
+        lines.append('    text: "Confirm Action".into(),')
+        lines.append('    callback_data: Some("confirm".into()),')
+        lines.append('    style: Some("primary".into()), // Bot API 9.4+ color: primary | success | danger')
+        lines.append("    icon_custom_emoji_id: None,")
+        lines.append("};")
+
+    return chr(10).join(lines)
+
+
+# =========================================================
+# Autonomous Token Compactor & Anti-Slop Filter Layer
+# =========================================================
+
+def compact_text_content(text: str) -> str:
+    """Strip markdown badge slop, decorative dividers, and redundant blank lines to save context window tokens."""
+    if not text:
+        return ""
+    # Strip markdown badge slop [![...](...)](...)
+    cleaned = re.sub(r"\[!\[[^\]]*\]\([^\)]*\)\]\([^\)]*\)", "", text)
+    cleaned = re.sub(r"!\[[^\]]*\]\([^\)]*\)", "", cleaned)
+    # Strip ASCII dividers (====, ----, ****)
+    cleaned = re.sub(r"^[=\-*#]{5,}\s*$", "", cleaned, flags=re.MULTILINE)
+    # Collapse 3+ newlines into 2
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+def compact_payload(data: Any) -> Any:
+    """Recursively prune nulls, empty collections, and compact string content."""
+    if isinstance(data, dict):
+        return {
+            k: compact_payload(v)
+            for k, v in data.items()
+            if v is not None and v != "" and v != [] and v != {}
+        }
+    elif isinstance(data, list):
+        return [compact_payload(item) for item in data if item is not None and item != ""]
+    elif isinstance(data, str) and len(data) > 200:
+        return compact_text_content(data)
+    return data
+
+def maintain_sqlite_db() -> None:
+    """Autonomous SQLite WAL checkpoint & optimization."""
+    try:
+        conn = get_db_conn()
+        conn.execute("PRAGMA optimize;")
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+        conn.close()
+    except Exception:
+        pass
+
 def _normalize_ar_text(text: str) -> str:
     t = text.strip().lower()
     for src, dst in [("أ", "ا"), ("إ", "ا"), ("آ", "ا"), ("ة", "ه"), ("ى", "ي")]:
@@ -1471,23 +1569,52 @@ def cosine_similarity_quantized(b1: bytes, b2: bytes) -> float:
 
 TOOL_SUITES = {
     "telegram": {
-        "description": "Telegram bot engineering, WebRTC VoIP, and webhook automation",
-        "tools": ["simulate_bot_pipeline", "simulate_telegram_load", "audit_webhook_health", "resolve_bot_service", "explain_ecosystem_map"]
+        "description": "Telegram Bot API 10.3 official methods, microservice scaffolding, load simulation & webhook testing",
+        "tools": [
+            "get_telegram_bot_api_spec", "sync_telegram_bot_api_upstream",
+            "scaffold_telegram_microservice", "simulate_telegram_load",
+            "simulate_telegram_webhook_update", "simulate_bot_pipeline",
+            "audit_webhook_health", "resolve_bot_service"
+        ]
     },
-    "architecture": {
-        "description": "Clean architecture, DDIA patterns, and system design",
-        "tools": ["plan_agentic_workflow", "detect_project_stack", "get_core_governance_rules", "get_exact_rule", "list_rules_overview"]
+    "governance": {
+        "description": "Anti-AI UI slop discipline, honest engineering, WCAG 2.2 AA audits & code rule enforcement",
+        "tools": [
+            "audit_anti_sycophancy", "audit_ui_design",
+            "audit_web_application_quality", "audit_project_full_governance",
+            "audit_skill_quality", "get_core_governance_rules", "fix_code_rule_violations"
+        ]
     },
-    "quality": {
-        "description": "Code verification, UI audits, and anti-sycophancy defense",
-        "tools": ["audit_anti_sycophancy", "audit_ui_design", "audit_web_application_quality", "audit_skill_quality", "benchmark_search_performance", "fix_code_rule_violations"]
+    "systems_rust": {
+        "description": "Rust memory discipline, AST verification, diff patch healing & runtime telemetry",
+        "tools": [
+            "verify_and_heal_code_patch", "verify_python_ast",
+            "benchmark_search_performance", "detect_project_stack",
+            "get_distributed_trace_spans", "get_system_telemetry"
+        ]
     },
-    "catalog": {
-        "description": "Catalog management and dynamic skill authoring",
-        "tools": ["get_exact_skill", "get_skill_toc", "get_skill_section", "get_top_rated_skills", "list_skills_overview", "create_new_skill", "register_custom_directory", "reload_skills_index"]
+    "agentic_memory": {
+        "description": "Dynamic skill synthesis, session pinning, workflow planning & task supervision",
+        "tools": [
+            "plan_agentic_workflow", "synthesize_and_learn_skill",
+            "pin_skill_for_session", "unpin_skill_for_session",
+            "get_smart_skill_summary", "get_mcp_task_status", "cancel_mcp_task"
+        ]
+    },
+    "search_catalog": {
+        "description": "High-performance hybrid BM25 + SQLite FTS5 search, catalog federation & surgical reading",
+        "tools": [
+            "search_agent_capabilities", "get_exact_skill", "get_exact_rule",
+            "get_skill_toc", "get_skill_section", "get_top_rated_skills",
+            "list_all_skills_manifest", "list_all_rules_manifest", "list_rules_overview",
+            "create_new_skill", "register_custom_directory", "register_federated_mcp_server",
+            "reload_skills_index", "read_skill_resource_file", "explain_ecosystem_map",
+            "discover_tools", "activate_tool_suite", "list_available_suites",
+            "recommend_skills_for_context"
+        ]
     }
 }
-_ACTIVE_SUITES = set(["telegram", "architecture", "quality", "catalog"])
+_ACTIVE_SUITES = set(["telegram", "governance", "systems_rust", "agentic_memory", "search_catalog"])
 
 INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
     "telegram_music": {
@@ -4089,11 +4216,7 @@ def get_telegram_bot_api_spec(query: str, query_type: Optional[str] = None) -> D
         required_params = [f["name"] for f in fields if f.get("required")]
         optional_params = [f["name"] for f in fields if not f.get("required")]
 
-        rust_snippet = (
-            f"// Rust implementation for Telegram {m_name}\n"
-            f"let url = format!(\"https://api.telegram.org/bot{{}}/{m_name}\", bot_token);\n"
-            f"let res = client.post(&url).json(&payload).send().await?;\n"
-        )
+        rust_snippet = generate_rust_telegram_model(m_name, fields, m_data.get("returns", []))
 
         return {
             "query": query,
