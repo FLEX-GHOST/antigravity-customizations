@@ -211,7 +211,7 @@ fi
 
 # 9. Deploy pre-indexed high-speed knowledge base (5,430+ vetted entities & 185 Telegram methods)
 echo "[-] Deploying pre-indexed knowledge base (5,430+ verified entities)..."
-DB_RELEASE_URL="https://github.com/FLEX-GHOST/antigravity-customizations/releases/download/v1.0.0/skills_index.db.gz"
+DB_RELEASE_URL="https://github.com/FLEX-GHOST/antigravity-customizations/releases/latest/download/skills_index.db.gz"
 DB_TARGET="${MCP_SERVERS_DIR}/skills-engine/skills_index.db"
 
 if curl -fsSL -I "$DB_RELEASE_URL" >/dev/null 2>&1; then

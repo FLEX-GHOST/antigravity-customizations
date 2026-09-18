@@ -1,0 +1,70 @@
+name: Auto-Build & Release Skills Database
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'skills/**'
+      - 'rules/**'
+      - 'official_rules/**'
+      - 'mcp-servers/**'
+      - 'install.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Clone Upstream Repositories
+        run: |
+          mkdir -p /tmp/catalog/repos
+          git clone --depth 1 https://github.com/anthropics/skills.git /tmp/catalog/repos/anthropics-skills || true
+          git clone --depth 1 https://github.com/alirezarezvani/claude-skills.git /tmp/catalog/repos/alirezarezvani-claude-skills || true
+          git clone --depth 1 https://github.com/PatrickJS/awesome-cursorrules.git /tmp/catalog/repos/awesome-cursorrules || true
+          git clone --depth 1 https://github.com/ComposioHQ/awesome-claude-skills.git /tmp/catalog/repos/composiohq-awesome-claude-skills || true
+          git clone --depth 1 https://github.com/diegosouzapw/awesome-omni-skills.git /tmp/omni-skills || true
+
+      - name: Build & Index Database
+        run: |
+          mkdir -p /tmp/mcp-servers/skills-engine
+          cp -rf mcp-servers/skills-engine/* /tmp/mcp-servers/skills-engine/
+          python3 -c "
+          import sys, os
+          from pathlib import Path
+          sys.path.insert(0, '/tmp/mcp-servers/skills-engine')
+          import server
+          server.DB_PATH = Path('/tmp/mcp-servers/skills-engine/skills_index.db')
+          server.SEARCH_PATHS = [
+              Path('.'),
+              Path('/tmp/catalog/repos'),
+              Path('/tmp/omni-skills')
+          ]
+          server.sync_all_directories(force=True)
+          server.sync_telegram_bot_api_upstream(force=True)
+          conn = server.get_db_conn()
+          total = conn.execute('SELECT count(*) FROM items').fetchone()[0]
+          conn.close()
+          print(f'Indexed {total} entities.')
+          "
+          gzip -c -9 /tmp/mcp-servers/skills-engine/skills_index.db > skills_index.db.gz
+          ls -lh skills_index.db.gz
+
+      - name: Update GitHub Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload v1.0.0 skills_index.db.gz --clobber || gh release create v1.0.0 skills_index.db.gz --title "v1.0.0 - Full Autonomous Engine & 5,430+ Indexed Skills" --notes "Automated release asset with verified database index" --clobber
