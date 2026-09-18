@@ -597,13 +597,13 @@ def get_db_conn() -> sqlite3.Connection:
             return _local.conn
         except Exception:
             _local.conn = None
-    conn = sqlite3.connect(str(DB_PATH), timeout=15.0, check_same_thread=False)
+    conn = sqlite3.connect(str(DB_PATH), timeout=30.0, check_same_thread=False, isolation_level=None)
     conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA synchronous = NORMAL")
     conn.execute("PRAGMA cache_size = -131072")
     conn.execute("PRAGMA mmap_size = 268435456")
     conn.execute("PRAGMA temp_store = MEMORY")
-    conn.execute("PRAGMA busy_timeout = 15000")
+    conn.execute("PRAGMA busy_timeout = 30000")
     _local.conn = conn
     return _local.conn
 
@@ -839,14 +839,14 @@ def sync_all_directories(force: bool = False):
             except Exception:
                 continue
 
-    for sid in purged_stubs:
-        conn.execute("DELETE FROM items WHERE id = ?", (sid,))
-        conn.execute("DELETE FROM items_fts WHERE id = ?", (sid,))
+    with conn:
+        for sid in purged_stubs:
+            conn.execute("DELETE FROM items WHERE id = ?", (sid,))
+            conn.execute("DELETE FROM items_fts WHERE id = ?", (sid,))
 
-    if to_insert_items:
-        conn.executemany("INSERT OR REPLACE INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", to_insert_items)
-        conn.executemany("INSERT OR REPLACE INTO items_fts VALUES (?, ?, ?, ?, ?, ?, ?)", to_insert_fts)
-        conn.commit()
+        if to_insert_items:
+            conn.executemany("INSERT OR REPLACE INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", to_insert_items)
+            conn.executemany("INSERT OR REPLACE INTO items_fts VALUES (?, ?, ?, ?, ?, ?, ?)", to_insert_fts)
 
     last_sync_time = now
     clear_all_caches()
@@ -896,7 +896,7 @@ def index_single_file(path: Path):
         conn.execute("DELETE FROM items_fts WHERE id = ?", (item_id,))
         conn.execute(
             """
-            INSERT INTO items_fts (id, name, description, triggers, language, category, body)
+            INSERT INTO items_fts (id, name, description, triggers, language, category, content)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (item_id, name, desc, trigs_str, lang, str(cat), body[:3000])

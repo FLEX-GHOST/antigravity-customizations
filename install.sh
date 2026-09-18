@@ -127,7 +127,7 @@ for p in ['${CONFIG_DIR}/config.json', '${CLI_SETTINGS_DIR}/settings.json']:
 
 # 8. Deploy schemas
 if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
-    cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"*.json "${MCP_SCHEMAS_DIR}/"
+    cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"* "${MCP_SCHEMAS_DIR}/"
 fi
 
 # 9. Sync core database index

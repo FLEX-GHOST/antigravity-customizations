@@ -1,0 +1,1 @@
+{"name":"list_available_suites","description":"List all available tool suites, their description, and their tools.","parameters":{"properties":{},"title":"list_available_suitesArguments","type":"object"}}
