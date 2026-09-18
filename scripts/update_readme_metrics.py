@@ -33,9 +33,11 @@ def categorize_method(name: str) -> str:
 
 def get_current_metrics():
     # 1. Telegram API metrics
-    version_file = ROOT_DIR / "skills" / "telegram-bot-api-methods" / "references" / "version.json"
-    methods_file = ROOT_DIR / "skills" / "telegram-bot-api-methods" / "references" / "api_methods.json"
-    types_file = ROOT_DIR / "skills" / "telegram-bot-api-methods" / "references" / "api_types.json"
+    tg_ref_matches = list(ROOT_DIR.glob("skills/**/telegram-bot-api-methods/references"))
+    tg_ref_dir = tg_ref_matches[0] if tg_ref_matches else (ROOT_DIR / "skills" / "telegram-bot-api-methods" / "references")
+    version_file = tg_ref_dir / "version.json"
+    methods_file = tg_ref_dir / "api_methods.json"
+    types_file = tg_ref_dir / "api_types.json"
     
     tg_ver = "10.3"
     tg_methods = 185
@@ -73,7 +75,7 @@ def get_current_metrics():
     # 3. Skills and Rules counts & Indexed Entities
     skills_dir = ROOT_DIR / "skills"
     rules_dir = ROOT_DIR / "rules"
-    skills_count = len([d for d in skills_dir.iterdir() if d.is_dir()]) if skills_dir.exists() else 0
+    skills_count = len(list(skills_dir.glob("**/SKILL.md"))) if skills_dir.exists() else 0
     rules_count = len(list(rules_dir.glob("*.md"))) if rules_dir.exists() else 0
 
     indexed_entities = 2160

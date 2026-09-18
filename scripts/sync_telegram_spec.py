@@ -15,7 +15,8 @@ import subprocess
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-SKILL_DIR = ROOT_DIR / "skills" / "telegram-bot-api-methods"
+tg_matches = list(ROOT_DIR.glob("skills/**/telegram-bot-api-methods"))
+SKILL_DIR = tg_matches[0] if tg_matches else (ROOT_DIR / "skills" / "t" / "telegram-bot-api-methods")
 MCP_DIR = ROOT_DIR / "mcp-servers" / "skills-engine"
 SCRIPTS_DIR = ROOT_DIR / "scripts"
 SPEC_URL = "https://raw.githubusercontent.com/PaulSonOfLars/telegram-bot-api-spec/main/api.json"

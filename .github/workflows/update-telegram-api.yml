@@ -47,11 +47,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
           if ! git diff --quiet; then
-            VERSION=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('version', 'Unknown'))")
-            METHODS=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('total_methods', '185'))")
-            TYPES=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('total_types', '400'))")
+            VERSION=$(python3 -c "import json, pathlib; p = list(pathlib.Path('skills').glob('**/telegram-bot-api-methods/references/version.json'))[0]; print(json.load(open(p)).get('version', 'Unknown'))")
+            METHODS=$(python3 -c "import json, pathlib; p = list(pathlib.Path('skills').glob('**/telegram-bot-api-methods/references/version.json'))[0]; print(json.load(open(p)).get('total_methods', '185'))")
+            TYPES=$(python3 -c "import json, pathlib; p = list(pathlib.Path('skills').glob('**/telegram-bot-api-methods/references/version.json'))[0]; print(json.load(open(p)).get('total_types', '400'))")
             
-            git add skills/telegram-bot-api-methods/references/
+            git add skills/
             git add README.md
             git add mcp-servers/skills-engine/
             git add scripts/

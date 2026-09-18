@@ -4144,6 +4144,7 @@ _TG_API_CACHE: Dict[str, Any] = {}
 def get_telegram_api_specs() -> Tuple[Dict[str, Any], Dict[str, Any]]:
     global _TG_API_CACHE
     spec_paths = [
+        Path(__file__).resolve().parent.parent.parent / "skills/t/telegram-bot-api-methods/references",
         Path(__file__).resolve().parent.parent.parent / "skills/telegram-bot-api-methods/references",
         Path(__file__).resolve().parent / "data/telegram",
         HOME_DIR / "antigravity-customizations/skills/telegram-bot-api-methods/references",
@@ -4162,6 +4163,7 @@ def get_telegram_api_specs() -> Tuple[Dict[str, Any], Dict[str, Any]]:
         return _TG_API_CACHE["methods"], _TG_API_CACHE["types"]
 
     spec_paths = [
+        Path(__file__).resolve().parent.parent.parent / "skills/t/telegram-bot-api-methods/references",
         Path(__file__).resolve().parent.parent.parent / "skills/telegram-bot-api-methods/references",
         Path(__file__).resolve().parent / "data/telegram",
         HOME_DIR / "antigravity-customizations/skills/telegram-bot-api-methods/references",
