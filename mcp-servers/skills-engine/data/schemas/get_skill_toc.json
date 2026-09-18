@@ -1,0 +1,17 @@
+{
+  "name": "get_skill_toc",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "title": "get_skill_tocArguments",
+    "type": "object"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "get_telegram_bot_api_spec",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "query_type": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Query Type"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "get_telegram_bot_api_specArguments",
+    "type": "object"
+  }
+}

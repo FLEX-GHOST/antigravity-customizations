@@ -1,0 +1,15 @@
+{
+  "name": "list_rules_overview",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "limit": {
+        "default": 50,
+        "title": "Limit",
+        "type": "integer"
+      }
+    },
+    "title": "list_rules_overviewArguments",
+    "type": "object"
+  }
+}

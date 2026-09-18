@@ -1,0 +1,17 @@
+{
+  "name": "get_exact_skill",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "title": "get_exact_skillArguments",
+    "type": "object"
+  }
+}

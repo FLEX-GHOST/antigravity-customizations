@@ -1,0 +1,22 @@
+{
+  "name": "get_skill_section",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string"
+      },
+      "section_heading": {
+        "title": "Section Heading",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "section_heading"
+    ],
+    "title": "get_skill_sectionArguments",
+    "type": "object"
+  }
+}

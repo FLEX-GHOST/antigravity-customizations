@@ -1,0 +1,17 @@
+{
+  "name": "audit_web_application_quality",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "html_or_jsx": {
+        "title": "Html Or Jsx",
+        "type": "string"
+      }
+    },
+    "required": [
+      "html_or_jsx"
+    ],
+    "title": "audit_web_application_qualityArguments",
+    "type": "object"
+  }
+}

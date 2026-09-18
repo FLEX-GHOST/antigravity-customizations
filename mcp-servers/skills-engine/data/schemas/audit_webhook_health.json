@@ -1,0 +1,20 @@
+{
+  "name": "audit_webhook_health",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "webhook_url": {
+        "default": "",
+        "title": "Webhook Url",
+        "type": "string"
+      },
+      "secret_token": {
+        "default": "",
+        "title": "Secret Token",
+        "type": "string"
+      }
+    },
+    "title": "audit_webhook_healthArguments",
+    "type": "object"
+  }
+}

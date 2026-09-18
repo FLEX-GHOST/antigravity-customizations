@@ -1,0 +1,9 @@
+{
+  "name": "explain_ecosystem_map",
+  "description": "",
+  "inputSchema": {
+    "properties": {},
+    "title": "explain_ecosystem_mapArguments",
+    "type": "object"
+  }
+}

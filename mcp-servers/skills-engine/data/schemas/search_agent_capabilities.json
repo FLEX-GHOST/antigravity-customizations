@@ -1,0 +1,56 @@
+{
+  "name": "search_agent_capabilities",
+  "description": "Fast hybrid search across 125+ skills, rules, and blueprints with BM25 + vector ranking.",
+  "inputSchema": {
+    "properties": {
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "domain": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Domain"
+      },
+      "language": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Language"
+      },
+      "min_quality": {
+        "default": 40,
+        "title": "Min Quality",
+        "type": "integer"
+      },
+      "limit": {
+        "default": 8,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "output_format": {
+        "default": "json",
+        "title": "Output Format",
+        "type": "string"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "search_agent_capabilitiesArguments",
+    "type": "object"
+  }
+}

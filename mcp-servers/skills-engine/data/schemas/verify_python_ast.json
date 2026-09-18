@@ -1,0 +1,17 @@
+{
+  "name": "verify_python_ast",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "code": {
+        "title": "Code",
+        "type": "string"
+      }
+    },
+    "required": [
+      "code"
+    ],
+    "title": "verify_python_astArguments",
+    "type": "object"
+  }
+}

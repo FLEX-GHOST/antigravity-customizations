@@ -1,0 +1,9 @@
+{
+  "name": "get_core_governance_rules",
+  "description": "",
+  "inputSchema": {
+    "properties": {},
+    "title": "get_core_governance_rulesArguments",
+    "type": "object"
+  }
+}

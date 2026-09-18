@@ -1,0 +1,22 @@
+{
+  "name": "validate_telegram_payload",
+  "description": "Strict offline schema & payload validator for Telegram Bot API 10.3 / 9.4+ requests (checks text length, button rows <= 8, callback length <= 64B, and button styling).",
+  "inputSchema": {
+    "properties": {
+      "method": {
+        "title": "Method",
+        "type": "string"
+      },
+      "payload_json": {
+        "title": "Payload Json",
+        "type": "string"
+      }
+    },
+    "required": [
+      "method",
+      "payload_json"
+    ],
+    "title": "validate_telegram_payloadArguments",
+    "type": "object"
+  }
+}

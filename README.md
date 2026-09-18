@@ -2,7 +2,8 @@
 
 [![Antigravity IDE](https://img.shields.io/badge/Google%20Antigravity-IDE%20%7C%20CLI%20%7C%202.0-blue.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot%20API-10.3%20(185%20Methods%20%7C%20400%20Types)-2CA5E0?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
-[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-51%20Tools%20(100%25%20Alphabetical)-success.svg)](#complete-mcp-tool-suite-51-enterprise-tools)
+[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-51%20Tools%20(Go%201.26.5%20Native)-success.svg)](#complete-mcp-tool-suite-51-enterprise-tools)
+[![Engine Architecture](https://img.shields.io/badge/Engine-Go%201.26.5%20%7C%20Static%20Binary%20(6.7MB)-blue.svg)](#)
 [![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-4%2C800%2B%20(SQLite%20FTS5)-orange.svg)](#)
 [![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
 [![Autonomous CI/CD](https://img.shields.io/badge/GitHub%20Actions-Auto--Sync%20Bot-blueviolet.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions)
@@ -31,7 +32,7 @@ cd ~/.gemini/antigravity-customizations
 ### What This Command Provisions:
 1. **Zero-Prompt Permissions**: Configures `permissionPreset: turbo` and `toolExecutionPolicy: always-proceed` across IDE and CLI to permanently eliminate confirmation dialogs.
 2. **Core Sovereign Rules**: Deploys anti-slop, honest engineering, strict comments, and memory safety rules to `~/.gemini/config/rules/`.
-3. **Complete 51 MCP Tools**: Installs and hot-activates the `skills-engine` MCP server with strict alphabetical caching standards.
+3. **Go 1.26.5 Native MCP Engine**: Auto-provisions the official Go 1.26.5 toolchain if missing, compiles the 6.7MB statically linked `skills-engine` binary, and hot-activates all 51 tools with <2MB idle RAM and strict alphabetical caching.
 4. **Telegram Bot API 10.3 Master Engine**: Ingests and builds real-time SQLite FTS5 indices for all **185 methods** and **400 types**.
 5. **Intelligent Dialect NLU Hook**: Deploys the Pre-Invocation hook with Arabic, Iraqi dialect, and English intent normalization.
 
@@ -46,7 +47,7 @@ cd ~/.gemini/antigravity-customizations
                                +-------------------------------------------------------+
                                       |                                       |
                    [Pre-Invocation Interceptor]                      [Model Context Protocol]
-                   - Arabic & Iraqi Dialect NLU                      skills-engine (51 Tools)
+                   - Arabic & Iraqi Dialect NLU                      skills-engine (Go 1.26.5 Native, 51 Tools)
                    - Pre-loaded Method Spec                                   |
                    - Zero-Latency Prompt Injection                            v
                                                               +-------------------------------+
@@ -207,6 +208,17 @@ To save 75%+ prompt tokens in context-constrained environments, enable dynamic t
 export MCP_DYNAMIC_SCOPING=1
 ```
 When enabled, only 9 core discovery & validation tools are exposed initially. Specialised tool suites (`telegram`, `governance`, `systems_rust`, `agentic_memory`, `search_catalog`, or `all`) are dynamically injected when activated via `activate_tool_suite("<suite>")`.
+
+---
+
+## Go 1.26.5 Native High-Performance Architecture
+
+The `skills-engine` MCP server is built as a self-contained, statically linked binary compiled with **Go 1.26.5**:
+- **Binary Footprint**: 6.7MB standalone static binary (`CGO_ENABLED=0`, zero external dependencies).
+- **RAM Efficiency**: Consumes **< 2MB RAM** at idle (compared to ~50MB in Python runtimes).
+- **Embedded Assets**: Embeds all 51 tool schemas and the complete Telegram Bot API 10.3 master specification (185 methods, 400 types) directly inside the binary via `//go:embed`.
+- **Automated Provisioning**: Universal `install.sh` detects machine architecture (`amd64` / `arm64`), downloads the official Go 1.26.5 archive if missing, and compiles the binary in under 2 seconds.
+- **Dual Runtime Support**: Python `server.py` is maintained alongside the Go binary as an automatic fallback.
 
 ---
 

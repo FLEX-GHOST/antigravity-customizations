@@ -20,35 +20,64 @@ if ! command -v python3 >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; th
     fi
 fi
 
-# 2. Fast Python runtime check (uses uv for 100x speedup if mcp missing)
-echo "[-] Verifying Python runtime..."
-if ! python3 -c "from mcp.server.fastmcp import FastMCP" 2>/dev/null && \
-   ! python3 -c "from mcp.server.mcpserver import MCPServer" 2>/dev/null && \
-   ! python3 -c "from mcp.server import FastMCP" 2>/dev/null; then
-    
-    # Check if uv is available
-    UV_BIN=""
-    if command -v uv >/dev/null 2>&1; then
-        UV_BIN="$(command -v uv)"
-    elif [ -x "${HOME_DIR}/.local/bin/uv" ]; then
-        UV_BIN="${HOME_DIR}/.local/bin/uv"
-    elif [ -x "${HOME_DIR}/.cargo/bin/uv" ]; then
-        UV_BIN="${HOME_DIR}/.cargo/bin/uv"
-    fi
+# 2. Go Toolchain Verification & Automated Installation
+echo "[-] Verifying Go runtime..."
+GO_BIN=""
+if command -v go >/dev/null 2>&1; then
+    GO_BIN="$(command -v go)"
+elif [ -x "/usr/local/go/bin/go" ]; then
+    GO_BIN="/usr/local/go/bin/go"
+    export PATH="/usr/local/go/bin:${PATH}"
+elif [ -x "${HOME_DIR}/.local/go/bin/go" ]; then
+    GO_BIN="${HOME_DIR}/.local/go/bin/go"
+    export PATH="${HOME_DIR}/.local/go/bin:${PATH}"
+fi
 
-    # If uv is not available, install standalone uv (Rust-based, takes ~1s)
-    if [ -z "$UV_BIN" ]; then
-        curl -LsSf https://astral.sh/uv/install.sh 2>/dev/null | sh >/dev/null 2>&1 || true
-        if [ -x "${HOME_DIR}/.local/bin/uv" ]; then
-            UV_BIN="${HOME_DIR}/.local/bin/uv"
+if [ -z "$GO_BIN" ]; then
+    ARCH="$(uname -m)"
+    case "$ARCH" in
+        x86_64) GO_ARCH="amd64" ;;
+        aarch64|arm64) GO_ARCH="arm64" ;;
+        *) GO_ARCH="amd64" ;;
+    esac
+    GO_VERSION="1.26.5"
+    echo "[-] Go is not installed. Auto-installing official Go ${GO_VERSION} for ${GO_ARCH}..."
+    GO_TAR="go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
+    if curl -fsSL "https://go.dev/dl/${GO_TAR}" -o "/tmp/${GO_TAR}" 2>/dev/null; then
+        if [ "$EUID" -eq 0 ] && [ -d "/usr/local" ]; then
+            rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/${GO_TAR}" 2>/dev/null
+            export PATH="/usr/local/go/bin:${PATH}"
+            GO_BIN="/usr/local/go/bin/go"
+            if ! grep -q '/usr/local/go/bin' "${HOME_DIR}/.bashrc" 2>/dev/null; then
+                echo 'export PATH="/usr/local/go/bin:${PATH}"' >> "${HOME_DIR}/.bashrc"
+            fi
+            if [ -f "${HOME_DIR}/.zshrc" ] && ! grep -q '/usr/local/go/bin' "${HOME_DIR}/.zshrc" 2>/dev/null; then
+                echo 'export PATH="/usr/local/go/bin:${PATH}"' >> "${HOME_DIR}/.zshrc"
+            fi
+        else
+            mkdir -p "${HOME_DIR}/.local"
+            rm -rf "${HOME_DIR}/.local/go" && tar -C "${HOME_DIR}/.local" -xzf "/tmp/${GO_TAR}" 2>/dev/null
+            export PATH="${HOME_DIR}/.local/go/bin:${PATH}"
+            GO_BIN="${HOME_DIR}/.local/go/bin/go"
+            if ! grep -q '/.local/go/bin' "${HOME_DIR}/.bashrc" 2>/dev/null; then
+                echo 'export PATH="${HOME}/.local/go/bin:${PATH}"' >> "${HOME_DIR}/.bashrc"
+            fi
+            if [ -f "${HOME_DIR}/.zshrc" ] && ! grep -q '/.local/go/bin' "${HOME_DIR}/.zshrc" 2>/dev/null; then
+                echo 'export PATH="${HOME}/.local/go/bin:${PATH}"' >> "${HOME_DIR}/.zshrc"
+            fi
         fi
-    fi
-
-    # Install mcp via uv (0.2s) or fallback to pip
-    if [ -n "$UV_BIN" ]; then
-        "$UV_BIN" pip install --system --break-system-packages "mcp<2" >/dev/null 2>&1 || true
+        rm -f "/tmp/${GO_TAR}"
+        echo "[*] Successfully installed $(go version 2>/dev/null || echo "Go ${GO_VERSION}")"
     else
-        python3 -m pip install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" >/dev/null 2>&1 || true
+        echo "[!] Direct Go download failed, attempting package manager..."
+        if command -v apt-get >/dev/null 2>&1; then
+            apt-get update -qq && apt-get install -y -qq golang-go >/dev/null 2>&1 || true
+        elif command -v yum >/dev/null 2>&1; then
+            yum install -y -q golang >/dev/null 2>&1 || true
+        fi
+        if command -v go >/dev/null 2>&1; then
+            GO_BIN="$(command -v go)"
+        fi
     fi
 fi
 
@@ -93,11 +122,39 @@ if [ -d "${SOURCE_DIR}/hooks" ]; then
     cp -rf "${SOURCE_DIR}/hooks/"* "${CONFIG_DIR}/hooks/"
 fi
 
-cp -f "${SOURCE_DIR}/mcp-servers/skills-engine/server.py" "${MCP_SERVERS_DIR}/skills-engine/server.py"
+cp -rf "${SOURCE_DIR}/mcp-servers/skills-engine/"* "${MCP_SERVERS_DIR}/skills-engine/" 2>/dev/null || true
+ARCH="$(uname -m)"
+case "$ARCH" in
+    x86_64) GO_ARCH="amd64" ;;
+    aarch64|arm64) GO_ARCH="arm64" ;;
+    *) GO_ARCH="amd64" ;;
+esac
+
+if [ -f "${MCP_SERVERS_DIR}/skills-engine/skills-engine-linux-${GO_ARCH}" ]; then
+    cp -f "${MCP_SERVERS_DIR}/skills-engine/skills-engine-linux-${GO_ARCH}" "${MCP_SERVERS_DIR}/skills-engine/skills-engine"
+    chmod +x "${MCP_SERVERS_DIR}/skills-engine/skills-engine"
+    echo "[*] Deployed precompiled Go 1.26.5 static binary for ${GO_ARCH}."
+elif [ -n "$GO_BIN" ] || command -v go >/dev/null 2>&1; then
+    echo "[-] Compiling skills-engine Go static binary..."
+    (cd "${MCP_SERVERS_DIR}/skills-engine" && CGO_ENABLED=0 go build -ldflags="-s -w" -o skills-engine . >/dev/null 2>&1 || true)
+fi
 
 # 6. Configure MCP server
 echo "[-] Configuring MCP server..."
-cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
+if [ -x "${MCP_SERVERS_DIR}/skills-engine/skills-engine" ]; then
+    cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
+{
+  "mcpServers": {
+    "skills-engine": {
+      "command": "__HOME__/.gemini/mcp-servers/skills-engine/skills-engine",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+EOF_MCP
+else
+    cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
 {
   "mcpServers": {
     "skills-engine": {
@@ -112,6 +169,7 @@ cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
   }
 }
 EOF_MCP
+fi
 sed -i "s|__HOME__|${HOME_DIR}|g" "${CONFIG_DIR}/mcp_config.json"
 
 # 7. Configure permissions (auto-allow all tools, eliminate popups across CLI and IDE)

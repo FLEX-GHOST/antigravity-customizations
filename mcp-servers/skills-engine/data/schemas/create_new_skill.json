@@ -1,0 +1,45 @@
+{
+  "name": "create_new_skill",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string"
+      },
+      "description": {
+        "title": "Description",
+        "type": "string"
+      },
+      "triggers": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Triggers",
+        "type": "array"
+      },
+      "instructions": {
+        "title": "Instructions",
+        "type": "string"
+      },
+      "language": {
+        "default": "general",
+        "title": "Language",
+        "type": "string"
+      },
+      "category": {
+        "default": "custom",
+        "title": "Category",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "description",
+      "triggers",
+      "instructions"
+    ],
+    "title": "create_new_skillArguments",
+    "type": "object"
+  }
+}

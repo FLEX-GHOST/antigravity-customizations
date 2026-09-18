@@ -1110,7 +1110,8 @@ def sync_all_directories(force: bool = False):
             conn.executemany("INSERT OR REPLACE INTO items_fts VALUES (?, ?, ?, ?, ?, ?, ?)", to_insert_fts)
 
     last_sync_time = now
-    clear_all_caches()
+    if "clear_all_caches" in globals():
+        clear_all_caches()
 
 def ensure_initialized():
     init_db()

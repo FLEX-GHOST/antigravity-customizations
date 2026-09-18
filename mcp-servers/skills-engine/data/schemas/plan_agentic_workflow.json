@@ -1,0 +1,22 @@
+{
+  "name": "plan_agentic_workflow",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "goal": {
+        "title": "Goal",
+        "type": "string"
+      },
+      "target_stack": {
+        "default": "rust",
+        "title": "Target Stack",
+        "type": "string"
+      }
+    },
+    "required": [
+      "goal"
+    ],
+    "title": "plan_agentic_workflowArguments",
+    "type": "object"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "discover_tools",
+  "description": "Meta-tool for progressive tool discovery: find and unlock the exact tool for any task on demand.",
+  "inputSchema": {
+    "properties": {
+      "intent": {
+        "title": "Intent",
+        "type": "string"
+      },
+      "domain": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Domain"
+      },
+      "max_results": {
+        "default": 6,
+        "title": "Max Results",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "intent"
+    ],
+    "title": "discover_toolsArguments",
+    "type": "object"
+  }
+}

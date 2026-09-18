@@ -1,0 +1,27 @@
+{
+  "name": "get_distributed_trace_spans",
+  "description": "Retrieve OpenTelemetry distributed trace spans conforming to SEP-2577 and GenAI semantic conventions.",
+  "inputSchema": {
+    "properties": {
+      "limit": {
+        "default": 20,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "trace_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Trace Id"
+      }
+    },
+    "title": "get_distributed_trace_spansArguments",
+    "type": "object"
+  }
+}

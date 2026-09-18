@@ -1,0 +1,17 @@
+{
+  "name": "resolve_bot_service",
+  "description": "",
+  "inputSchema": {
+    "properties": {
+      "user_query": {
+        "title": "User Query",
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_query"
+    ],
+    "title": "resolve_bot_serviceArguments",
+    "type": "object"
+  }
+}

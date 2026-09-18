@@ -1,0 +1,58 @@
+{
+  "name": "simulate_telegram_webhook_update",
+  "description": "Generate and validate a cryptographic Telegram Bot API 9.4 webhook update payload.\n    Supports colored buttons (primary, success, danger), secret token header verification, and HMAC signatures.",
+  "inputSchema": {
+    "properties": {
+      "chat_id": {
+        "title": "Chat Id",
+        "type": "string"
+      },
+      "update_type": {
+        "default": "message",
+        "title": "Update Type",
+        "type": "string"
+      },
+      "secret_token": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Secret Token"
+      },
+      "callback_data": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Callback Data"
+      },
+      "button_style": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": "primary",
+        "title": "Button Style"
+      }
+    },
+    "required": [
+      "chat_id"
+    ],
+    "title": "simulate_telegram_webhook_updateArguments",
+    "type": "object"
+  }
+}

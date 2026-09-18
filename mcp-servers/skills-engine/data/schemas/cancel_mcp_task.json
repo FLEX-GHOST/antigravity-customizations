@@ -1,0 +1,17 @@
+{
+  "name": "cancel_mcp_task",
+  "description": "Cancel an active asynchronous background task.",
+  "inputSchema": {
+    "properties": {
+      "task_id": {
+        "title": "Task Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "title": "cancel_mcp_taskArguments",
+    "type": "object"
+  }
+}

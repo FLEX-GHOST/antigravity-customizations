@@ -1,0 +1,9 @@
+{
+  "name": "reload_skills_index",
+  "description": "",
+  "inputSchema": {
+    "properties": {},
+    "title": "reload_skills_indexArguments",
+    "type": "object"
+  }
+}
