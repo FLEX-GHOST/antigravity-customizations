@@ -1760,7 +1760,7 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
 
     active_domains = []
     for d_name, d_info in INTENT_DOMAINS.items():
-        if any(k in tokens for k in d_info["keywords"]):
+        if any(k in tokens for k in d_info.get("keywords", [])):
             active_domains.append(d_name)
 
     fts_query_parts = [f'"{tok}"*' for tok in tokens[:28]]
