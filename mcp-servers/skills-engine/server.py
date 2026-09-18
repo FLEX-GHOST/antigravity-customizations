@@ -1574,7 +1574,8 @@ TOOL_SUITES = {
             "get_telegram_bot_api_spec", "sync_telegram_bot_api_upstream",
             "scaffold_telegram_microservice", "simulate_telegram_load",
             "simulate_telegram_webhook_update", "simulate_bot_pipeline",
-            "audit_webhook_health", "resolve_bot_service"
+            "audit_webhook_health", "resolve_bot_service",
+            "diagnose_telegram_error", "explore_telegram_workflow_graph", "validate_telegram_payload"
         ]
     },
     "governance": {
@@ -1611,6 +1612,28 @@ TOOL_SUITES = {
             "reload_skills_index", "read_skill_resource_file", "explain_ecosystem_map",
             "discover_tools", "activate_tool_suite", "list_available_suites",
             "recommend_skills_for_context"
+        ]
+    },
+    "all": {
+        "description": "Full enterprise suite containing all 51 active tools across all domains",
+        "tools": [
+            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
+            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
+            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
+            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
+            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
+            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
+            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
+            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
+            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
+            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
+            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
+            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
+            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
+            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
+            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
+            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
+            "verify_and_heal_code_patch", "verify_python_ast"
         ]
     }
 }
@@ -1652,6 +1675,28 @@ INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
     "testing_verification": {
         "keywords": ["verification", "testing", "unit", "integration", "qa", "audit", "senior-qa"],
         "tag": "Verification & Testing",
+    },
+    "all": {
+        "description": "Full enterprise suite containing all 51 active tools across all domains",
+        "tools": [
+            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
+            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
+            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
+            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
+            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
+            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
+            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
+            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
+            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
+            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
+            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
+            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
+            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
+            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
+            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
+            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
+            "verify_and_heal_code_patch", "verify_python_ast"
+        ]
     }
 }
 
@@ -2337,9 +2382,11 @@ def verify_code_rules(code_content: str, language: str) -> Dict[str, Any]:
         "violations": violations,
     }
 
+_ALL_REGISTERED_TOOLS = {}
+
 @mcp.tool()
 def activate_tool_suite(suite_name: str) -> Dict[str, Any]:
-    """Dynamically activate a specialized tool suite (telegram, architecture, quality, catalog)."""
+    """Dynamically activate a specialized tool suite (telegram, governance, systems_rust, agentic_memory, search_catalog, all)."""
     s_key = suite_name.lower().strip()
     if s_key not in TOOL_SUITES:
         return {
@@ -2348,12 +2395,25 @@ def activate_tool_suite(suite_name: str) -> Dict[str, Any]:
         }
     _ACTIVE_SUITES.add(s_key)
     suite = TOOL_SUITES[s_key]
+
+    # Dynamic Scoping injection if active
+    if os.environ.get("MCP_DYNAMIC_SCOPING") == "1" and _ALL_REGISTERED_TOOLS:
+        if s_key == "all":
+            mcp._tool_manager._tools = dict(_ALL_REGISTERED_TOOLS)
+        else:
+            suite_tools = set(suite["tools"])
+            for k, v in _ALL_REGISTERED_TOOLS.items():
+                if k in suite_tools:
+                    mcp._tool_manager._tools[k] = v
+            mcp._tool_manager._tools = dict(sorted(mcp._tool_manager._tools.items(), key=lambda x: x[0]))
+
     return {
         "status": "ACTIVATED",
         "suite": s_key,
         "description": suite["description"],
         "tools_enabled": suite["tools"],
         "active_suites": list(_ACTIVE_SUITES),
+        "currently_exposed_tool_count": len(mcp._tool_manager._tools) if hasattr(mcp, "_tool_manager") else 51
     }
 
 @mcp.tool()
@@ -2659,6 +2719,28 @@ BOT_SERVICES_CATALOG: Dict[str, Dict[str, Any]] = {
         "description": "Fetches and re-hosts content from Telegram channels with restricted permissions.",
         "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory"],
         "recommended_skills": ["skill:telegram-bot-builder"]
+    },
+    "all": {
+        "description": "Full enterprise suite containing all 51 active tools across all domains",
+        "tools": [
+            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
+            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
+            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
+            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
+            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
+            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
+            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
+            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
+            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
+            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
+            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
+            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
+            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
+            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
+            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
+            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
+            "verify_and_heal_code_patch", "verify_python_ast"
+        ]
     }
 }
 
@@ -4392,6 +4474,28 @@ TELEGRAM_WORKFLOW_MAP = {
         "related_types": ["InlineKeyboardMarkup", "CallbackQuery"],
         "next_steps": ["answerCallbackQuery", "editMessageReplyMarkup", "editMessageText"],
         "callbacks_handled": ["answerCallbackQuery"]
+    },
+    "all": {
+        "description": "Full enterprise suite containing all 51 active tools across all domains",
+        "tools": [
+            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
+            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
+            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
+            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
+            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
+            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
+            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
+            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
+            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
+            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
+            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
+            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
+            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
+            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
+            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
+            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
+            "verify_and_heal_code_patch", "verify_python_ast"
+        ]
     }
 }
 
@@ -4425,6 +4529,28 @@ TELEGRAM_ERROR_DIAGNOSTICS = {
         "cause": "Exceeded Telegram Bot API rate limits (FloodWait).",
         "fix_explanation": "Extract retry_after seconds, apply tokio sleep with random jitter (100ms..1000ms), and retry.",
         "rust_fix": 'let wait = retry_after_secs + rand::thread_rng().gen_range(1..=3);\ntokio::time::sleep(tokio::time::Duration::from_secs(wait)).await;'
+    },
+    "all": {
+        "description": "Full enterprise suite containing all 51 active tools across all domains",
+        "tools": [
+            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
+            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
+            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
+            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
+            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
+            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
+            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
+            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
+            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
+            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
+            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
+            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
+            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
+            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
+            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
+            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
+            "verify_and_heal_code_patch", "verify_python_ast"
+        ]
     }
 }
 
@@ -4540,6 +4666,8 @@ def validate_telegram_payload(method: str, payload_json: str) -> Dict[str, Any]:
         "is_bot_api_10_3_compliant": len(violations) == 0
     }
 
+MOCK_TELEGRAM_STATE = {"messages": [], "webhook": None}
+
 def _start_local_ipc_server():
     import socket
     import os
@@ -4567,9 +4695,120 @@ def _start_local_ipc_server():
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
                     self.wfile.write(payload)
+                elif "/getMe" in path:
+                    payload = json.dumps({
+                        "ok": True,
+                        "result": {
+                            "id": 999999999,
+                            "is_bot": True,
+                            "first_name": "SkillsEngineMockBot",
+                            "username": "skills_engine_mock_bot",
+                            "can_join_groups": True,
+                            "can_read_all_group_messages": False,
+                            "supports_inline_queries": True
+                        }
+                    }).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+                elif path.startswith("/mock/messages"):
+                    payload = json.dumps({
+                        "ok": True,
+                        "count": len(MOCK_TELEGRAM_STATE["messages"]),
+                        "messages": MOCK_TELEGRAM_STATE["messages"]
+                    }, ensure_ascii=False).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+                elif path.startswith("/mock/health"):
+                    payload = json.dumps({
+                        "status": "HEALTHY",
+                        "sandbox": "telegram-mock",
+                        "messages_recorded": len(MOCK_TELEGRAM_STATE["messages"]),
+                        "webhook_url": MOCK_TELEGRAM_STATE["webhook"]
+                    }).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(payload)
                 else:
                     self.send_response(404)
                     self.end_headers()
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+
+        def do_POST(self):
+            try:
+                path = self.path
+                length = int(self.headers.get("Content-Length", 0))
+                body_raw = self.rfile.read(length) if length > 0 else b"{}"
+                try:
+                    body = json.loads(body_raw.decode("utf-8")) if body_raw.strip() else {}
+                except Exception:
+                    body = {}
+
+                if path.endswith("/sendMessage"):
+                    msg_id = len(MOCK_TELEGRAM_STATE["messages"]) + 1001
+                    record = {
+                        "message_id": msg_id,
+                        "date": int(time.time()),
+                        "chat": {
+                            "id": body.get("chat_id", 123456789),
+                            "type": "supergroup" if str(body.get("chat_id", "")).startswith("-100") else "private"
+                        },
+                        "text": body.get("text", ""),
+                        "reply_markup": body.get("reply_markup")
+                    }
+                    MOCK_TELEGRAM_STATE["messages"].append(record)
+                    resp = {"ok": True, "result": record}
+                elif path.endswith("/editMessageText"):
+                    msg_id = body.get("message_id", 1001)
+                    found = False
+                    for m in MOCK_TELEGRAM_STATE["messages"]:
+                        if m.get("message_id") == msg_id:
+                            m["text"] = body.get("text", "")
+                            if "reply_markup" in body:
+                                m["reply_markup"] = body.get("reply_markup")
+                            found = True
+                            resp = {"ok": True, "result": m}
+                            break
+                    if not found:
+                        resp = {"ok": True, "result": {"message_id": msg_id, "text": body.get("text", ""), "date": int(time.time())}}
+                elif path.endswith("/deleteMessage"):
+                    resp = {"ok": True, "result": True}
+                elif path.endswith("/sendPhoto"):
+                    msg_id = len(MOCK_TELEGRAM_STATE["messages"]) + 1001
+                    record = {
+                        "message_id": msg_id,
+                        "date": int(time.time()),
+                        "chat": {"id": body.get("chat_id", 123456789), "type": "private"},
+                        "caption": body.get("caption", ""),
+                        "photo": [{"file_id": "mock_photo_id", "width": 800, "height": 600}]
+                    }
+                    MOCK_TELEGRAM_STATE["messages"].append(record)
+                    resp = {"ok": True, "result": record}
+                elif path.endswith("/setWebhook"):
+                    MOCK_TELEGRAM_STATE["webhook"] = body.get("url")
+                    resp = {"ok": True, "result": True, "description": "Webhook was set successfully in Mock Engine"}
+                elif path.startswith("/mock/reset"):
+                    MOCK_TELEGRAM_STATE["messages"].clear()
+                    MOCK_TELEGRAM_STATE["webhook"] = None
+                    resp = {"ok": True, "cleared": True}
+                else:
+                    method_name = path.split("/")[-1]
+                    resp = {"ok": True, "result": True, "mock_method": method_name, "received_payload": body}
+
+                payload = json.dumps(resp, ensure_ascii=False).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
             except Exception:
                 self.send_response(500)
                 self.end_headers()
@@ -4622,10 +4861,21 @@ _start_local_ipc_server()
 
 def enforce_mcp_deterministic_standards():
     """Enforce July 2026 MCP specification: deterministic tool ordering & safety metadata."""
+    global _ALL_REGISTERED_TOOLS
     if hasattr(mcp, "_tool_manager") and hasattr(mcp._tool_manager, "_tools"):
         # 1. Deterministic alphabetical ordering for Prompt Caching stability (>95% hit rate)
         sorted_tools = dict(sorted(mcp._tool_manager._tools.items(), key=lambda x: x[0]))
-        mcp._tool_manager._tools = sorted_tools
+        _ALL_REGISTERED_TOOLS = dict(sorted_tools)
+
+        if os.environ.get("MCP_DYNAMIC_SCOPING") == "1":
+            core_names = {
+                "discover_tools", "search_agent_capabilities", "activate_tool_suite",
+                "list_available_suites", "get_core_governance_rules", "get_telegram_bot_api_spec",
+                "diagnose_telegram_error", "validate_telegram_payload", "detect_project_stack"
+            }
+            mcp._tool_manager._tools = {k: v for k, v in sorted_tools.items() if k in core_names}
+        else:
+            mcp._tool_manager._tools = sorted_tools
 
         # 2. Tool Safety & Cache Metadata Annotations
         mutating_tools = {

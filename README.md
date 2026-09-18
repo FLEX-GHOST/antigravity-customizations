@@ -6,6 +6,7 @@
 [![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-4%2C800%2B%20(SQLite%20FTS5)-orange.svg)](#)
 [![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
 [![Autonomous CI/CD](https://img.shields.io/badge/GitHub%20Actions-Auto--Sync%20Bot-blueviolet.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions)
+[![CI/CD Test Suite](https://img.shields.io/badge/CI%2FCD-Automated%20Test%20Suite-success.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions/workflows/test-mcp-engine.yml)
 
 Enterprise-grade customization framework, sovereign engineering rules, complete Telegram Bot API master specification, and autonomous Model Context Protocol (MCP) skills engine engineered for **Google Antigravity IDE**, **Antigravity CLI (`agy`)**, and agentic AI systems.
 
@@ -186,12 +187,26 @@ The MCP server exposes 51 deterministic tools, sorted strictly in alphabetical o
 
 ---
 
-## High-Performance Local IPC & Loopback Architecture
+## High-Performance Local IPC, Mock Server & Dynamic Scoping
 
-The engine embeds a sub-millisecond local IPC server running concurrently with standard stdio / HTTP transports:
+### 1. Sub-Millisecond IPC & Telegram Bot API Mock Server
+The engine embeds a local IPC loopback and complete sandbox mock server running concurrently on port `14993` and UNIX domain sockets:
 - **HTTP Loopback**: `http://127.0.0.1:14993/api/spec/<method>` and `http://127.0.0.1:14993/api/health`
-- **UNIX Domain Socket**: `/tmp/skills-engine.sock` (binary stream supporting `spec:<method>` and `health`)
-- **Performance**: Sub-millisecond direct in-memory SQLite FTS5 lookup bypassing LLM tool call roundtrips for local bot daemons.
+- **Telegram Bot API Sandbox Mock**: Point any bot client to `http://127.0.0.1:14993` for 100% offline integration testing:
+  - `POST /bot<token>/sendMessage` (records messages, returns Telegram Bot API JSON)
+  - `POST /bot<token>/editMessageText` (in-memory state update)
+  - `POST /bot<token>/deleteMessage`
+  - `GET /bot<token>/getMe` (returns mock bot profile)
+  - `GET /mock/messages` (inspect recorded messages during test suites)
+  - `POST /mock/reset` (clears sandbox state)
+- **UNIX Domain Socket**: `/tmp/skills-engine.sock` (binary stream for zero-network-stack lookups)
+
+### 2. Progressive Tool Scoping (Token Optimization)
+To save 75%+ prompt tokens in context-constrained environments, enable dynamic tool scoping:
+```bash
+export MCP_DYNAMIC_SCOPING=1
+```
+When enabled, only 9 core discovery & validation tools are exposed initially. Specialised tool suites (`telegram`, `governance`, `systems_rust`, `agentic_memory`, `search_catalog`, or `all`) are dynamically injected when activated via `activate_tool_suite("<suite>")`.
 
 ---
 
