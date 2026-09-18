@@ -29,6 +29,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "mcp[cli]" || pip install mcp fastmcp || true
+
       - name: Clone Upstream Repositories
         run: |
           mkdir -p /tmp/catalog/repos

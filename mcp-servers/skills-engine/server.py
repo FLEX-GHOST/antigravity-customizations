@@ -138,7 +138,15 @@ except ImportError:
         try:
             from mcp.server.mcpserver import MCPServer as FastMCP
         except ImportError:
-            from fastmcp import FastMCP
+            try:
+                from fastmcp import FastMCP
+            except ImportError:
+                class FastMCP:
+                    def __init__(self, *args, **kwargs): pass
+                    def tool(self, *args, **kwargs):
+                        def decorator(f): return f
+                        return decorator
+                    def run(self, *args, **kwargs): pass
 
 mcp = FastMCP("skills-engine")
 
