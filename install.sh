@@ -209,14 +209,22 @@ if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
     cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"* "${MCP_SCHEMAS_DIR}/"
 fi
 
-# 9. Sync core database index & 185 Telegram methods
-echo "[-] Indexing knowledge base & 185 Telegram Bot API methods..."
+# 9. Deploy pre-indexed high-speed knowledge base (5,430+ vetted entities & 185 Telegram methods)
+echo "[-] Deploying pre-indexed knowledge base (5,430+ verified entities)..."
+DB_RELEASE_URL="https://github.com/FLEX-GHOST/antigravity-customizations/releases/download/v1.0.0/skills_index.db.gz"
+DB_TARGET="${MCP_SERVERS_DIR}/skills-engine/skills_index.db"
+
+if curl -fsSL -I "$DB_RELEASE_URL" >/dev/null 2>&1; then
+    curl -fsSL "$DB_RELEASE_URL" | gzip -d > "$DB_TARGET" 2>/dev/null || true
+fi
+
 python3 -c "
-import sys
+import sys, os
 sys.path.insert(0, '${MCP_SERVERS_DIR}/skills-engine')
 try:
     import server
-    server.sync_all_directories(force=True)
+    if not os.path.exists('${DB_TARGET}') or os.path.getsize('${DB_TARGET}') < 10000000:
+        server.sync_all_directories(force=True)
     server.sync_telegram_bot_api_upstream(force=True)
     conn = server.get_db_conn()
     total = conn.execute('SELECT count(*) FROM items').fetchone()[0]
@@ -226,30 +234,22 @@ except Exception as e:
     print(f'[!] Index note: {e}')
 "
 
-# 10. Background sync of optional external catalogs (non-blocking)
+# 10. Background sync of external catalogs for disk-level access (non-blocking)
 (
     fast_clone() {
-        local url="\$1"
-        local dest="\$2"
-        if [ ! -d "\$dest/.git" ]; then
-            git clone --depth 1 --single-branch --no-tags -q "\$url" "\$dest" 2>/dev/null || true
+        local url="$1"
+        local dest="$2"
+        if [ ! -d "$dest/.git" ]; then
+            git clone --depth 1 --single-branch --no-tags -q "$url" "$dest" 2>/dev/null || true
         else
-            git -C "\$dest" pull --quiet 2>/dev/null || true
+            git -C "$dest" pull --quiet 2>/dev/null || true
         fi
     }
     fast_clone "https://github.com/anthropics/skills.git" "${CATALOG_DIR}/repos/anthropics-skills"
     fast_clone "https://github.com/alirezarezvani/claude-skills.git" "${CATALOG_DIR}/repos/alirezarezvani-claude-skills"
     fast_clone "https://github.com/PatrickJS/awesome-cursorrules.git" "${CATALOG_DIR}/repos/awesome-cursorrules"
     fast_clone "https://github.com/ComposioHQ/awesome-claude-skills.git" "${CATALOG_DIR}/repos/composiohq-awesome-claude-skills"
-    python3 -c "
-import sys
-sys.path.insert(0, '${MCP_SERVERS_DIR}/skills-engine')
-try:
-    import server
-    server.sync_all_directories(force=True)
-except Exception:
-    pass
-" 2>/dev/null
+    fast_clone "https://github.com/diegosouzapw/awesome-omni-skills.git" "${HOME_DIR}/.omni-skills"
 ) >/dev/null 2>&1 &
 
 pkill -f "${MCP_SERVERS_DIR}/skills-engine/server.py" 2>/dev/null || true
