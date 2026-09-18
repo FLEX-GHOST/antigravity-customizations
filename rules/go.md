@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Idiomatic Go language rules, explicit error handling, interfaces, and high-concurrency memory efficiency
 ---
 

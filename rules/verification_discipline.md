@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Verification and testing discipline, compiling and testing before reporting completion
 ---
 

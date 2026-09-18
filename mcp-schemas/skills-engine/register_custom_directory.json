@@ -1,0 +1,1 @@
+{"name":"register_custom_directory","description":"","parameters":{"properties":{"directory_path":{"title":"Directory Path","type":"string"}},"required":["directory_path"],"title":"register_custom_directoryArguments","type":"object"}}

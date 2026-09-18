@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Network and HTTP request hygiene, preventing waterfalls, duplicate requests, and unhandled rate limits
 ---
 

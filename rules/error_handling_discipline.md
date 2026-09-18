@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Error handling discipline, structured errors, context preservation, and fail-fast invariants
 ---
 

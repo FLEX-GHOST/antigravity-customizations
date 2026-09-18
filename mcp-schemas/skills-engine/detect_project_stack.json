@@ -1,0 +1,1 @@
+{"name":"detect_project_stack","description":"","parameters":{"properties":{"directory_path":{"default":"/root/bots/factory","title":"Directory Path","type":"string"}},"title":"detect_project_stackArguments","type":"object"}}

@@ -1,3 +1,8 @@
+---
+trigger: model_decision
+description: Replace Over Duplicate
+---
+
 # Strict In-Place Modification & Anti-Duplication Rule
 
 ## Core Principle: Replace Existing Code, Never Duplicate or Append Redundant Logic

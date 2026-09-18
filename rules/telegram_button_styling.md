@@ -1,3 +1,8 @@
+---
+trigger: model_decision
+description: Telegram Button Styling
+---
+
 # Telegram Button Styling, Colors & Bot API 9.4 Standards
 
 Enforce complete button styling, disciplined color semantics, and Telegram Bot API 9.4+ standards across all Telegram bots, webhooks, and MTProto pipelines.

@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Dependency hygiene, minimal external dependencies, lockfile integrity, and standard library priority
 ---
 

@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Clean code and architectural standards, early returns, max nesting depth, and modularity
 ---
 

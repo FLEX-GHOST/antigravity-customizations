@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Resilience, explicit I/O timeouts, safe database migrations, and anti-N+1 query prevention
 ---
 

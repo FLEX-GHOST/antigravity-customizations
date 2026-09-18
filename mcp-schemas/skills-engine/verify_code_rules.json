@@ -1,0 +1,1 @@
+{"name":"verify_code_rules","description":"","parameters":{"properties":{"code_content":{"title":"Code Content","type":"string"},"language":{"title":"Language","type":"string"}},"required":["code_content","language"],"title":"verify_code_rulesArguments","type":"object"}}

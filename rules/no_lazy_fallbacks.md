@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 ---
 
 # No Lazy Fallbacks & Exact Root-Cause Engineering

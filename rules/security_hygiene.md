@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Security standards, zero hardcoded secrets, input sanitization, and SQL injection prevention
 ---
 

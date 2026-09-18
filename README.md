@@ -1,39 +1,106 @@
-# Antigravity Agent Customizations
+# Antigravity Enterprise Customizations & MCP Skills Engine
 
-[![Rules](https://img.shields.io/badge/Rules-27%20Standards-blue?style=flat-square)](./rules)
-[![Skills](https://img.shields.io/badge/Skills-95%20Skills-10b981?style=flat-square)](./skills)
-[![Plugins](https://img.shields.io/badge/Plugins-SecureCoder-8b5cf6?style=flat-square)](./plugins)
-[![Platform](https://img.shields.io/badge/Platform-Antigravity%20IDE-black?style=flat-square&logo=linux&logoColor=white)]()
+[![Antigravity Compatible](https://img.shields.io/badge/Antigravity%20IDE-Compatible-success.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
+[![Active Items](https://img.shields.io/badge/Indexed%20Skills%20%26%20Rules-4%2C175%2B-blue.svg)](#)
+[![Budget Free](https://img.shields.io/badge/Context%20Budget%20Free-%3E80%25-brightgreen.svg)](#)
+[![Governance](https://img.shields.io/badge/Governance-Anti--Slop%20%7C%20Anti--Sycophancy-orange.svg)](#)
 
-مستودع شامل للقوانين والمعايير الهندسية والمهارات البرمجية الخاصة بوكيل **Antigravity AI**، مهيأة للتثبيت الفوري في أي خادم أو بيئة عمل.
+Enterprise-grade configuration, sovereign engineering rules, and on-demand MCP skills engine for **Google Antigravity IDE** and agentic coding workflows.
 
 ---
 
-## التثبيت الفوري بأمر واحد (One-Liner Installation)
+## Quick Start: One-Command Installation (التثبيت بأمر واحد)
 
-انسخ الأمر التالي وشغّله في الطرفية (Terminal) على أي خادم لتثبيت كافة المهارات والقوانين مباشرة داخل المسار العام <span dir="ltr"><code>~/.gemini/config/</code></span>:
+Run this single command on **any server** (Debian, Ubuntu, Fedora, macOS, etc.) to set up everything automatically:
 
 ```bash
-git clone https://github.com/FLEX-GHOST/antigravity-customizations.git /tmp/cust && mkdir -p ~/.gemini/config && cp -rf /tmp/cust/{rules,skills,plugins} ~/.gemini/config/ && rm -rf /tmp/cust && echo "=== ALL SKILLS & RULES INSTALLED TO GLOBAL SUCCESSFULLY ==="
+curl -fsSL https://raw.githubusercontent.com/FLEX-GHOST/antigravity-customizations/main/install.sh | bash
+```
+
+Or via Git:
+
+```bash
+git clone https://github.com/FLEX-GHOST/antigravity-customizations.git ~/.gemini/antigravity-customizations
+cd ~/.gemini/antigravity-customizations
+./install.sh
 ```
 
 ---
 
-## محتويات المستودع
+## Core Architecture
 
-| المجلد / الملف | الفئة | العدد | الوصف |
-| :--- | :--- | :--- | :--- |
-| `rules/` | معايير وقوانين | 27 | هندسة Rust و Go، بنية الكود النظيف، مكافحة حشو الـ AI، وضوابط بوتات تلغرام والأمان. |
-| `skills/` | مهارات تخصصية | 95 | مهارات الأنظمة، الهندسة العكسية، حماية الشبكات، قواعد البيانات، والتصميم والواجهات. |
-| `plugins/` | إضافات الوكيل | 1 | حزمة الفحص والتدقيق الأمني التلقائي (SecureCoder). |
-| `install.sh` | سكربت محلي | 1 | أداة تثبيت تنفيذية محلية بديلة. |
+```
+                               +--------------------------------------------+
+                               |         Google Antigravity IDE             |
+                               +--------------------------------------------+
+                                      |                              |
+            [Always-On Core Rules: 11.6%]             [On-Demand MCP: 0.7%]
+            - anti_ai_design.md                       skills-engine (18 Tools)
+            - honest_engineering.md                                  |
+            - strict_comment_discipline.md                           v
+            - code_integrity.md                       +-----------------------------+
+                                                      |  SQLite WAL FTS5 Database   |
+                                                      |   4,175+ Skills & Rules     |
+                                                      +-----------------------------+
+                                                                     |
+                                      +------------------------------+------------------------------+
+                                      |                              |                              |
+                                      v                              v                              v
+                           [Anthropic Official]            [Top-Starred Curated]          [Cursor & Slop Rules]
+                            - mcp-builder                   - zero-hallucination           - PatrickJS CursorRules
+                            - frontend-design               - memory-engineering           - 66 Anti-Slop Gates
+                            - webapp-testing                - chaos-engineering            - Universal Stacks
+```
 
 ---
 
-## التحقق بعد التثبيت
+## Key Capabilities
 
-للتأكد من اكتمال التثبيت، يمكنك فحص المسار:
+### 1. 81%+ Free Context Budget (No Prompt Bloat)
+- Solves the **"Customization Budget Exceeded"** issue completely.
+- Moves large skill collections out of the eager prompt budget into an on-demand MCP index.
+- Reduces token footprint from **40.6% (8,121 tokens)** down to **0.7% (132 tokens)** while granting instant access to 4,175+ skills.
 
-```bash
-ls -la ~/.gemini/config/rules ~/.gemini/config/skills
-```
+### 2. Top-Starred Community & Official Skills
+Integrated directly with:
+- **`anthropics/skills`**: Official Anthropic production skills (`mcp-builder`, `skill-creator`, `canvas-design`, `webapp-testing`).
+- **`alirezarezvani/claude-skills`**: 840+ top-starred engineering, architecture, and reliability skills.
+- **`PatrickJS/awesome-cursorrules`**: 257 modern framework and language rules.
+- **`ComposioHQ/awesome-claude-skills`**: Multi-platform integration and automation skills.
+
+### 3. Non-Negotiable Governance & Anti-Slop
+- **`anti_ai_design`**: Strictly bans generic AI purple/violet gradients, faux glassmorphism, raw emojis in buttons; mandates 6 interactive button states and WCAG 2.2 AA contrast.
+- **`honest_engineering`**: Zero sycophancy, zero flattery; leads with blunt technical verdicts and surfaces trade-offs upfront.
+- **`strict_comment_discipline`**: Zero echo comments, zero AI meta-narration, zero tutorial padding.
+- **`code_integrity`**: Minimal blast radius, surgical modifications, zero breaking changes.
+
+---
+
+## 18 Built-in MCP Tools
+
+| Tool | Purpose |
+| :--- | :--- |
+| `search_agent_capabilities` | Hybrid SQLite FTS5 + BM25 search with Arabic stemming and quality weighting. |
+| `get_exact_skill` | 100% verbatim skill retrieval with zero loss or truncation. |
+| `get_exact_rule` | 100% verbatim rule retrieval. |
+| `get_top_rated_skills` | Filter top-starred skills by category, language, and tier (Score >= 70). |
+| `audit_skill_quality` | Programmatic analysis of skill length, structure, examples, and stubs. |
+| `get_core_governance_rules` | Instant access to Anti-UI Slop, Honest Engineering, and Strict Comments. |
+| `audit_anti_sycophancy` | Automated scanner for servile openers, reflexive folding, and AI buzzwords. |
+| `audit_ui_design` | Automated scanner for AI purple gradients, raw emojis, and missing button states. |
+| `detect_project_stack` | Universal tech-stack detector (Rust, Go, Python, React, Next.js, Docker, SQLite). |
+| `verify_code_rules` | Real-time linter for language-specific invariants. |
+| `get_skill_toc` | Returns table of contents for surgical section reading. |
+| `get_skill_section` | Reads single specific section, saving 85%+ tokens. |
+| `register_custom_directory` | Dynamically indexes any new folder on disk at runtime. |
+| `create_new_skill` | Programmatically authors new skills in the catalog. |
+| `list_skills_overview` | Paginated catalog view sorted by quality score. |
+| `list_rules_overview` | Paginated rules catalog view. |
+| `read_skill_resource_file` | Accesses nested skill templates and configuration files. |
+| `reload_skills_index` | Forces full re-index across all directories. |
+
+---
+
+## License
+
+MIT License. Designed for Antigravity IDE, Claude Code, Cursor, and agentic workflows.

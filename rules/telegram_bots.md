@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Telegram bots and Mini Apps best practices, flood wait handling, non-blocking handlers, and multi-tenant bot factories
 ---
 

@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Project structure, layer separation, no circular dependencies, and anti-spaghetti architecture
 ---
 

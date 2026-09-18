@@ -1,0 +1,1 @@
+{"name":"list_skills_overview","description":"","parameters":{"properties":{"category":{"anyOf":[{"type":"string"},{"type":"null"}],"default":null,"title":"Category"},"limit":{"default":50,"title":"Limit","type":"integer"}},"title":"list_skills_overviewArguments","type":"object"}}

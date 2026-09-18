@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 ---
 
 # Rust Production Systems Engineering Standards & Master Rules (Part 2)

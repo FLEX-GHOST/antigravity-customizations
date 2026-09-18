@@ -1,0 +1,1 @@
+{"name":"audit_anti_sycophancy","description":"","parameters":{"properties":{"response_text":{"title":"Response Text","type":"string"}},"required":["response_text"],"title":"audit_anti_sycophancyArguments","type":"object"}}

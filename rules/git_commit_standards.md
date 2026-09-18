@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: model_decision
 description: Conventional Commits standard, atomic changes, and clean VCS history
 ---
 
