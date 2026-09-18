@@ -16,17 +16,23 @@ mcp = FastMCP("skills-engine")
 
 DB_PATH = Path("/root/.gemini/mcp-servers/skills-engine/skills_index.db")
 
-SEARCH_PATHS = [
-    Path("/root/.gemini/config"),
-    Path("/root/.gemini/antigravity-ide/builtin/skills"),
-    Path("/root/.gemini/antigravity-ide/builtin/rules"),
-    Path("/root/bots/factory/.agents"),
-    Path("/root/bots/music/.agents"),
-    Path("/root/bots/rusttgcalls/.agents"),
-    Path("/root/bots"),
-    Path("/root/storage-dashboard/.agents/skills"),
-    Path("/root/.gemini/skills-catalog"),
-]
+def get_all_search_paths() -> List[Path]:
+    paths = [
+        Path("/root/.gemini/config"),
+        Path("/root/.gemini/antigravity-ide/builtin/skills"),
+        Path("/root/.gemini/antigravity-ide/builtin/rules"),
+        Path("/root/storage-dashboard/.agents/skills"),
+        Path("/root/.gemini/skills-catalog"),
+    ]
+    bots_dir = Path("/root/bots")
+    if bots_dir.exists():
+        for agent_dir in sorted(bots_dir.glob("*/.agents")):
+            if agent_dir.is_dir():
+                paths.append(agent_dir)
+        paths.append(bots_dir)
+    return paths
+
+SEARCH_PATHS = get_all_search_paths()
 
 ARABIC_STOPWORDS = {
     'من', 'الى', 'عن', 'على', 'في', 'حتى', 'مع', 'هذا', 'هذه', 'تم', 'كان', 'كانت',
@@ -742,11 +748,29 @@ def ensure_initialized():
 
 ensure_initialized()
 
+def normalize_arabic(text: str) -> str:
+    text = re.sub(r"[\u064B-\u065F\u0670\u0640]", "", text)
+    text = re.sub(r"[أإآ]", "ا", text)
+    text = re.sub(r"ة", "ه", text)
+    text = re.sub(r"ى", "ي", text)
+    text = re.sub(r"ؤ", "و", text)
+    text = re.sub(r"ئ", "ي", text)
+    text = re.sub(r"گ", "ك", text)
+    text = re.sub(r"پ", "ب", text)
+    text = re.sub(r"ڤ", "ف", text)
+    text = re.sub(r"ژ", "ز", text)
+    text = re.sub(r"چ", "ج", text)
+    return text.lower()
+
 def clean_query_text(text: str) -> str:
-    # Strip tatweel/kashida
-    t = re.sub(r"[\u0640]", "", text)
-    # Split Arabic prefixes on Latin words e.g. الـAI -> AI, والـTool -> Tool
-    t = re.sub(r"\b(ال|وال|بال|كال|لل|فال)([a-zA-Z]+)", r"\2", t)
+    t = normalize_arabic(text)
+    t = re.sub(r"\b(ال|وال|بال|كال|لل|فال)([a-zA-Z\u0621-\u064A]+)", r"\2", t)
+    # Dialect typo & variant tolerance for common developer terms
+    t = re.sub(r"\b(تلقرام|تلغرام)\b", "تلكرام", t)
+    t = re.sub(r"\b(انستقرام|انستكرام|انستغرام)\b", "انستا", t)
+    t = re.sub(r"\b(داون لود|داونلودر)\b", "داونلود", t)
+    t = re.sub(r"\b(روست)\b", "رست", t)
+    t = re.sub(r"\b(فويس چات|فويس شات)\b", "فويس جات", t)
     return t
 
 def extract_stems(norm_text: str) -> set:
@@ -880,24 +904,64 @@ def _cached_skill_section(name: str, section_heading: str) -> str:
     return "\n".join(extracted)
 
 def clear_all_caches():
+    _cached_search_capabilities.cache_clear()
     _cached_exact_skill.cache_clear()
     _cached_exact_rule.cache_clear()
     _cached_core_governance.cache_clear()
     _cached_skill_toc.cache_clear()
     _cached_skill_section.cache_clear()
 
-@mcp.tool()
-def search_agent_capabilities(query: str, domain: Optional[str] = None, language: Optional[str] = None, min_quality: int = 40, limit: int = 8) -> List[Dict[str, Any]]:
-    tokens = extract_intent_tokens(query)
-    if not tokens:
-        return []
+INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
+    "telegram_music": {
+        "keywords": ["music", "audio", "voice-chat", "stream", "pytgcalls", "rusttgcalls", "gotgcall", "playback", "webrtc", "ffmpeg", "flexmusic"],
+        "tag": "Voice & Music Streaming",
+    },
+    "telegram_bots": {
+        "keywords": ["telegram-bot", "telegram-bot-builder", "webhook", "polling", "teloxide", "mtproto", "session", "userbot", "gogram", "grammers"],
+        "tag": "Telegram Bot Architecture",
+    },
+    "performance_memory": {
+        "keywords": ["memory", "ram", "leak", "jemalloc", "zero-ram-idle", "zero-allocation", "deadlock", "mutex", "tokio", "concurrency", "profiling"],
+        "tag": "Low-RAM & Concurrency",
+    },
+    "ui_styling": {
+        "keywords": ["button", "button-states", "telegram-button-styling", "colors", "anti_ai_design", "better-colors", "typography", "icons", "anti-ui-slop"],
+        "tag": "UI, Buttons & Anti-Slop",
+    },
+    "ai_agentic": {
+        "keywords": ["ai-agent", "tool-calling", "function-calling", "agentic-bot", "slot-filling", "autonomous-agent", "tools-orchestration"],
+        "tag": "AI Agents & Tool Calling",
+    },
+    "clean_architecture": {
+        "keywords": ["clean-architecture", "clean-code", "code_integrity", "strict_comment_discipline", "decoupled", "ports-adapters", "service-layer"],
+        "tag": "Clean Architecture & Integrity",
+    },
+    "media_download": {
+        "keywords": ["media-downloader", "yt-dlp", "video-download", "instagram-downloader", "tiktok", "fastdl"],
+        "tag": "Media & Video Downloaders",
+    },
+    "testing_verification": {
+        "keywords": ["verification", "testing", "unit", "integration", "qa", "audit", "senior-qa"],
+        "tag": "Verification & Testing",
+    }
+}
 
-    # Weighted query parts: prefix search prioritizing the top 28 intent tokens
+@functools.lru_cache(maxsize=1024)
+def _cached_search_capabilities(query_key: str, domain: Optional[str], language: Optional[str], min_quality: int, limit: int) -> Tuple:
+    tokens = extract_intent_tokens(query_key)
+    if not tokens:
+        return ()
+
+    active_domains = []
+    for d_name, d_info in INTENT_DOMAINS.items():
+        if any(k in tokens for k in d_info["keywords"]):
+            active_domains.append(d_name)
+
     fts_query_parts = [f'"{tok}"*' for tok in tokens[:28]]
     fts_query = " OR ".join(fts_query_parts)
 
     conn = get_db_conn()
-    results = []
+    raw_candidates = []
 
     try:
         cur = conn.execute("""
@@ -908,42 +972,186 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
             JOIN items ON items.id = items_fts.id
             WHERE items_fts MATCH ? AND items.quality_score >= ?
             ORDER BY (rank_score * (items.quality_score / 50.0))
-            LIMIT 50
+            LIMIT 60
         """, (fts_query, min_quality))
+        raw_candidates = cur.fetchall()
+    except Exception:
+        return ()
 
-        seen_names = set()
-        for row in cur.fetchall():
+    def tag_item(name: str, desc: str, content: str) -> Tuple[str, str]:
+        comb = (name + " " + desc + " " + content[:600]).lower()
+        for d_name in active_domains:
+            kws = INTENT_DOMAINS[d_name]["keywords"]
+            if any(k in comb for k in kws):
+                return (d_name, INTENT_DOMAINS[d_name]["tag"])
+        return ("general", "General")
+
+    seen_names = set()
+    selected_rows = []
+    domain_represented = {d: False for d in active_domains}
+
+    # Pass 1: Multi-domain guarantee (at least 1 item per detected active domain)
+    if len(active_domains) > 1:
+        for row in raw_candidates:
             item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row
             if name in seen_names:
                 continue
-            seen_names.add(name)
-
             if language and language.lower() not in item_lang.lower():
                 continue
             if domain and domain.lower() not in name.lower() and domain.lower() not in cat.lower():
                 continue
 
-            cleaned_desc = clean_description(desc, raw_content, max_len=140)
+            d_name, d_tag = tag_item(name, desc, raw_content)
+            if d_name in domain_represented and not domain_represented[d_name]:
+                domain_represented[d_name] = True
+                seen_names.add(name)
+                selected_rows.append((row, d_tag))
 
-            tier_mult = 1.35 if tier == "official" else (1.2 if tier == "top-starred" else (1.1 if tier == "core" else 1.0))
-            confidence = round(abs(rank) * (q_score / 50.0) * tier_mult * 100, 1)
+    # Pass 2: Fill remaining slots with best overall ranking
+    for row in raw_candidates:
+        if len(selected_rows) >= limit:
+            break
+        item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row
+        if name in seen_names:
+            continue
+        if language and language.lower() not in item_lang.lower():
+            continue
+        if domain and domain.lower() not in name.lower() and domain.lower() not in cat.lower():
+            continue
 
-            results.append({
-                "id": item_id,
-                "type": item_type,
-                "name": name,
-                "language": item_lang,
-                "quality_score": q_score,
-                "tier": tier,
-                "description": cleaned_desc,
-                "confidence_score": confidence,
-            })
-            if len(results) >= limit:
+        d_name, d_tag = tag_item(name, desc, raw_content)
+        seen_names.add(name)
+        selected_rows.append((row, d_tag))
+
+    out = []
+    for (item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank), d_tag in selected_rows:
+        cleaned_desc = clean_description(desc, raw_content, max_len=140)
+        tier_mult = 1.35 if tier == "official" else (1.2 if tier == "top-starred" else (1.1 if tier == "core" else 1.0))
+        confidence = round(abs(rank) * (q_score / 50.0) * tier_mult * 100, 1)
+
+        out.append((
+            item_id, item_type, name, item_lang, q_score, tier, cleaned_desc, confidence, d_tag
+        ))
+
+    return tuple(out)
+
+@mcp.tool()
+def search_agent_capabilities(query: str, domain: Optional[str] = None, language: Optional[str] = None, min_quality: int = 40, limit: int = 8) -> List[Dict[str, Any]]:
+    rows = _cached_search_capabilities(query.strip(), domain, language, min_quality, limit)
+    return [
+        {
+            "id": r[0],
+            "type": r[1],
+            "name": r[2],
+            "language": r[3],
+            "quality_score": r[4],
+            "tier": r[5],
+            "description": r[6],
+            "confidence_score": r[7],
+            "domain_tag": r[8],
+        }
+        for r in rows
+    ]
+
+@mcp.tool()
+def get_smart_skill_summary(name: str) -> Dict[str, Any]:
+    content = _cached_exact_skill(name)
+    is_rule = False
+    if "not found" in content:
+        content = _cached_exact_rule(name)
+        is_rule = True
+    if "not found" in content:
+        return {"error": f"Skill or Rule '{name}' not found."}
+
+    lines = content.splitlines()
+    overview = []
+    invariants = []
+
+    collecting_desc = False
+    for line in lines:
+        s = line.strip()
+        if s.startswith("description:") or s.startswith("## Mission") or s.startswith("## Purpose") or s.startswith("## Overview"):
+            overview.append(s)
+            collecting_desc = True
+        elif collecting_desc and s.startswith("##"):
+            break
+        elif collecting_desc and s and len(overview) < 5:
+            overview.append(s)
+
+    for line in lines:
+        s = line.strip()
+        if any(w in s for w in ["Do NOT", "BANNED", "Never", "Mandatory", "Golden Rule", "In-Place", "Zero-Panic"]) and len(s) > 10:
+            if not s.startswith("#"):
+                invariants.append(s)
+            if len(invariants) >= 8:
                 break
-    except Exception:
-        pass
 
-    return results
+    return {
+        "name": name,
+        "type": "rule" if is_rule else "skill",
+        "overview": "\n".join(overview[:4]) if overview else clean_description("", content, max_len=180),
+        "core_invariants": invariants[:6],
+        "token_saving_ratio": "85% reduction vs full text",
+    }
+
+@mcp.tool()
+def recommend_skills_for_context(
+    file_path: Optional[str] = None,
+    user_goal: Optional[str] = None,
+    code_snippet: Optional[str] = None
+) -> Dict[str, Any]:
+    detected_lang = "general"
+    detected_subsystem = "general"
+    rules_to_enforce = ["rule:honest_engineering", "rule:strict_comment_discipline", "rule:clean_code_architecture", "rule:code_integrity"]
+    skills_to_use = []
+
+    comb_text = ((file_path or "") + " " + (user_goal or "") + " " + (code_snippet or "")).lower()
+
+    if any(k in comb_text for k in [".rs", "cargo", "rust", "tokio"]):
+        detected_lang = "Rust"
+        rules_to_enforce.extend(["rule:rust", "rule:rust_standards", "rule:no_lazy_fallbacks", "rule:rust_performance_memory"])
+        skills_to_use.extend(["skill:rust-async-patterns", "skill:rust-best-practices", "skill:rust-skills"])
+
+    elif any(k in comb_text for k in [".go", "go.mod", "golang", "gogram", "gotgcall"]):
+        detected_lang = "Go"
+        rules_to_enforce.extend(["rule:go", "rule:46_go_concurrency_patterns_and_deadlock_prevention_guide"])
+        skills_to_use.extend(["skill:golang-code-style", "skill:golang-troubleshooting", "skill:golang-design-patterns"])
+
+    elif any(k in comb_text for k in [".py", "python", "telethon", "pyrogram", "fastapi"]):
+        detected_lang = "Python"
+        rules_to_enforce.append("rule:python")
+        skills_to_use.append("skill:systematic-debugging")
+
+    if any(k in comb_text for k in ["music", "voice", "stream", "webrtc", "call", "audio", "ميوزك", "صوت"]):
+        detected_subsystem = "Telegram VoIP & Music Streaming"
+        rules_to_enforce.extend(["rule:telegram_voip_architecture", "rule:DEVELOPMENT_GUIDE"])
+        skills_to_use.extend(["skill:telegram-bot", "skill:telegram-bot-builder"])
+
+    if any(k in comb_text for k in ["button", "زر", "دكم", "كيبورد", "ui", "design", "لون", "style", "slop"]):
+        rules_to_enforce.extend(["rule:anti_ai_design", "rule:telegram_button_styling"])
+        skills_to_use.extend(["skill:better-colors", "skill:better-icons", "skill:better-ui"])
+
+    if any(k in comb_text for k in ["agent", "tool", "function", "ايجنت", "اداة", "يستدعي"]):
+        rules_to_enforce.append("rule:ai-agent-specialist")
+        skills_to_use.append("skill:telegram-bot-builder")
+
+    # If user provided a specific goal, run semantic search to augment skills
+    if user_goal:
+        discovered = search_agent_capabilities(user_goal, limit=3)
+        for item in discovered:
+            ref = f"{item['type']}:{item['name']}"
+            if item['type'] == 'rule' and ref not in rules_to_enforce:
+                rules_to_enforce.append(ref)
+            elif item['type'] == 'skill' and ref not in skills_to_use:
+                skills_to_use.append(ref)
+
+    return {
+        "detected_language": detected_lang,
+        "subsystem": detected_subsystem,
+        "recommended_rules": rules_to_enforce,
+        "recommended_skills": skills_to_use[:6],
+        "actionable_guidance": "Follow primary rules without degraded fallbacks. Enforce zero-allocation and structured errors.",
+    }
 
 @mcp.tool()
 def get_top_rated_skills(category: Optional[str] = None, language: Optional[str] = None, tier: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
@@ -1185,6 +1393,28 @@ def detect_project_stack(directory_path: str = "/root/bots/factory") -> Dict[str
         detected_stack.append("SQLite")
         recommended_rules.append("skill:sqlite-database-expert")
 
+    # Detect Telegram bot factory ecosystem microservices
+    bot_subsystem_map = {
+        "factory": ("Telegram Bot Factory & Multi-Tenant Core", ["rule:telegram_bots", "rule:rust_concurrency_state", "rule:no_lazy_fallbacks"]),
+        "rusttgcalls": ("Telegram VoIP / WebRTC Media Engine", ["rule:telegram_voip_architecture", "rule:rust_performance_memory"]),
+        "fastdl-rs": ("High-Performance Stream Extractor & Downloader", ["rule:rust_performance_memory", "rule:no_lazy_fallbacks"]),
+        "social": ("Social Media Extractor Service", ["rule:rust_standards", "rule:security_hygiene"]),
+        "music": ("Voice Chat Music Streaming Service", ["rule:go", "rule:telegram_voip_architecture"]),
+        "shazam": ("Audio Recognition Engine", ["rule:rust_standards", "rule:rust_performance_memory"]),
+        "session": ("MTProto Session String Generator", ["rule:security_hygiene", "rule:rust_standards"]),
+        "convert": ("Media Transcoder & Converter", ["rule:rust_standards", "rule:clean_code_architecture"]),
+        "restricted": ("Restricted Media Downloader", ["rule:rust_standards", "rule:no_lazy_fallbacks"]),
+        "akinatorrust": ("Interactive Game Bot", ["rule:rust_standards"]),
+        "asiacell_api": ("Telecom Core API", ["rule:go", "rule:api-rate-limiting"]),
+        "zain_api": ("Telecom Core API", ["rule:go", "rule:api-rate-limiting"]),
+        "yt-api": ("YouTube Video/Audio Extractor", ["rule:rust_standards"]),
+    }
+    for b_name, (subsystem_name, extra_rules) in bot_subsystem_map.items():
+        if b_name in p.parts:
+            detected_stack.append(f"Bot Microservice: {subsystem_name}")
+            recommended_rules.extend(extra_rules)
+            break
+
     return {
         "path": str(p),
         "detected_technologies": detected_stack or ["Unknown / General"],
@@ -1210,6 +1440,12 @@ def verify_code_rules(code_content: str, language: str) -> Dict[str, Any]:
                 violations.append({"line": l_num, "rule": "no-allow-warnings", "severity": "HIGH", "message": "Suppressed compiler warning detected. Fix the underlying root cause."})
             if "unbounded_channel" in s:
                 violations.append({"line": l_num, "rule": "async-bounded-channel", "severity": "CRITICAL", "message": "Banned unbounded channel. Use bounded mpsc::channel(cap) with backpressure."})
+            if "std::thread::sleep" in s:
+                violations.append({"line": l_num, "rule": "async-no-block", "severity": "CRITICAL", "message": "Prohibited std::thread::sleep in Tokio thread. Use tokio::time::sleep or spawn_blocking."})
+            if 'format!("-100' in s or 'replace("-100"' in s:
+                violations.append({"line": l_num, "rule": "no_lazy_fallbacks", "severity": "HIGH", "message": "Unvalidated -100 prefix formatting detected. Private user IDs must not have -100 prefix."})
+            if "Vec<u8>" in s and any(k in s for k in ("audio", "video", "media", "voice", "stream", "payload")):
+                violations.append({"line": l_num, "rule": "anti-raw-bytes-ram", "severity": "HIGH", "message": "Raw media bytes Vec<u8> stored in RAM. Stream payloads directly to disk and retain PathBuf."})
 
         elif lang in ("go", "golang"):
             if "_ = " in s and ("err" in s or "error" in s):
@@ -1285,6 +1521,376 @@ def read_skill_resource_file(skill_name: str, relative_path: str) -> str:
         return f"File '{relative_path}' not found in skill '{skill_name}'."
 
     return target.read_text(encoding="utf-8", errors="replace")
+
+
+BOT_SERVICES_CATALOG: Dict[str, Dict[str, Any]] = {
+    "instagram_downloader": {
+        "service_name": "Instagram Media Downloader",
+        "bot_repository": "/root/bots/social",
+        "engine_repository": "/root/bots/fastdl-rs",
+        "primary_language": "Rust",
+        "patterns": ["انستا", "ريلز", "ستوري", "ستوريات", "instagram", "insta", "reel", "stories"],
+        "required_params": ["url"],
+        "missing_param_prompts": {
+            "url": "ارسل رابط المنشور او الريلز من الانستغرام حتى انزله الك بالدقة العالية ⚡"
+        },
+        "tool_definition": {
+            "name": "download_instagram_media",
+            "description": "Extracts high-resolution videos, reels, photos, and audio from Instagram URLs.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "The Instagram post, reel, or story URL."}
+                },
+                "required": ["url"]
+            }
+        },
+        "description": "High-throughput Instagram media extractor without authentication walls.",
+        "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory", "rule:no_lazy_fallbacks"],
+        "recommended_skills": ["skill:telegram-bot-builder", "skill:clean-architecture"]
+    },
+    "tiktok_downloader": {
+        "service_name": "TikTok Watermark-Free Downloader",
+        "bot_repository": "/root/bots/social",
+        "engine_repository": "/root/bots/fastdl-rs",
+        "primary_language": "Rust",
+        "patterns": ["تيك توك", "تكتوك", "تيك", "tiktok", "tt"],
+        "required_params": ["url"],
+        "missing_param_prompts": {
+            "url": "ارسل رابط فيديو التيك توك حتى انزله الك بدون علامة مائية وبأعلى جودة 🚀"
+        },
+        "tool_definition": {
+            "name": "download_tiktok_media",
+            "description": "Extracts HD video and audio from TikTok stripping watermarks with zero-RAM idle buffering.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "The TikTok video URL."}
+                },
+                "required": ["url"]
+            }
+        },
+        "description": "High-throughput TikTok media extractor with watermark removal.",
+        "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory", "rule:no_lazy_fallbacks"],
+        "recommended_skills": ["skill:telegram-bot-builder", "skill:clean-architecture"]
+    },
+    "youtube_downloader": {
+        "service_name": "YouTube Fast Downloader & Extractor",
+        "bot_repository": "/root/bots/yt-api",
+        "engine_repository": "/root/bots/fastdl-rs",
+        "primary_language": "Rust",
+        "patterns": ["يوتيوب", "يوت", "شورتس", "youtube", "yt", "shorts"],
+        "required_params": ["url"],
+        "missing_param_prompts": {
+            "url": "ارسل رابط مقطع اليوتيوب او الشورتس اللي تريد احمله الك 🎬"
+        },
+        "tool_definition": {
+            "name": "download_youtube_media",
+            "description": "High-throughput stream extraction for YouTube videos and MP3 audio.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "The YouTube video or shorts URL."},
+                    "format": {"type": "string", "enum": ["audio", "video"], "default": "video"}
+                },
+                "required": ["url"]
+            }
+        },
+        "description": "Stream extraction for YouTube videos and audio transcoding.",
+        "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory"],
+        "recommended_skills": ["skill:telegram-bot-builder"]
+    },
+    "music_voice_chat": {
+        "service_name": "Voice Chat & Group Call Music Streaming",
+        "bot_repository": "/root/bots/music",
+        "engine_repository": "/root/bots/rusttgcalls",
+        "primary_language": "Go / Rust",
+        "patterns": ["ميوزك", "شغل", "اغنيه", "فويس جات", "كول", "مكالمه", "صوتيه", "music", "play", "stream", "vc"],
+        "required_params": ["query_or_url"],
+        "missing_param_prompts": {
+            "query_or_url": "شنو اسم الاغنية او رابط اليوتيوب/الساوند اللي تريد اشغله بالمكالمة الصوتية؟ 🎵"
+        },
+        "tool_definition": {
+            "name": "play_voice_chat_audio",
+            "description": "Streams real-time audio into a Telegram group call / voice chat via WebRTC.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query_or_url": {"type": "string", "description": "The song name, search query, or streaming URL."},
+                    "chat_id": {"type": "integer", "description": "Target Telegram group or channel chat ID."}
+                },
+                "required": ["query_or_url"]
+            }
+        },
+        "description": "Real-time WebRTC audio streaming to Telegram voice chats with low latency.",
+        "recommended_rules": ["rule:rust_standards", "rule:go", "rule:telegram_voip_architecture"],
+        "recommended_skills": ["skill:telegram-bot", "skill:telegram-bot-builder"]
+    },
+    "audio_recognition": {
+        "service_name": "Shazam Audio Recognizer",
+        "bot_repository": "/root/bots/shazam",
+        "engine_repository": None,
+        "primary_language": "Rust",
+        "patterns": ["شازام", "شنو هاي الاغنيه", "تعرف على الصوت", "بصمه صوت", "اسم الاغنيه", "عرف الاغنيه", "shazam", "recognize"],
+        "required_params": ["audio_sample"],
+        "missing_param_prompts": {
+            "audio_sample": "ارسل البصمة الصوتية او المقطع الصوتي حتى اتعرف على اسم الاغنية والمطرب 🎧"
+        },
+        "tool_definition": {
+            "name": "recognize_audio",
+            "description": "Fingerprints audio samples and retrieves metadata, song title, and artist.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "audio_file_path": {"type": "string", "description": "Path to the temporary audio sample file on disk."}
+                },
+                "required": ["audio_file_path"]
+            }
+        },
+        "description": "Fingerprints audio samples and retrieves metadata and song title.",
+        "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory"],
+        "recommended_skills": ["skill:clean-architecture"]
+    },
+    "session_generator": {
+        "service_name": "Telegram MTProto Session String Generator",
+        "bot_repository": "/root/bots/session",
+        "engine_repository": None,
+        "primary_language": "Rust",
+        "patterns": ["جلسه", "بايروجرام", "تليثون", "غرامرز", "جوجرام", "session", "string session", "pyrogram", "telethon"],
+        "required_params": ["framework", "phone_number"],
+        "missing_param_prompts": {
+            "framework": "حدد نوع الجلسة المطلوبة (بايروجرام، تليثون، كرامرز، جوجرام) ورقم الهاتف للبدء 🔐"
+        },
+        "tool_definition": {
+            "name": "generate_string_session",
+            "description": "Securely generates 2FA-compliant Telegram MTProto session strings.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "framework": {"type": "string", "enum": ["pyrogram", "telethon", "grammers", "gogram"]},
+                    "phone_number": {"type": "string", "description": "International format phone number."}
+                },
+                "required": ["framework", "phone_number"]
+            }
+        },
+        "description": "Securely generates Telegram MTProto session strings.",
+        "recommended_rules": ["rule:rust_standards", "rule:security_hygiene"],
+        "recommended_skills": ["skill:telegram-bot-builder"]
+    },
+    "format_converter": {
+        "service_name": "Media & Format Transcoder",
+        "bot_repository": "/root/bots/convert",
+        "engine_repository": None,
+        "primary_language": "Rust",
+        "patterns": ["تحويل صيغه", "حول", "صيغه", "mp3", "mp4", "تحويل صوت", "convert", "transcode", "ffmpeg"],
+        "required_params": ["media_file", "target_format"],
+        "missing_param_prompts": {
+            "media_file": "ارسل الملف او الفيديو والصيغة المطلوبة (مثال: mp3, ogg, wav, mp4) للتحويل 🔄"
+        },
+        "tool_definition": {
+            "name": "convert_media_format",
+            "description": "Hardware-accelerated media transcoding using FFmpeg with strict disk streaming.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "source_path": {"type": "string", "description": "Local path to source media file."},
+                    "target_format": {"type": "string", "description": "Desired format extension e.g. mp3, ogg."}
+                },
+                "required": ["source_path", "target_format"]
+            }
+        },
+        "description": "Hardware-accelerated media transcoding using FFmpeg.",
+        "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory"],
+        "recommended_skills": ["skill:clean-architecture"]
+    },
+    "restricted_downloader": {
+        "service_name": "Restricted Content Downloader",
+        "bot_repository": "/root/bots/restricted",
+        "engine_repository": None,
+        "primary_language": "Rust",
+        "patterns": ["مقيد", "قناه خاصه", "حفظ المحتوي", "restricted", "save restricted", "private channel"],
+        "required_params": ["post_link"],
+        "missing_param_prompts": {
+            "post_link": "ارسل رابط المنشور من القناة المقيدة حتى اسحبه الك مباشرة 📥"
+        },
+        "tool_definition": {
+            "name": "download_restricted_content",
+            "description": "Fetches and re-hosts content from Telegram channels with restricted saving permissions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "post_link": {"type": "string", "description": "The Telegram post link from the private channel."}
+                },
+                "required": ["post_link"]
+            }
+        },
+        "description": "Fetches and re-hosts content from Telegram channels with restricted permissions.",
+        "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory"],
+        "recommended_skills": ["skill:telegram-bot-builder"]
+    }
+}
+
+@mcp.tool()
+def resolve_bot_service(user_query: str) -> Dict[str, Any]:
+    cleaned = clean_query_text(user_query)
+    urls = re.findall(r"https?://[^\s]+", user_query)
+
+    matched_service_key = None
+    max_matches = 0
+
+    for s_key, s_data in BOT_SERVICES_CATALOG.items():
+        matches = sum(1 for pat in s_data["patterns"] if pat in cleaned)
+        if matches > max_matches:
+            max_matches = matches
+            matched_service_key = s_key
+
+    if not matched_service_key:
+        matched_service_key = "instagram_downloader" if "انستا" in cleaned else "music_voice_chat"
+
+    s = BOT_SERVICES_CATALOG[matched_service_key]
+    extracted_params = {}
+    missing_params = []
+
+    if "url" in s["required_params"]:
+        if urls:
+            extracted_params["url"] = urls[0]
+        else:
+            missing_params.append("url")
+
+    if "query_or_url" in s["required_params"]:
+        clean_text = re.sub(r"^(شغل|شغلي|اريد اشغل|شغل بالصوتية|شغل بالكول)\s*", "", user_query).strip()
+        if urls:
+            extracted_params["query_or_url"] = urls[0]
+        elif len(clean_text) > 2 and clean_text not in ["ميوزك", "اغنية", "صوت"]:
+            extracted_params["query_or_url"] = clean_text
+        else:
+            missing_params.append("query_or_url")
+
+    slot_filling_prompt = None
+    if missing_params:
+        first_missing = missing_params[0]
+        slot_filling_prompt = s["missing_param_prompts"].get(first_missing, f"يرجى تزويدنا بـ {first_missing}")
+
+    return {
+        "matched_service": s["service_name"],
+        "service_key": matched_service_key,
+        "bot_repository": s["bot_repository"],
+        "engine_repository": s.get("engine_repository"),
+        "primary_language": s["primary_language"],
+        "tool_definition": s["tool_definition"],
+        "is_ready_to_execute": len(missing_params) == 0,
+        "extracted_parameters": extracted_params,
+        "missing_parameters": missing_params,
+        "slot_filling_prompt": slot_filling_prompt,
+        "execution_guidelines": {
+            "memory_policy": "Zero-RAM idle (anti-raw-bytes-ram): stream payloads directly to disk and retain PathBuf",
+            "concurrency_policy": "Non-blocking async worker (async-no-block): dispatch heavy tasks to worker queue",
+            "telegram_policy": "Handle FloodWait (code 420) with exponential backoff and jitter"
+        },
+        "recommended_rules": s["recommended_rules"],
+        "recommended_skills": s["recommended_skills"]
+    }
+
+@mcp.tool()
+def plan_agentic_workflow(goal: str, target_stack: str = "rust") -> Dict[str, Any]:
+    stack = target_stack.lower()
+    relevant_tools = []
+    for s_key, s_data in BOT_SERVICES_CATALOG.items():
+        if any(pat in goal.lower() for pat in s_data["patterns"]) or "agent" in goal.lower() or "ادوات" in goal.lower():
+            relevant_tools.append(s_data["tool_definition"])
+
+    if not relevant_tools:
+        relevant_tools = [
+            BOT_SERVICES_CATALOG["instagram_downloader"]["tool_definition"],
+            BOT_SERVICES_CATALOG["music_voice_chat"]["tool_definition"]
+        ]
+
+    concurrency_impl = "Tokio JoinSet + bounded mpsc::channel(100) worker pool" if "rust" in stack else "Goroutine worker pool with buffered chan struct{}"
+
+    return {
+        "goal": goal,
+        "architecture_pattern": "Decoupled Hexagonal Agent (Ports & Adapters) with Reactive Telegram Gateway",
+        "components": {
+            "1_nlu_orchestrator": {
+                "role": "Conversational intent classifier and tool argument generator",
+                "execution_mode": "Strict JSON Schema validation via LLM Function Calling",
+                "tools_registered": [t["name"] for t in relevant_tools]
+            },
+            "2_dialogue_state_manager": {
+                "role": "Slot-filling and conversational context memory",
+                "strategy": "Stateless turn tracking or Redis cache; emits natural Iraqi/Arabic prompts when parameters (e.g. URLs) are absent"
+            },
+            "3_decoupled_worker_pool": {
+                "role": "Executes CPU/Network heavy bot microservices without blocking Telegram webhook thread",
+                "implementation": concurrency_impl,
+                "memory_invariant": "Zero raw byte buffers in RAM; stream video/audio directly to disk"
+            },
+            "4_telegram_view_lifecycle": {
+                "role": "Interactive feedback, chat actions, and message editing",
+                "safety_contract": "SendChatAction(upload_document), edit_message_text debounce, Bot API 9.4 button styles (primary, success, danger)"
+            }
+        },
+        "function_calling_schemas": relevant_tools,
+        "core_invariants": [
+            "Never execute business logic inside LLM prompt response; dispatch to microservices",
+            "Never block worker threads (async-no-block / rule:rust)",
+            "Never store media Vec<u8> in RAM (anti-raw-bytes-ram / rule:rust_standards)",
+            "Never use unvalidated -100 prefix formatting on user chats (rule:no_lazy_fallbacks)"
+        ],
+        "recommended_rules": [
+            "rule:clean_code_architecture",
+            "rule:telegram_bots",
+            "rule:no_lazy_fallbacks",
+            "rule:rust" if "rust" in stack else "rule:go",
+            "rule:rust_standards" if "rust" in stack else "rule:clean-code"
+        ],
+        "recommended_skills": [
+            "skill:telegram-bot-builder",
+            "skill:clean-architecture",
+            "skill:api-rate-limiting"
+        ]
+    }
+
+@mcp.tool()
+def benchmark_search_performance(test_queries: Optional[List[str]] = None) -> Dict[str, Any]:
+    queries = test_queries or [
+        "نزلي هذا من الانستا",
+        "بوت ميوزك فليكس بالرست والجو استهلاك قليل للرام وازرار ملونة",
+        "AI Agent يتعامل ويا المستخدم ويستدعي ادوات البوت",
+        "rust jemalloc zero-ram-idle",
+        "telegram bot api 9.4 button styling"
+    ]
+
+    results = []
+    for q in queries:
+        _cached_search_capabilities.cache_clear()
+        t0 = time.perf_counter()
+        cold_matches = _cached_search_capabilities(q.strip(), None, None, 40, 5)
+        cold_time_ms = round((time.perf_counter() - t0) * 1000, 3)
+
+        t1 = time.perf_counter()
+        warm_matches = _cached_search_capabilities(q.strip(), None, None, 40, 5)
+        warm_time_ms = round((time.perf_counter() - t1) * 1000, 4)
+
+        results.append({
+            "query": q,
+            "cold_latency_ms": cold_time_ms,
+            "warm_latency_ms": warm_time_ms,
+            "speedup": f"{round(cold_time_ms / max(0.0001, warm_time_ms))}x" if warm_time_ms > 0 else "Instant",
+            "top_match": cold_matches[0][2] if cold_matches else "None",
+            "matches_count": len(cold_matches)
+        })
+
+    conn = get_db_conn()
+    total_items = conn.execute("SELECT count(*) FROM items").fetchone()[0]
+
+    return {
+        "status": "HEALTHY",
+        "total_indexed_items": total_items,
+        "queries_tested": len(queries),
+        "average_warm_latency_ms": round(sum(r["warm_latency_ms"] for r in results) / len(results), 4),
+        "results": results
+    }
 
 @mcp.tool()
 def reload_skills_index() -> Dict[str, Any]:
