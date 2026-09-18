@@ -335,19 +335,11 @@ func (s *Server) CallTool(name string, args map[string]any) (types.CallToolResul
 
 	case "get_exact_skill":
 		sName, _ := args["skill_name"].(string)
-		res = map[string]any{
-			"skill":   sName,
-			"status":  "EXACT_MATCH",
-			"content": fmt.Sprintf("# %s\nVerbatim skill documentation loaded via Go engine.", sName),
-		}
+		res = search.GetExactSkill(sName)
 
 	case "get_exact_rule":
 		rName, _ := args["rule_name"].(string)
-		res = map[string]any{
-			"rule":    rName,
-			"status":  "EXACT_MATCH",
-			"content": fmt.Sprintf("# %s\nSovereign rule definition.", rName),
-		}
+		res = search.GetExactRule(rName)
 
 	case "get_skill_toc":
 		sName, _ := args["skill_name"].(string)
@@ -356,32 +348,20 @@ func (s *Server) CallTool(name string, args map[string]any) (types.CallToolResul
 	case "get_skill_section":
 		sName, _ := args["skill_name"].(string)
 		sec, _ := args["section_anchor"].(string)
-		res = map[string]any{
-			"skill":   sName,
-			"section": sec,
-			"content": "Surgical section content.",
-		}
+		res = search.GetSkillSection(sName, sec)
 
 	case "get_smart_skill_summary":
 		sName, _ := args["skill_name"].(string)
 		res = search.GetSmartSummary(sName)
 
 	case "get_top_rated_skills":
-		res = map[string]any{
-			"skills": []string{"telegram-bot-api-methods", "webhook-automation", "clean-architecture"},
-		}
+		res = search.GetTopRatedSkills()
 
 	case "list_all_skills_manifest":
-		res = map[string]any{
-			"total_skills": 4800,
-			"storage":      "SQLite FTS5 + Memory Cache",
-		}
+		res = search.ListAllSkillsManifest()
 
 	case "list_all_rules_manifest":
-		res = map[string]any{
-			"total_rules": 26,
-			"status":      "ALL_ACTIVE",
-		}
+		res = search.ListAllRulesManifest()
 
 	case "list_rules_overview":
 		res = governance.GetCoreRules()

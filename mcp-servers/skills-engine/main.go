@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"skills-engine/pkg/ipc"
+	"skills-engine/pkg/search"
 	"skills-engine/pkg/server"
 	"skills-engine/pkg/types"
 )
@@ -35,6 +36,9 @@ func main() {
 
 	// 2. Start high-performance IPC & Telegram Mock Server in background
 	ipc.StartServer(*port, *unixPath)
+
+	// 3. Index entire skills & rules knowledge catalog in background
+	go search.EnsureCatalogIndexed()
 
 	if *transport != "stdio" {
 		fmt.Fprintf(os.Stderr, "[*] skills-engine running HTTP on port %d...\n", *port)
