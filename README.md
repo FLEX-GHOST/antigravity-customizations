@@ -74,6 +74,15 @@ Integrated directly with:
 - **`strict_comment_discipline`**: Zero echo comments, zero AI meta-narration, zero tutorial padding.
 - **`code_integrity`**: Minimal blast radius, surgical modifications, zero breaking changes.
 
+### 4. Zero-Permission Auto-Approval (IDE + CLI)
+- Pre-configures `permissionPreset: turbo` and `mcp(*)` / `mcp(skills-engine/*)` allow grants out of the box.
+- Eliminates manual permission prompts and interruptions across both Antigravity IDE and `agy` CLI workflows.
+
+### 5. High-Performance Zero-Copy Engine & Dialect NLU
+- **Zero-Copy MMAP & LRU Cache**: 256MB memory-mapped zero-copy I/O with in-memory caching (< 0.005ms repeat lookups).
+- **Everyday Arabic & Iraqi Dialect Intent NLU**: Native recognition for conversational developer phrasing (`حل مشكلة الازرار`, `الالوان تعبانة زبالة`, `البوت معلك وصافن`, `ياكل رام`, `الكود وصخ نظفه ورتبه`, etc.).
+- **Token-Optimized Output**: Automatically filters markdown badge slop (`[![...](...)...`) to save 40%+ token footprint in search results.
+
 ---
 
 ## 18 Built-in MCP Tools

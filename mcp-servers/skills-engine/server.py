@@ -1,7 +1,10 @@
+import functools
 import math
 import os
 import re
 import sqlite3
+import sys
+import threading
 import time
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -25,37 +28,145 @@ SEARCH_PATHS = [
     Path("/root/.gemini/skills-catalog"),
 ]
 
+# Comprehensive everyday Arab & Iraqi programmer dialect and technical intent map
 AR_STEM_MAP = {
+    # --- Common Everyday Actions & Directives (أوامر وطلبات البرمجة اليومية) ---
+    "حل مشكل": "root-cause systematic-debugging troubleshooting fix bug code_integrity",
+    "حل المشكل": "root-cause systematic-debugging troubleshooting fix bug code_integrity",
+    "مشكل": "debugging root-cause fix patch troubleshooting error",
+    "اضف ميز": "feature implementation builder scaffolding new-feature",
+    "اضافة ميز": "feature implementation builder scaffolding new-feature",
+    "ضيف ميز": "feature implementation builder scaffolding new-feature",
+    "سوي ميز": "feature implementation builder scaffolding new-feature",
+    "ضيف": "feature implementation builder add-feature",
+    "سويلي": "feature builder create implement",
+    "سوي": "feature builder create implement",
+    "ابني": "scaffolding builder architecture implementation",
+    "صلح": "fix bug refactor patch correct code_integrity systematic-debugging",
+    "فيكس": "bugfix patch refactor repair integrity systematic-debugging",
+
+    # --- UI, Design & Slop (واجهات، ألوان، أزرار، تصميم تعبان/زبالة/خايس) ---
+    "ازرار": "button-states interactive hover focus active telegram-button-styling button_hierarchy",
+    "زرار": "button-states interactive hover focus active telegram-button-styling",
+    "زر": "button states hierarchy interactive hover focus aria active",
+    "دكم": "button states hierarchy interactive hover focus telegram-button-styling",
+    "دكمه": "button states hierarchy interactive hover focus telegram-button-styling",
+    "كبس": "button states interactive click trigger action",
+    "تعبان": "anti-ui-slop anti_ai_design design-taste-frontend better-ui visual-design",
+    "زبال": "anti-ui-slop anti_ai_design clean-code refactor unslop",
+    "خايس": "anti-ui-slop anti_ai_design clean-code refactor unslop",
+    "سلوب": "anti-ui-slop antislop anti_ai_design unslop visual-design",
+    "تصميم": "ui frontend visual design styling typography web better-ui design-taste-frontend",
+    "واجه": "ui frontend visual design styling typography web css better-ui",
+    "فرونت": "frontend react nextjs ui tailwind css design",
+    "الوان": "colors palette contrast semantic tokens wcag accessibility better-colors",
+    "لون": "colors palette contrast semantic tokens better-colors",
+    "بنفسج": "anti-ui-slop purple gradient bloat aesthetic anti_ai_design",
+    "ايقون": "icons svg vector symbols lucide phosphor better-icons",
+    "رمز": "icons svg vector symbols lucide better-icons",
+    "خطوط": "better-typography web-typography font hierarchy scale readability",
+    "خط": "typography font hierarchy scale readability web-typography",
+    "كود وصخ": "clean-code refactor clean-architecture code_integrity unslop",
+    "نظف": "refactor clean-code architecture unslop code_integrity",
+    "رتب": "refactor clean-code architecture project_structure_standards",
+    "تنظيف": "refactor clean-code architecture unslop",
+    "معمار": "clean-architecture modularity decoupled ddd ports-adapters",
+
+    # --- Performance, Crashes & Memory (الأداء، التعليق، الرام، الكراش) ---
+    "معلك": "deadlock mutex lock synchronization concurrency tokio async freeze hang",
+    "صافن": "deadlock tokio async hang freeze mutex concurrency",
+    "واكف": "debugging crash troubleshooting error resilience",
+    "عطلان": "debugging crash troubleshooting error resilience",
+    "ما يشتغل": "debugging troubleshooting root-cause fix error",
+    "ثكيل": "performance latency speed zero-allocation optimize profiling benchmark",
+    "بطي": "performance latency speed zero-allocation optimize bottleneck",
+    "سرع": "performance optimization fast speed latency low-latency",
+    "اداء": "performance latency speed zero-allocation profiling benchmark",
+    "تحسين": "optimization performance profiling clean architecture",
+    "ذاكر": "memory optimization ram buffer cache leak jemalloc zero-allocation",
+    "رام": "memory optimization ram buffer leak jemalloc zero-allocation zero-ram-idle",
+    "ياكل رام": "memory optimization ram leak buffer jemalloc zero-ram-idle",
+    "تسريب": "memory leak buffer retain cycle jemalloc resource-cleanup",
+    "ليك": "memory leak buffer jemalloc resource cleanup",
+    "كراش": "panic zero-panic resilience fault-tolerance recovery error-handling",
+    "يطفي": "crash panic resilience supervisor systemd recovery",
+    "يموت": "crash panic resilience supervisor systemd recovery",
+    "ضرب": "panic crash error exception fault",
+    "قفل": "deadlock mutex lock synchronization concurrency parking_lot dashmap",
+    "تزامن": "concurrency async tokio channel joinset worker pool",
+    "توازي": "parallel async concurrency worker thread pool",
+
+    # --- Telegram Bots & MTProto (تليكرام، بوتات، فلود، ويب هوك) ---
+    "تليجرام": "telegram bot webhook floodwait mtproto teloxide",
+    "تيليجرام": "telegram bot webhook floodwait mtproto teloxide",
+    "تليغرام": "telegram bot webhook floodwait mtproto teloxide",
+    "تليكرام": "telegram bot webhook floodwait mtproto teloxide",
+    "تلكرام": "telegram bot webhook floodwait mtproto teloxide",
+    "تلي": "telegram bot webhook floodwait mtproto teloxide",
+    "بوت": "bot telegram automation client webhook worker polling",
+    "بوتات": "telegram bot factory multi-tenant webhook architecture",
+    "قناة": "channel broadcast telegram bot admin notification",
+    "كروب": "group chat supergroup telegram bot permissions",
+    "مجموعة": "group chat telegram bot permissions management",
+    "كيبورد": "inline-keyboard reply-markup telegram-button-styling",
+    "انلاين": "inline-keyboard callback-query telegram-button-styling",
+    "ويب هوك": "webhook telegram-webhook axum warp actix",
+    "ويبهوك": "webhook telegram-webhook axum warp actix",
+    "بولينغ": "polling long-polling telegram worker loop",
+    "بولينج": "polling long-polling telegram worker loop",
+    "فلود": "floodwait rate-limit retry backoff jitter telegram 420",
+    "حظر": "floodwait rate-limit retry backoff jitter telegram ban",
+    "ستيكر": "sticker custom-emoji telegram bot media",
+    "ايموجي": "custom-emoji telegram-button-styling vector icons",
+
+    # --- Errors & Resilience (الأخطاء والاستثناءات) ---
+    "خطا": "error handling thiserror anyhow result resilience backoff",
+    "ايرور": "error exception traceback debug fault-tolerance",
+    "اكسبشن": "exception error handling debug traceback",
+    "انفايند": "null undefined error handling option result",
+    "نل": "null-safety option result error handling",
+
+    # --- Database & Storage (قواعد البيانات والتخزين) ---
+    "قاعد": "database sql sqlite postgres storage query schema migration",
+    "بيان": "database data storage dataset persist sqlite postgres",
+    "داتا": "database sqlite postgres sql query storage",
+    "سيكول": "sql sqlite postgres database query migration",
+    "جدول": "database table schema sql migration sqlite",
+    "تخزين": "storage persist database file-system cache",
+    "كويري": "query sql database indexing optimization",
+
+    # --- Languages & Frameworks (لغات وأطر العمل) ---
+    "رست": "rust tokio memory cargo async zero-allocation jemalloc",
+    "روست": "rust tokio memory cargo async zero-allocation jemalloc",
+    "بايثون": "python fastapi pydantic pytest asyncio",
+    "جو": "go golang goroutine channel gin-gonic",
+    "تايب": "typescript ts types interfaces generics react",
+    "جافاسكربت": "javascript nodejs ecmascript typescript",
+    "رياكت": "react frontend hooks state components nextjs",
+    "نيكست": "nextjs react ssr frontend components",
+
+    # --- System & DevOps (الأنظمة، السيرفرات، الشبكات) ---
+    "لينكس": "linux debian ubuntu systemd process terminal bash shell",
+    "سيرفر": "server daemon systemd linux deployment proxy nginx",
+    "خادم": "server daemon systemd linux deployment proxy nginx",
+    "حاوي": "docker container dockerfile compose kubernetes",
+    "دوكر": "docker container dockerfile compose orchestration",
+    "شبك": "network http websocket tls client rate-limit",
+    "ويب": "web html css vanilla responsive api integration",
+    "امان": "security vulnerability injection scanner sanitize auth owasp",
+    "حماي": "security vulnerability sanitize authentication jwt ssl",
+    "ثغر": "vulnerability exploit patch security injection xss sql",
+    "اختبار": "testing tdd pytest unit integration verification e2e",
+    "تيست": "testing unit integration verification tdd",
+
+    # --- Permissions & Governance (صلاحيات، حوكمة، صدق تقني) ---
+    "برمشن": "permission policy allow auto-approve authorization turbo",
+    "صلاحي": "permission policy authorization grant allow access",
+    "إذن": "permission policy allow authorization grant",
     "مجامل": "honest-engineering anti-sycophancy unslop frank blunt truth",
     "تزلف": "anti-sycophancy honest-engineering frank blunt",
     "نفاق": "anti-sycophancy honest-engineering frank",
     "صراح": "honest-engineering frank blunt technical truth",
-    "سلوب": "anti-ui-slop antislop anti_ai_design unslop visual-design",
-    "تصميم_رديء": "anti-ui-slop anti_ai_design design-taste-frontend",
-    "بنفسج": "anti-ui-slop purple gradient bloat aesthetic",
-    "ذاكر": "memory optimization ram buffer cache leak",
-    "اداء": "performance latency speed zero-allocation profiling",
-    "سرع": "performance optimization fast speed latency",
-    "قاعد": "database sql sqlite postgres storage query",
-    "بيان": "database data storage dataset persist",
-    "تليجرام": "telegram bot webhook floodwait mtproto",
-    "تيليجرام": "telegram bot webhook floodwait mtproto",
-    "تليغرام": "telegram bot webhook floodwait mtproto",
-    "بوت": "bot telegram automation client webhook",
-    "قفل": "deadlock mutex lock synchronization concurrency",
-    "تزامن": "concurrency async tokio channel joinset",
-    "خطا": "error handling thiserror anyhow result",
-    "واجه": "ui frontend visual design styling typography web",
-    "زر": "button states hierarchy interactive hover focus",
-    "الوان": "colors palette contrast semantic tokens",
-    "ايقون": "icons svg vector symbols",
-    "اختبار": "testing tdd pytest unit integration",
-    "امان": "security vulnerability injection scanner sanitize",
-    "شبك": "network http websocket tls client",
-    "لينكس": "linux debian systemd process terminal",
-    "حاوي": "docker container dockerfile compose",
-    "تنظيف": "refactor clean-code architecture unslop",
-    "تشفير": "cipher symmetric crypto decrypt encrypt",
 }
 
 CORE_GOVERNANCE_IDS = [
@@ -70,11 +181,19 @@ CORE_GOVERNANCE_IDS = [
     "rule:security_hygiene",
 ]
 
+_local = threading.local()
+
 def get_db_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(DB_PATH), timeout=10.0)
-    conn.execute("PRAGMA journal_mode = WAL")
-    conn.execute("PRAGMA synchronous = NORMAL")
-    return conn
+    if not hasattr(_local, "conn") or _local.conn is None:
+        conn = sqlite3.connect(str(DB_PATH), timeout=15.0, check_same_thread=False)
+        conn.execute("PRAGMA journal_mode = WAL")
+        conn.execute("PRAGMA synchronous = NORMAL")
+        conn.execute("PRAGMA cache_size = -131072")  # 128MB RAM cache
+        conn.execute("PRAGMA mmap_size = 268435456") # 256MB memory mapped zero-copy I/O
+        conn.execute("PRAGMA temp_store = MEMORY")
+        conn.execute("PRAGMA busy_timeout = 15000")
+        _local.conn = conn
+    return _local.conn
 
 def init_db():
     conn = get_db_conn()
@@ -100,7 +219,7 @@ def init_db():
         conn.execute("ALTER TABLE items ADD COLUMN quality_score INTEGER DEFAULT 50")
     if "source_tier" not in cols:
         conn.execute("ALTER TABLE items ADD COLUMN source_tier TEXT DEFAULT 'community'")
-        
+
     conn.execute("""
     CREATE VIRTUAL TABLE IF NOT EXISTS items_fts USING fts5(
         id UNINDEXED,
@@ -114,18 +233,36 @@ def init_db():
     )
     """)
     conn.commit()
-    conn.close()
 
-init_db()
+def clean_description(desc: str, content: str = "", max_len: int = 150) -> str:
+    text = desc or ""
+    if not text or len(text.strip()) < 10 or text.startswith("[!") or text.startswith("#"):
+        for line in content.splitlines():
+            s = line.strip()
+            if not s or s.startswith("#") or s.startswith("---") or s.startswith("[!") or s.startswith("!["):
+                continue
+            if len(s) > 15:
+                text = s
+                break
+    text = re.sub(r'\[\!\[.*?\]\(.*?\)\]\(.*?\)', '', text)
+    text = re.sub(r'\!\[.*?\]\(.*?\)', '', text)
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'[#*`_>~|]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    if len(text) > max_len:
+        cut = text[:max_len].rsplit(' ', 1)[0]
+        return cut + "..."
+    return text
 
 def compute_quality_score(path_str: str, content: str) -> Tuple[int, str]:
     length = len(content.strip())
     if length < 300 or "Insert instructions below" in content or "Replace with description" in content:
         return (5, "stub")
-    
+
     score = 0
     tier = "community"
-    
+
     if "anthropics-skills" in path_str or "anti_slop_official_rules" in path_str:
         score += 35
         tier = "official"
@@ -135,7 +272,7 @@ def compute_quality_score(path_str: str, content: str) -> Tuple[int, str]:
     elif "config" in path_str:
         score += 20
         tier = "core"
-        
+
     if length >= 3500:
         score += 35
     elif length >= 1800:
@@ -144,7 +281,7 @@ def compute_quality_score(path_str: str, content: str) -> Tuple[int, str]:
         score += 15
     else:
         score += 5
-        
+
     if "##" in content:
         score += 10
     if "```" in content:
@@ -153,7 +290,7 @@ def compute_quality_score(path_str: str, content: str) -> Tuple[int, str]:
         score += 10
     if any(k in content for k in ("Do NOT", "Never", "Avoid", "Forbidden", "Banned")):
         score += 5
-        
+
     return (min(100, score), tier)
 
 def extract_meta(content: str) -> Tuple[Dict[str, Any], str]:
@@ -171,19 +308,13 @@ def extract_meta(content: str) -> Tuple[Dict[str, Any], str]:
     return {}, parts[2]
 
 def extract_first_desc(content: str) -> str:
-    for line in content.splitlines():
-        s = line.strip()
-        if not s or s.startswith("#") or s.startswith("---"):
-            continue
-        if len(s) > 15:
-            return s[:250]
-    return ""
+    return clean_description("", content, max_len=200)
 
 def detect_language_from_text(name: str, content: str) -> str:
     n = name.lower()
     c = content[:1500].lower()
     combined = n + " " + c
-    if any(k in combined for k in ["rust", "cargo", "tokio", "diesel", "serde"]):
+    if any(k in combined for k in ["rust", "cargo", "tokio", "diesel", "serde", "jemalloc"]):
         return "rust"
     if any(k in combined for k in ["golang", "goroutine", "go.mod", "gin-gonic"]):
         return "go"
@@ -202,7 +333,8 @@ last_sync_time = 0.0
 def sync_all_directories(force: bool = False):
     global last_sync_time
     now = time.time()
-    if not force and (now - last_sync_time < 10.0):
+    # 1-hour debounce in normal runs to eliminate disk traversal latency
+    if not force and (now - last_sync_time < 3600.0):
         return
 
     conn = get_db_conn()
@@ -227,25 +359,25 @@ def sync_all_directories(force: bool = False):
                 content = p.read_text(encoding="utf-8", errors="replace")
                 mtime = p.stat().st_mtime
                 q_score, tier = compute_quality_score(str(p), content)
-                
+
                 if q_score <= 10:
                     purged_stubs.append(item_id)
                     continue
-                    
+
                 if item_id in existing_items:
                     curr_path, curr_score = existing_items[item_id]
                     if q_score <= curr_score:
                         continue
 
                 meta, body = extract_meta(content)
-                desc = meta.get("description") or extract_first_desc(content)
+                desc = clean_description(str(meta.get("description") or ""), content)
                 trigs = meta.get("triggers", [])
                 trigs_str = " ".join(str(t) for t in trigs) if isinstance(trigs, list) else str(trigs)
                 lang = meta.get("language") or detect_language_from_text(name, content)
                 cat = meta.get("category") or "skill"
 
-                to_insert_items.append((item_id, "skill", name, str(desc), trigs_str, lang, str(cat), str(p), mtime, content, q_score, tier))
-                to_insert_fts.append((item_id, name, str(desc), trigs_str, lang, str(cat), body[:3000]))
+                to_insert_items.append((item_id, "skill", name, desc, trigs_str, lang, str(cat), str(p), mtime, content, q_score, tier))
+                to_insert_fts.append((item_id, name, desc, trigs_str, lang, str(cat), body[:3000]))
                 existing_items[item_id] = (str(p), q_score)
             except Exception:
                 continue
@@ -256,7 +388,7 @@ def sync_all_directories(force: bool = False):
             is_rule = "rules" in str(p).lower() or "official_rules" in str(p).lower() or p.suffix == ".mdc"
             if not is_rule:
                 continue
-                
+
             name = p.stem.replace(".cursorrules", "").replace("-cursorrules-prompt-file", "")
             item_id = f"rule:{name}"
 
@@ -264,17 +396,17 @@ def sync_all_directories(force: bool = False):
                 content = p.read_text(encoding="utf-8", errors="replace")
                 mtime = p.stat().st_mtime
                 q_score, tier = compute_quality_score(str(p), content)
-                
+
                 if q_score <= 10:
                     purged_stubs.append(item_id)
                     continue
-                    
+
                 if item_id in existing_items:
                     curr_path, curr_score = existing_items[item_id]
                     if q_score <= curr_score:
                         continue
 
-                desc = extract_first_desc(content)
+                desc = clean_description("", content)
                 lang = detect_language_from_text(name, content)
 
                 to_insert_items.append((item_id, "rule", name, desc, "", lang, "rule", str(p), mtime, content, q_score, tier))
@@ -292,10 +424,17 @@ def sync_all_directories(force: bool = False):
         conn.executemany("INSERT OR REPLACE INTO items_fts VALUES (?, ?, ?, ?, ?, ?, ?)", to_insert_fts)
         conn.commit()
 
-    conn.close()
     last_sync_time = now
+    clear_all_caches()
 
-sync_all_directories(force=True)
+def ensure_initialized():
+    init_db()
+    conn = get_db_conn()
+    cur = conn.execute("SELECT 1 FROM items LIMIT 1")
+    if cur.fetchone() is None:
+        sync_all_directories(force=True)
+
+ensure_initialized()
 
 def normalize_arabic(text: str) -> str:
     text = re.sub(r"[\u064B-\u065F\u0670]", "", text)
@@ -307,14 +446,100 @@ def normalize_arabic(text: str) -> str:
 def expand_query(query: str) -> str:
     norm = normalize_arabic(query)
     expanded = query
-    for stem, exp in AR_STEM_MAP.items():
+    matched_exps = set()
+    for stem, exp in sorted(AR_STEM_MAP.items(), key=lambda x: len(x[0]), reverse=True):
         if stem in norm:
-            expanded += " " + exp
+            for word in exp.split():
+                matched_exps.add(word)
+    if matched_exps:
+        expanded += " " + " ".join(matched_exps)
     return expanded
+
+# In-memory LRU caching for ultra-low latency (< 0.1ms)
+@functools.lru_cache(maxsize=512)
+def _cached_exact_skill(name: str) -> str:
+    conn = get_db_conn()
+    cur = conn.execute("SELECT content FROM items WHERE item_type = 'skill' AND (name = ? OR id = ?) ORDER BY quality_score DESC LIMIT 1", (name, f"skill:{name}"))
+    row = cur.fetchone()
+    if row:
+        return row[0]
+    return f"Skill '{name}' not found."
+
+@functools.lru_cache(maxsize=512)
+def _cached_exact_rule(name: str) -> str:
+    conn = get_db_conn()
+    cur = conn.execute("SELECT content FROM items WHERE item_type = 'rule' AND (name = ? OR id = ?) ORDER BY quality_score DESC LIMIT 1", (name, f"rule:{name}"))
+    row = cur.fetchone()
+    if row:
+        return row[0]
+    return f"Rule '{name}' not found."
+
+@functools.lru_cache(maxsize=64)
+def _cached_core_governance() -> Dict[str, Any]:
+    conn = get_db_conn()
+    rules_data = {}
+    for rule_id in CORE_GOVERNANCE_IDS:
+        cur = conn.execute("SELECT name, content FROM items WHERE id = ? ORDER BY quality_score DESC LIMIT 1", (rule_id,))
+        row = cur.fetchone()
+        if row:
+            rules_data[row[0]] = row[1]
+    return {
+        "description": "Essential non-negotiable architectural governance: Anti-AI UI Slop, Honest Engineering, Anti-Sycophancy, Strict Comment Discipline, Clean Code Architecture.",
+        "rules_count": len(rules_data),
+        "rules": rules_data,
+    }
+
+@functools.lru_cache(maxsize=512)
+def _cached_skill_toc(name: str) -> Tuple:
+    content = _cached_exact_skill(name)
+    if "not found" in content:
+        return (name, None, content)
+    headings = []
+    for line in content.splitlines():
+        m = re.match(r"^(#{1,4})\s+(.+)$", line)
+        if m:
+            headings.append((len(m.group(1)), m.group(2).strip()))
+    return (name, tuple(headings), None)
+
+@functools.lru_cache(maxsize=512)
+def _cached_skill_section(name: str, section_heading: str) -> str:
+    content = _cached_exact_skill(name)
+    if "not found" in content:
+        return content
+
+    lines = content.splitlines()
+    target_idx = -1
+    target_level = 0
+    norm_target = section_heading.strip().lower()
+
+    for idx, line in enumerate(lines):
+        m = re.match(r"^(#{1,4})\s+(.+)$", line)
+        if m and norm_target in m.group(2).strip().lower():
+            target_idx = idx
+            target_level = len(m.group(1))
+            break
+
+    if target_idx == -1:
+        return f"Section '{section_heading}' not found in skill '{name}'."
+
+    extracted = [lines[target_idx]]
+    for line in lines[target_idx + 1:]:
+        m = re.match(r"^(#{1,4})\s+(.+)$", line)
+        if m and len(m.group(1)) <= target_level:
+            break
+        extracted.append(line)
+
+    return "\n".join(extracted)
+
+def clear_all_caches():
+    _cached_exact_skill.cache_clear()
+    _cached_exact_rule.cache_clear()
+    _cached_core_governance.cache_clear()
+    _cached_skill_toc.cache_clear()
+    _cached_skill_section.cache_clear()
 
 @mcp.tool()
 def search_agent_capabilities(query: str, domain: Optional[str] = None, language: Optional[str] = None, min_quality: int = 40, limit: int = 8) -> List[Dict[str, Any]]:
-    sync_all_directories()
     full_query = expand_query(query).strip()
     words = re.findall(r"[\w]+", full_query)
     clean_tokens = []
@@ -328,7 +553,8 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
     if not clean_tokens:
         return []
 
-    fts_query_parts = [f'"{tok}"*' for tok in clean_tokens[:12]]
+    # Weighted query parts: prefix search
+    fts_query_parts = [f'"{tok}"*' for tok in clean_tokens[:14]]
     fts_query = " OR ".join(fts_query_parts)
 
     conn = get_db_conn()
@@ -337,21 +563,26 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
     try:
         cur = conn.execute("""
             SELECT items.id, items.item_type, items.name, items.description, items.language, items.category,
-                   items.quality_score, items.source_tier,
-                   bm25(items_fts, 15.0, 8.0, 10.0, 5.0, 5.0, 1.0) as rank_score
+                   items.quality_score, items.source_tier, items.content,
+                   bm25(items_fts, 20.0, 10.0, 15.0, 6.0, 6.0, 1.2) as rank_score
             FROM items_fts
             JOIN items ON items.id = items_fts.id
             WHERE items_fts MATCH ? AND items.quality_score >= ?
             ORDER BY (rank_score * (items.quality_score / 50.0))
-            LIMIT 60
+            LIMIT 50
         """, (fts_query, min_quality))
 
         for row in cur.fetchall():
-            item_id, item_type, name, desc, item_lang, cat, q_score, tier, rank = row
+            item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row
             if language and language.lower() not in item_lang.lower():
                 continue
             if domain and domain.lower() not in name.lower() and domain.lower() not in cat.lower():
                 continue
+
+            cleaned_desc = clean_description(desc, raw_content, max_len=140)
+
+            tier_mult = 1.35 if tier == "official" else (1.2 if tier == "top-starred" else (1.1 if tier == "core" else 1.0))
+            confidence = round(abs(rank) * (q_score / 50.0) * tier_mult * 100, 1)
 
             results.append({
                 "id": item_id,
@@ -360,23 +591,20 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
                 "language": item_lang,
                 "quality_score": q_score,
                 "tier": tier,
-                "description": desc[:140],
-                "confidence_score": round(abs(rank) * (q_score / 50.0) * 100, 1),
+                "description": cleaned_desc,
+                "confidence_score": confidence,
             })
             if len(results) >= limit:
                 break
     except Exception:
         pass
-    finally:
-        conn.close()
 
     return results
 
 @mcp.tool()
 def get_top_rated_skills(category: Optional[str] = None, language: Optional[str] = None, tier: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
-    sync_all_directories()
     conn = get_db_conn()
-    query = "SELECT id, name, item_type, language, category, quality_score, source_tier, description FROM items WHERE item_type = 'skill' AND quality_score >= 60"
+    query = "SELECT id, name, item_type, language, category, quality_score, source_tier, description, content FROM items WHERE item_type = 'skill' AND quality_score >= 60"
     params: List[Any] = []
     if category:
         query += " AND (category LIKE ? OR name LIKE ?)"
@@ -401,32 +629,27 @@ def get_top_rated_skills(category: Optional[str] = None, language: Optional[str]
             "category": row[4],
             "quality_score": row[5],
             "tier": row[6],
-            "description": (row[7] or "")[:140],
+            "description": clean_description(row[7], row[8], max_len=140),
         })
-    conn.close()
     return results
 
 @mcp.tool()
 def audit_skill_quality(skill_name_or_id: str) -> Dict[str, Any]:
-    sync_all_directories()
     conn = get_db_conn()
     cur = conn.execute("SELECT id, name, path, quality_score, source_tier, length(content), content FROM items WHERE id = ? OR name = ? LIMIT 1", (skill_name_or_id, skill_name_or_id))
     row = cur.fetchone()
     if not row:
-        conn.close()
         return {
             "status": "NOT_FOUND",
             "message": f"Skill {skill_name_or_id} not found in index.",
         }
-        
+
     item_id, name, path, q_score, tier, length, content = row
-    conn.close()
-    
     has_examples = "```" in content
     has_sections = "##" in content
     has_negative_rules = any(k in content for k in ("Do NOT", "Never", "Avoid", "Banned", "Forbidden"))
     is_stub = length < 300 or "Insert instructions below" in content or "Replace with description" in content
-    
+
     return {
         "id": item_id,
         "name": name,
@@ -443,42 +666,15 @@ def audit_skill_quality(skill_name_or_id: str) -> Dict[str, Any]:
 
 @mcp.tool()
 def get_exact_skill(name: str) -> str:
-    sync_all_directories()
-    conn = get_db_conn()
-    cur = conn.execute("SELECT content FROM items WHERE item_type = 'skill' AND (name = ? OR id = ?) ORDER BY quality_score DESC LIMIT 1", (name, f"skill:{name}"))
-    row = cur.fetchone()
-    conn.close()
-    if row:
-        return row[0]
-    return f"Skill '{name}' not found."
+    return _cached_exact_skill(name)
 
 @mcp.tool()
 def get_exact_rule(name: str) -> str:
-    sync_all_directories()
-    conn = get_db_conn()
-    cur = conn.execute("SELECT content FROM items WHERE item_type = 'rule' AND (name = ? OR id = ?) ORDER BY quality_score DESC LIMIT 1", (name, f"rule:{name}"))
-    row = cur.fetchone()
-    conn.close()
-    if row:
-        return row[0]
-    return f"Rule '{name}' not found."
+    return _cached_exact_rule(name)
 
 @mcp.tool()
 def get_core_governance_rules() -> Dict[str, Any]:
-    sync_all_directories()
-    conn = get_db_conn()
-    rules_data = {}
-    for rule_id in CORE_GOVERNANCE_IDS:
-        cur = conn.execute("SELECT name, content FROM items WHERE id = ? ORDER BY quality_score DESC LIMIT 1", (rule_id,))
-        row = cur.fetchone()
-        if row:
-            rules_data[row[0]] = row[1]
-    conn.close()
-    return {
-        "description": "Essential non-negotiable architectural governance: Anti-AI UI Slop, Honest Engineering, Anti-Sycophancy, Strict Comment Discipline, Clean Code Architecture.",
-        "rules_count": len(rules_data),
-        "rules": rules_data,
-    }
+    return _cached_core_governance()
 
 @mcp.tool()
 def audit_anti_sycophancy(response_text: str) -> Dict[str, Any]:
@@ -547,49 +743,17 @@ def audit_ui_design(css_or_html: str) -> Dict[str, Any]:
 
 @mcp.tool()
 def get_skill_toc(name: str) -> Dict[str, Any]:
-    content = get_exact_skill(name)
-    if "not found" in content:
-        return {"error": content}
-
-    headings = []
-    for line in content.splitlines():
-        m = re.match(r"^(#{1,4})\s+(.+)$", line)
-        if m:
-            level = len(m.group(1))
-            title = m.group(2).strip()
-            headings.append({"level": level, "heading": title})
-
-    return {"skill": name, "table_of_contents": headings}
+    s_name, headings, err = _cached_skill_toc(name)
+    if err:
+        return {"error": err}
+    return {
+        "skill": s_name,
+        "table_of_contents": [{"level": h[0], "heading": h[1]} for h in (headings or [])],
+    }
 
 @mcp.tool()
 def get_skill_section(name: str, section_heading: str) -> str:
-    content = get_exact_skill(name)
-    if "not found" in content:
-        return content
-
-    lines = content.splitlines()
-    target_idx = -1
-    target_level = 0
-    norm_target = section_heading.strip().lower()
-
-    for idx, line in enumerate(lines):
-        m = re.match(r"^(#{1,4})\s+(.+)$", line)
-        if m and norm_target in m.group(2).strip().lower():
-            target_idx = idx
-            target_level = len(m.group(1))
-            break
-
-    if target_idx == -1:
-        return f"Section '{section_heading}' not found in skill '{name}'."
-
-    extracted = [lines[target_idx]]
-    for line in lines[target_idx + 1:]:
-        m = re.match(r"^(#{1,4})\s+(.+)$", line)
-        if m and len(m.group(1)) <= target_level:
-            break
-        extracted.append(line)
-
-    return "\n".join(extracted)
+    return _cached_skill_section(name, section_heading)
 
 @mcp.tool()
 def register_custom_directory(directory_path: str) -> Dict[str, Any]:
@@ -604,7 +768,6 @@ def register_custom_directory(directory_path: str) -> Dict[str, Any]:
     conn = get_db_conn()
     cur = conn.execute("SELECT count(*) FROM items WHERE path LIKE ?", (f"{str(p)}%",))
     count = cur.fetchone()[0]
-    conn.close()
 
     return {
         "status": "SUCCESS",
@@ -723,9 +886,8 @@ def verify_code_rules(code_content: str, language: str) -> Dict[str, Any]:
 
 @mcp.tool()
 def list_skills_overview(category: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
-    sync_all_directories()
     conn = get_db_conn()
-    query = "SELECT id, name, category, language, quality_score, source_tier, description FROM items WHERE item_type = 'skill'"
+    query = "SELECT id, name, category, language, quality_score, source_tier, description, content FROM items WHERE item_type = 'skill'"
     params = []
     if category:
         query += " AND category = ?"
@@ -743,16 +905,14 @@ def list_skills_overview(category: Optional[str] = None, limit: int = 50) -> Lis
             "language": row[3],
             "quality_score": row[4],
             "tier": row[5],
-            "description": (row[6] or "")[:120],
+            "description": clean_description(row[6], row[7], max_len=120),
         })
-    conn.close()
     return results
 
 @mcp.tool()
 def list_rules_overview(limit: int = 50) -> List[Dict[str, Any]]:
-    sync_all_directories()
     conn = get_db_conn()
-    cur = conn.execute("SELECT id, name, language, quality_score, source_tier, description FROM items WHERE item_type = 'rule' ORDER BY quality_score DESC LIMIT ?", (limit,))
+    cur = conn.execute("SELECT id, name, language, quality_score, source_tier, description, content FROM items WHERE item_type = 'rule' ORDER BY quality_score DESC LIMIT ?", (limit,))
     results = []
     for row in cur.fetchall():
         results.append({
@@ -761,9 +921,8 @@ def list_rules_overview(limit: int = 50) -> List[Dict[str, Any]]:
             "language": row[2],
             "quality_score": row[3],
             "tier": row[4],
-            "description": (row[5] or "")[:120],
+            "description": clean_description(row[5], row[6], max_len=120),
         })
-    conn.close()
     return results
 
 @mcp.tool()
@@ -771,7 +930,6 @@ def read_skill_resource_file(skill_name: str, relative_path: str) -> str:
     conn = get_db_conn()
     cur = conn.execute("SELECT path FROM items WHERE item_type = 'skill' AND (name = ? OR id = ?) ORDER BY quality_score DESC LIMIT 1", (skill_name, f"skill:{skill_name}"))
     row = cur.fetchone()
-    conn.close()
 
     if not row:
         return f"Skill '{skill_name}' not found."
@@ -792,7 +950,6 @@ def reload_skills_index() -> Dict[str, Any]:
     skills_count = conn.execute("SELECT count(*) FROM items WHERE item_type = 'skill'").fetchone()[0]
     rules_count = conn.execute("SELECT count(*) FROM items WHERE item_type = 'rule'").fetchone()[0]
     high_quality = conn.execute("SELECT count(*) FROM items WHERE quality_score >= 70").fetchone()[0]
-    conn.close()
     return {
         "status": "RELOADED",
         "total_items": total,

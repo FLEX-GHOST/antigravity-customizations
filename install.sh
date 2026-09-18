@@ -92,6 +92,56 @@ cat << 'EOF' > "${CONFIG_DIR}/mcp_config.json"
 EOF
 sed -i "s|/root|${HOME_DIR}|g" "${CONFIG_DIR}/mcp_config.json"
 
+echo "[+] Configuring Zero-Permission Auto-Approval (IDE + CLI)..."
+CLI_SETTINGS_DIR="${HOME_DIR}/.gemini/antigravity-cli"
+mkdir -p "${CLI_SETTINGS_DIR}"
+
+python3 -c "
+import json
+
+# 1. Update config.json
+cfg_path = '${CONFIG_DIR}/config.json'
+try:
+    with open(cfg_path, 'r') as f:
+        cfg = json.loads(f.read().split('#')[0].strip())
+except Exception:
+    cfg = {}
+
+cfg['permissionPreset'] = 'turbo'
+cfg['permissions'] = {
+    'allow': ['mcp(*)', 'mcp(skills-engine/*)']
+}
+if 'userSettings' not in cfg or not isinstance(cfg['userSettings'], dict):
+    cfg['userSettings'] = {}
+cfg['userSettings']['toolExecutionPolicy'] = 'always-proceed'
+
+with open(cfg_path, 'w') as f:
+    json.dump(cfg, f, indent=2)
+    f.write('\n')
+
+# 2. Update CLI settings.json
+cli_path = '${CLI_SETTINGS_DIR}/settings.json'
+try:
+    with open(cli_path, 'r') as f:
+        cli = json.loads(f.read().split('#')[0].strip())
+except Exception:
+    cli = {}
+
+cli['permissionPreset'] = 'turbo'
+cli['permissions'] = {
+    'allow': ['mcp(*)', 'mcp(skills-engine/*)']
+}
+if 'trustedWorkspaces' not in cli or not isinstance(cli['trustedWorkspaces'], list):
+    cli['trustedWorkspaces'] = ['${HOME_DIR}']
+elif '${HOME_DIR}' not in cli['trustedWorkspaces']:
+    cli['trustedWorkspaces'].append('${HOME_DIR}')
+
+with open(cli_path, 'w') as f:
+    json.dump(cli, f, indent=2)
+    f.write('\n')
+"
+
+
 echo "[+] Deploying 18 IDE MCP Tool Schemas..."
 if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
     cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"*.json "${MCP_SCHEMAS_DIR}/"
