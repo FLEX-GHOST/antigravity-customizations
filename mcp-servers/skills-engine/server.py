@@ -2053,6 +2053,102 @@ def simulate_bot_pipeline(user_utterance: str) -> Dict[str, Any]:
         }
     }
 
+
+@mcp.tool()
+def fix_code_rule_violations(code_content: str, language: str) -> Dict[str, Any]:
+    lang = language.lower().strip()
+    lines = code_content.splitlines()
+    fixed_lines = []
+    fixes = []
+
+    for idx, line in enumerate(lines):
+        l_num = idx + 1
+        new_line = line
+
+        if lang in ("rust", "rs"):
+            if "std::thread::sleep(" in new_line:
+                new_line = new_line.replace("std::thread::sleep(", "tokio::time::sleep(")
+                if not new_line.strip().endswith(".await;"):
+                    new_line = new_line.replace(");", ").await;")
+                fixes.append({"line": l_num, "rule": "async-no-block", "action": "Replaced blocking std::thread::sleep with tokio::time::sleep(...).await"})
+
+            if "unbounded_channel()" in new_line:
+                new_line = new_line.replace("unbounded_channel()", "channel(100)")
+                fixes.append({"line": l_num, "rule": "async-bounded-channel", "action": "Replaced unbounded_channel with bounded mpsc::channel(100)"})
+
+            if '#![allow(' in new_line or '#[allow(' in new_line:
+                if any(w in new_line for w in ("warnings", "unused", "dead_code")):
+                    new_line = "// " + new_line + " // REMOVED: Warning suppression prohibited"
+                    fixes.append({"line": l_num, "rule": "no-allow-warnings", "action": "Commented out warning suppression attribute"})
+
+        elif lang in ("go", "golang"):
+            if "_ = err" in new_line or "_ = error" in new_line:
+                indent = len(line) - len(line.lstrip())
+                prefix = " " * indent
+                new_line = prefix + 'if err != nil {\n' + prefix + '    return fmt.Errorf("operation failed: %w", err)\n' + prefix + '}'
+                fixes.append({"line": l_num, "rule": "go-error-discipline", "action": "Replaced silent _ = err with explicit error propagation"})
+
+        elif lang in ("python", "py"):
+            if re.search(r"except\s*:\s*pass", new_line) or re.search(r"except\s+Exception\s*:\s*pass", new_line):
+                indent = len(line) - len(line.lstrip())
+                prefix = " " * indent
+                new_line = prefix + 'except Exception as e:\n' + prefix + '    logger.error(f"Unexpected error caught: {e}")'
+                fixes.append({"line": l_num, "rule": "anti-empty-catch", "action": "Replaced empty except: pass with structured logging"})
+
+        fixed_lines.append(new_line)
+
+    return {
+        "status": "FIXES_APPLIED" if fixes else "NO_CHANGES_NEEDED",
+        "total_fixes": len(fixes),
+        "fixes": fixes,
+        "fixed_code": "\n".join(fixed_lines)
+    }
+
+@mcp.tool()
+def simulate_telegram_load(bot_type: str = "factory", concurrent_users: int = 1000) -> Dict[str, Any]:
+    b_type = bot_type.lower().strip()
+    users = max(1, concurrent_users)
+
+    if "music" in b_type or "voice" in b_type:
+        active_streams = min(users, 50)
+        updates_sec = users * 0.15
+        bandwidth_mbps = round(active_streams * 0.128, 2) # 128 kbps per Opus stream
+        ram_mb = 120 + (active_streams * 2.5) # Zero-RAM pipe streaming
+        verdict = "SUSTAINABLE" if active_streams <= 40 else "HIGH_LOAD_SCALE_REQUIRED"
+        notes = "Opus 48kHz WebRTC streaming requires non-blocking Tokio pipes and Jemalloc background thread."
+    elif "fastdl" in b_type or "social" in b_type:
+        concurrent_downloads = min(users, 100)
+        updates_sec = users * 0.35
+        bandwidth_mbps = round(concurrent_downloads * 4.0, 2)
+        ram_mb = 80 + (concurrent_downloads * 1.8) # Disk streaming
+        verdict = "SUSTAINABLE" if concurrent_downloads <= 80 else "BANDWIDTH_BOUND"
+        notes = "Enforce anti-raw-bytes-ram: stream files directly to disk; never accumulate video bytes in RAM."
+    else: # factory / general bot
+        updates_sec = round(users * 0.5, 1)
+        bandwidth_mbps = round((updates_sec * 4) / 1024, 2) # 4KB payload
+        ram_mb = round(45 + (users * 0.04), 1)
+        verdict = "HIGHLY_OPTIMAL"
+        notes = "Axum multi-tenant webhook router with token hashing handles 5,000+ req/s on a single 2-core VPS."
+
+    return {
+        "bot_type": bot_type,
+        "simulated_concurrent_users": users,
+        "estimated_metrics": {
+            "incoming_updates_per_second": updates_sec,
+            "estimated_bandwidth_mbps": bandwidth_mbps,
+            "estimated_ram_mb": ram_mb,
+            "recommended_tokio_workers": min(64, max(4, int(updates_sec / 20))),
+            "recommended_redis_rate_limit": "20 requests per 5 seconds per user"
+        },
+        "scalability_verdict": verdict,
+        "architectural_recommendations": [
+            "Use Nginx reverse proxy with proxy_buffering off and Unix socket to Axum",
+            "Mandatory HTTP 200 OK fast acknowledgment (< 50ms) to prevent Telegram retry flooding",
+            "Enable Jemalloc with background_thread:true and dirty_decay_ms:0",
+            notes
+        ]
+    }
+
 @mcp.tool()
 def reload_skills_index() -> Dict[str, Any]:
     sync_all_directories(force=True)
