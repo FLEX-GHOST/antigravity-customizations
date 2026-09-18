@@ -45,14 +45,11 @@ jobs:
 
       - name: Build & Index Database
         run: |
-          mkdir -p /tmp/mcp-servers/skills-engine
-          cp -rf mcp-servers/skills-engine/* /tmp/mcp-servers/skills-engine/
           python3 -c "
           import sys, os
           from pathlib import Path
-          sys.path.insert(0, '/tmp/mcp-servers/skills-engine')
+          sys.path.insert(0, 'mcp-servers/skills-engine')
           import server
-          server.DB_PATH = Path('/tmp/mcp-servers/skills-engine/skills_index.db')
           server.SEARCH_PATHS = [
               Path('.'),
               Path('/tmp/catalog/repos'),
@@ -63,10 +60,16 @@ jobs:
           conn = server.get_db_conn()
           total = conn.execute('SELECT count(*) FROM items').fetchone()[0]
           conn.close()
-          print(f'Indexed {total} entities.')
+          print(f'Successfully indexed {total} entities at: {server.DB_PATH}')
           "
-          gzip -c -9 /tmp/mcp-servers/skills-engine/skills_index.db > skills_index.db.gz
-          ls -lh skills_index.db.gz
+          DB_FILE="${HOME}/.gemini/mcp-servers/skills-engine/skills_index.db"
+          if [ -f "$DB_FILE" ]; then
+              gzip -c -9 "$DB_FILE" > skills_index.db.gz
+              ls -lh skills_index.db.gz
+          else
+              echo "Error: Database file not found at $DB_FILE"
+              exit 1
+          fi
 
       - name: Update GitHub Release Asset
         env:
