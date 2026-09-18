@@ -23,12 +23,5 @@
     ],
     "title": "register_federated_mcp_serverArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": false,
-    "isDestructive": false,
-    "idempotent": false,
-    "ttlMs": 0,
-    "cacheScope": "private"
   }
 }

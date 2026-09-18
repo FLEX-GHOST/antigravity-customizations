@@ -13,12 +13,5 @@
     ],
     "title": "register_custom_directoryArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": false,
-    "isDestructive": false,
-    "idempotent": false,
-    "ttlMs": 0,
-    "cacheScope": "private"
   }
 }

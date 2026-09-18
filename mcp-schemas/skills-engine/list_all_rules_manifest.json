@@ -11,12 +11,5 @@
     },
     "title": "list_all_rules_manifestArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": true,
-    "isDestructive": false,
-    "idempotent": true,
-    "ttlMs": 3600000,
-    "cacheScope": "public"
   }
 }

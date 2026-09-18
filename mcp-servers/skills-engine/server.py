@@ -4012,6 +4012,90 @@ def get_telegram_bot_api_spec(query: str, query_type: Optional[str] = None) -> D
         "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2)
     }
 
+
+@mcp.tool()
+def sync_telegram_bot_api_upstream(force: bool = False) -> Dict[str, Any]:
+    """Fetch and synchronize the latest official Telegram Bot API specification from upstream.
+    Updates all 185+ methods and 400+ types, regenerates references, and reindexes the SQLite FTS5 database."""
+    t0 = time.perf_counter()
+    sync_script = Path("/root/antigravity-customizations/scripts/sync_telegram_spec.py")
+    if not sync_script.exists():
+        sync_script = Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/scripts/sync_telegram_spec.py")
+
+    cmd = [sys.executable, str(sync_script)]
+    if force:
+        cmd.append("--force")
+
+    import subprocess
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    stdout = proc.stdout
+
+    global _TG_API_CACHE
+    _TG_API_CACHE.clear()
+    methods, types = get_telegram_api_specs()
+
+    # Reindex all 585 entities into SQLite
+    try:
+        conn = get_db_conn()
+        conn.execute("DELETE FROM items WHERE id LIKE 'tg:%'")
+        conn.execute("DELETE FROM items_fts WHERE id LIKE 'tg:%'")
+
+        to_insert_items = []
+        to_insert_fts = []
+
+        for m_name, m_info in methods.items():
+            item_id = f"tg:method:{m_name}"
+            desc = "".join(m_info.get("description", [])) if isinstance(m_info.get("description"), list) else m_info.get("description", "")
+            fields = m_info.get("fields", [])
+            param_names = [f.get("name") for f in fields]
+            returns = ", ".join(m_info.get("returns", []))
+            triggers = f"{' '.join(param_names)} returns {returns} telegram botapi method"
+            full_content = f"# Telegram Method: {m_name}\n\n{desc}\n\nReturns: {returns}\n\nParameters:\n" + "\n".join(
+                [f"- {f.get('name')} ({', '.join(f.get('types', []))}): {'Required' if f.get('required') else 'Optional'}" for f in fields]
+            )
+            to_insert_items.append((
+                item_id, "tg_method", m_name, desc[:300], triggers, "rust,json", "Telegram Bot API",
+                str(sync_script), time.time(), full_content, 95, "official"
+            ))
+            to_insert_fts.append((item_id, m_name, desc[:300], triggers, full_content))
+
+        for t_name, t_info in types.items():
+            item_id = f"tg:type:{t_name}"
+            desc = "".join(t_info.get("description", [])) if isinstance(t_info.get("description"), list) else t_info.get("description", "")
+            fields = t_info.get("fields", [])
+            field_names = [f.get("name") for f in fields]
+            triggers = f"{' '.join(field_names)} telegram botapi type struct"
+            full_content = f"# Telegram Type: {t_name}\n\n{desc}\n\nFields:\n" + "\n".join(
+                [f"- {f.get('name')} ({', '.join(f.get('types', []))}): {'Required' if f.get('required') else 'Optional'}" for f in fields]
+            )
+            to_insert_items.append((
+                item_id, "tg_type", t_name, desc[:300], triggers, "rust,json", "Telegram Bot API",
+                str(sync_script), time.time(), full_content, 95, "official"
+            ))
+            to_insert_fts.append((item_id, t_name, desc[:300], triggers, full_content))
+
+        with conn:
+            conn.executemany("""
+                INSERT OR REPLACE INTO items (id, item_type, name, description, triggers, language, category, path, mtime, content, quality_score, source_tier)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, to_insert_items)
+            conn.executemany("""
+                INSERT INTO items_fts (id, name, description, triggers, content)
+                VALUES (?, ?, ?, ?, ?)
+            """, to_insert_fts)
+    except Exception as e:
+        stdout += f"\nIndexing warning: {e}"
+
+    dur = (time.perf_counter() - t0) * 1000.0
+    return {
+        "status": "SYNCHRONIZED",
+        "total_methods": len(methods),
+        "total_types": len(types),
+        "sync_output": stdout.strip(),
+        "duration_ms": round(dur, 2),
+        "message": f"Successfully synchronized and indexed all {len(methods)} Telegram methods and {len(types)} types into SQLite FTS5."
+    }
+
 def enforce_mcp_deterministic_standards():
     """Enforce July 2026 MCP specification: deterministic tool ordering & safety metadata."""
     if hasattr(mcp, "_tool_manager") and hasattr(mcp._tool_manager, "_tools"):

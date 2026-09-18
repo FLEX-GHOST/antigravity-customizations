@@ -13,12 +13,5 @@
     ],
     "title": "audit_anti_sycophancyArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": true,
-    "isDestructive": false,
-    "idempotent": true,
-    "ttlMs": 3600000,
-    "cacheScope": "public"
   }
 }

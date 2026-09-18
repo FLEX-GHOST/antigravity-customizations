@@ -54,12 +54,5 @@
     ],
     "title": "simulate_telegram_webhook_updateArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": true,
-    "isDestructive": false,
-    "idempotent": true,
-    "ttlMs": 3600000,
-    "cacheScope": "public"
   }
 }

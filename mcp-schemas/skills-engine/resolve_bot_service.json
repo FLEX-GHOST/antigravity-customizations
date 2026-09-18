@@ -13,12 +13,5 @@
     ],
     "title": "resolve_bot_serviceArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": true,
-    "isDestructive": false,
-    "idempotent": true,
-    "ttlMs": 3600000,
-    "cacheScope": "public"
   }
 }

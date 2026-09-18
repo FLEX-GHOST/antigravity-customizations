@@ -13,12 +13,5 @@
     ],
     "title": "activate_tool_suiteArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": false,
-    "isDestructive": false,
-    "idempotent": true,
-    "ttlMs": 0,
-    "cacheScope": "private"
   }
 }

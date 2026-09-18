@@ -1,0 +1,55 @@
+name: Auto-Sync Telegram Bot API Specification
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force re-synchronization even if version matches'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  sync-bot-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Telegram Bot API Spec Synchronizer
+        run: |
+          chmod +x scripts/sync_telegram_spec.py
+          if [ "${{ inputs.force_sync }}" = "true" ]; then
+            python3 scripts/sync_telegram_spec.py --force
+          else
+            python3 scripts/sync_telegram_spec.py
+          fi
+
+      - name: Commit and Push Changes if Updated
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if ! git diff --quiet; then
+            VERSION=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('version', 'Unknown'))")
+            git add skills/telegram-bot-api-methods/references/
+            git commit -m "chore(telegram): auto-sync Telegram Bot API spec to ${VERSION} [skip ci]"
+            git push origin main
+            echo "Successfully committed and pushed updated Telegram Bot API spec!"
+          else
+            echo "No changes detected. Telegram Bot API specification is already up-to-date."
+          fi

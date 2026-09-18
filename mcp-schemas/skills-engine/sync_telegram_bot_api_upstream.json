@@ -1,0 +1,15 @@
+{
+  "name": "sync_telegram_bot_api_upstream",
+  "description": "Fetch and synchronize the latest official Telegram Bot API specification from upstream.\n    Updates all 185+ methods and 400+ types, regenerates references, and reindexes the SQLite FTS5 database.",
+  "inputSchema": {
+    "properties": {
+      "force": {
+        "default": false,
+        "title": "Force",
+        "type": "boolean"
+      }
+    },
+    "title": "sync_telegram_bot_api_upstreamArguments",
+    "type": "object"
+  }
+}

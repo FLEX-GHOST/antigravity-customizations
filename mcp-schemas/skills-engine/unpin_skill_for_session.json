@@ -13,12 +13,5 @@
     ],
     "title": "unpin_skill_for_sessionArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": false,
-    "isDestructive": false,
-    "idempotent": false,
-    "ttlMs": 0,
-    "cacheScope": "private"
   }
 }

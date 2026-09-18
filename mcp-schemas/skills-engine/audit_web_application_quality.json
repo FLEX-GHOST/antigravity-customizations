@@ -13,12 +13,5 @@
     ],
     "title": "audit_web_application_qualityArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": true,
-    "isDestructive": false,
-    "idempotent": true,
-    "ttlMs": 3600000,
-    "cacheScope": "public"
   }
 }

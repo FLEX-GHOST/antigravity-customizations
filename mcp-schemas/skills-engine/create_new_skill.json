@@ -41,12 +41,5 @@
     ],
     "title": "create_new_skillArguments",
     "type": "object"
-  },
-  "metadata": {
-    "readOnly": false,
-    "isDestructive": false,
-    "idempotent": false,
-    "ttlMs": 0,
-    "cacheScope": "private"
   }
 }
