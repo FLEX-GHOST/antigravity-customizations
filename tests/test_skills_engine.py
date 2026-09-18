@@ -10,6 +10,7 @@ Covers:
 - Local Telegram Bot API Mock Server & IPC Endpoints
 - Go Static Binary Verification (stdio handshake, 51 tools, tools/call)
 - Anti-AI UI Slop & Zero Emoji Enforcement
+- Dynamic README.md Metrics, Badges, and Version Consistency
 """
 
 import os
@@ -19,12 +20,15 @@ import socket
 import subprocess
 import urllib.request
 import time
+import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "mcp-servers" / "skills-engine"))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 import server
+import update_readme_metrics
 
 def test_ast_and_syntax():
     import ast
@@ -102,10 +106,18 @@ def test_core_telegram_tools():
 def test_telegram_mock_server():
     base_url = "http://127.0.0.1:14993"
     
-    # 1. Health check
-    req_health = urllib.request.urlopen(f"{base_url}/api/health", timeout=2)
-    h_data = json.loads(req_health.read().decode("utf-8"))
-    assert h_data["status"] == "HEALTHY"
+    # 1. Health check with retry
+    h_data = None
+    for _ in range(25):
+        try:
+            req_health = urllib.request.urlopen(f"{base_url}/api/health", timeout=1)
+            h_data = json.loads(req_health.read().decode("utf-8"))
+            if h_data.get("status") == "HEALTHY":
+                break
+        except Exception:
+            time.sleep(0.2)
+
+    assert h_data is not None and h_data.get("status") == "HEALTHY", "Mock server failed to start on 14993"
 
     # 2. getMe mock
     req_me = urllib.request.urlopen(f"{base_url}/bot12345:MOCK/getMe", timeout=2)
@@ -156,6 +168,24 @@ def test_go_static_binary():
     proc.wait()
     print("[PASS] Go statically linked binary verified (handshake + 51 tools).")
 
+def test_readme_dynamic_metrics():
+    metrics = update_readme_metrics.get_current_metrics()
+    readme_text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+    # Verify Telegram Bot API version & methods & types in badge
+    expected_tg_badge = f"Telegram%20Bot%20API-{metrics['tg_version']}%20({metrics['tg_methods']}%20Methods%20%7C%20{metrics['tg_types']}%20Types)"
+    assert expected_tg_badge in readme_text, f"README missing current Telegram badge: {expected_tg_badge}"
+
+    # Verify Active MCP Tools badge
+    expected_tools_badge = f"MCP%20Tools-{metrics['tools_count']}%20Tools"
+    assert expected_tools_badge in readme_text, f"README missing tools count badge: {expected_tools_badge}"
+
+    # Verify Go version
+    expected_go = f"Go {metrics['go_version']}"
+    assert expected_go in readme_text, f"README missing active Go version: {expected_go}"
+
+    print(f"[PASS] README.md metrics & versions strictly match repository state ({metrics['tg_version']}, {metrics['tg_methods']} methods, {metrics['tg_types']} types, {metrics['tools_count']} tools).")
+
 def test_no_raw_emojis_in_docs():
     banned_emojis = ["🚀", "✨", "🔥", "🎉", "📦", "⚙️", "💡", "🤖", "✅", "❌"]
     readme_path = REPO_ROOT / "README.md"
@@ -172,6 +202,7 @@ def main():
     test_core_telegram_tools()
     test_telegram_mock_server()
     test_go_static_binary()
+    test_readme_dynamic_metrics()
     test_no_raw_emojis_in_docs()
     print("\nALL TESTS PASSED SUCCESSFULLY (100% GREEN)!")
 

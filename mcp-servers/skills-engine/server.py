@@ -349,8 +349,11 @@ def get_all_search_paths() -> List[Path]:
         HOME_DIR / ".gemini/antigravity-ide/builtin/skills",
         HOME_DIR / ".gemini/antigravity-ide/builtin/rules",
     ]
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    if repo_root.exists() and repo_root not in paths:
+        paths.append(repo_root)
     custom_root = HOME_DIR / "antigravity-customizations"
-    if custom_root.exists():
+    if custom_root.exists() and custom_root not in paths:
         paths.append(custom_root)
     bots_dir = HOME_DIR / "bots"
     if bots_dir.exists():
@@ -841,6 +844,7 @@ def get_db_conn() -> sqlite3.Connection:
             return _local.conn
         except Exception:
             _local.conn = None
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH), timeout=30.0, check_same_thread=False, isolation_level=None)
     conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA synchronous = NORMAL")

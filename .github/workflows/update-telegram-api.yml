@@ -39,11 +39,13 @@ jobs:
       - name: Run Telegram Bot API Spec Synchronizer
         run: |
           chmod +x scripts/sync_telegram_spec.py
+          chmod +x scripts/update_readme_metrics.py
           if [ "${{ inputs.force_sync }}" = "true" ]; then
             python3 scripts/sync_telegram_spec.py --force
           else
             python3 scripts/sync_telegram_spec.py
           fi
+          python3 scripts/update_readme_metrics.py
 
       - name: Commit and Push Changes if Updated
         run: |
@@ -58,6 +60,7 @@ jobs:
             git add skills/telegram-bot-api-methods/references/
             git add README.md
             git add mcp-servers/skills-engine/
+            git add scripts/
             
             git commit -m "chore(telegram): auto-sync Bot API to ${VERSION} (${METHODS} methods | ${TYPES} types) [skip ci]"
             git push origin main

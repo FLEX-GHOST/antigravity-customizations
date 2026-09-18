@@ -83,7 +83,8 @@ func NewServer(schemaFS embed.FS, telegramFS embed.FS) (*Server, error) {
 	// 1. Load Telegram Data
 	methodsData, _ := telegramFS.ReadFile("data/telegram/api_methods.json")
 	typesData, _ := telegramFS.ReadFile("data/telegram/api_types.json")
-	_ = telegram.LoadSpecs(methodsData, typesData)
+	versionData, _ := telegramFS.ReadFile("data/telegram/version.json")
+	_ = telegram.LoadSpecs(methodsData, typesData, versionData)
 
 	// 2. Load Schemas
 	entries, err := schemaFS.ReadDir("data/schemas")
@@ -181,9 +182,9 @@ func (s *Server) CallTool(name string, args map[string]any) (types.CallToolResul
 	case "sync_telegram_bot_api_upstream":
 		res = map[string]any{
 			"status":          "SYNCHRONIZED",
-			"bot_api_version": "10.3",
-			"methods_count":   185,
-			"types_count":     400,
+			"bot_api_version": telegram.ActiveVersion.Version,
+			"methods_count":   telegram.ActiveVersion.TotalMethods,
+			"types_count":     telegram.ActiveVersion.TotalTypes,
 			"engine":          "Go Embedded SQLite & Memory Cache",
 		}
 

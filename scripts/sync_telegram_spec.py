@@ -2,7 +2,8 @@
 """
 Automated Telegram Bot API Specification Synchronizer
 Fetches the latest official Bot API specification, updates skills, references,
-embedded Go data, re-compiles multi-arch binaries, and dynamically updates README badges and counts.
+embedded Go data, re-compiles multi-arch binaries, and dynamically updates README badges,
+metrics, and version counts using scripts/update_readme_metrics.py.
 """
 import urllib.request
 import json
@@ -16,32 +17,11 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SKILL_DIR = ROOT_DIR / "skills" / "telegram-bot-api-methods"
 MCP_DIR = ROOT_DIR / "mcp-servers" / "skills-engine"
-README_FILE = ROOT_DIR / "README.md"
+SCRIPTS_DIR = ROOT_DIR / "scripts"
 SPEC_URL = "https://raw.githubusercontent.com/PaulSonOfLars/telegram-bot-api-spec/main/api.json"
 
-def update_readme_dynamically(new_version: str, methods_count: int, types_count: int):
-    if not README_FILE.exists():
-        return
-    with open(README_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    clean_ver = new_version.replace("Bot API", "").replace("Telegram", "").strip()
-
-    # 1. Update the Telegram Bot API badge
-    badge_pattern = r"Telegram%20Bot%20API-[^)]+%\s*20\([0-9]+%20Methods%20%7C%20[0-9]+%20Types\)|Telegram%20Bot%20API-[0-9.]+%20\([0-9]+%20Methods%20%7C%20[0-9]+%20Types\)"
-    new_badge = f"Telegram%20Bot%20API-{clean_ver}%20({methods_count}%20Methods%20%7C%20{types_count}%20Types)"
-    content = re.sub(badge_pattern, new_badge, content)
-
-    # 2. Update mentions of methods and types counts in text
-    content = re.sub(r"\b[0-9]+\s+methods\s+and\s+[0-9]+\s+types\b", f"{methods_count} methods and {types_count} types", content, flags=re.I)
-
-    # 3. Clean up any redundant "Bot API Bot API"
-    content = re.sub(r"Telegram\s+Bot\s+API\s+(Bot\s+API\s+)+", "Telegram Bot API ", content)
-    content = re.sub(r"Telegram\s+Bot\s+API\s+[0-9.]+", f"Telegram Bot API {clean_ver}", content)
-
-    with open(README_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
-    print(f"[*] Dynamically updated README.md: Version -> {clean_ver}, Methods -> {methods_count}, Types -> {types_count}")
+sys.path.insert(0, str(SCRIPTS_DIR))
+import update_readme_metrics
 
 def fetch_and_sync(force: bool = False):
     print(f"[*] Fetching latest Telegram Bot API specification from: {SPEC_URL}")
@@ -71,7 +51,8 @@ def fetch_and_sync(force: bool = False):
             pass
 
     if current_version == clean_ver and not force:
-        print(f"[✓] Telegram Bot API is already up-to-date ({clean_ver}). No changes needed.")
+        print(f"[✓] Telegram Bot API is already up-to-date ({clean_ver}). Verifying README metrics...")
+        update_readme_metrics.update_readme()
         return False, clean_ver, len(new_methods), len(new_types)
 
     print(f"[*] Updating from {current_version or 'initial'} -> {clean_ver} ({len(new_methods)} methods, {len(new_types)} types)")
@@ -125,10 +106,7 @@ def fetch_and_sync(force: bool = False):
         shutil.copyfile(version_file, go_tg_dir / "version.json")
         print(f"[*] Updated embedded Go data in {go_tg_dir}")
 
-    # 4. Dynamically update README.md badges and counts
-    update_readme_dynamically(clean_ver, len(new_methods), len(new_types))
-
-    # 5. Re-compile Go multi-arch binaries if go is installed
+    # 4. Re-compile Go multi-arch binaries if go is installed
     if shutil.which("go"):
         print("[*] Re-compiling Go multi-architecture static binaries with new Telegram spec...")
         try:
@@ -138,6 +116,13 @@ def fetch_and_sync(force: bool = False):
             print("[✓] Re-compiled skills-engine, skills-engine-linux-arm64, and skills-engine-linux-amd64 successfully!")
         except Exception as e:
             print(f"[!] Re-compilation note: {e}")
+
+    # 5. Dynamically update README.md badges, numbers, and versions
+    metrics = update_readme_metrics.get_current_metrics()
+    metrics["tg_version"] = clean_ver
+    metrics["tg_methods"] = len(new_methods)
+    metrics["tg_types"] = len(new_types)
+    update_readme_metrics.update_readme(metrics)
 
     # 6. Synchronize to runtime and workspace directories if accessible
     extra_dirs = [

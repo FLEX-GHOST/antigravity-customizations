@@ -27,12 +27,24 @@ type TypeSpec struct {
 	Fields      []ParameterField `json:"fields"`
 }
 
+type VersionInfo struct {
+	Version      string `json:"version"`
+	TotalMethods int    `json:"total_methods"`
+	TotalTypes   int    `json:"total_types"`
+	ReleaseDate  string `json:"release_date"`
+}
+
 var (
-	MethodsMap = make(map[string]MethodSpec)
-	TypesMap   = make(map[string]TypeSpec)
+	MethodsMap    = make(map[string]MethodSpec)
+	TypesMap      = make(map[string]TypeSpec)
+	ActiveVersion = VersionInfo{
+		Version:      "10.3",
+		TotalMethods: 185,
+		TotalTypes:   400,
+	}
 )
 
-func LoadSpecs(methodsJSON, typesJSON []byte) error {
+func LoadSpecs(methodsJSON, typesJSON, versionJSON []byte) error {
 	var methods []MethodSpec
 	if err := json.Unmarshal(methodsJSON, &methods); err == nil {
 		for _, m := range methods {
@@ -45,6 +57,15 @@ func LoadSpecs(methodsJSON, typesJSON []byte) error {
 		for _, t := range types {
 			TypesMap[strings.ToLower(t.Name)] = t
 		}
+	}
+	if len(versionJSON) > 0 {
+		_ = json.Unmarshal(versionJSON, &ActiveVersion)
+	}
+	if ActiveVersion.TotalMethods == 0 {
+		ActiveVersion.TotalMethods = len(MethodsMap)
+	}
+	if ActiveVersion.TotalTypes == 0 {
+		ActiveVersion.TotalTypes = len(TypesMap)
 	}
 	return nil
 }
