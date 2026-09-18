@@ -11,7 +11,7 @@ import sqlite3
 import sys
 import threading
 import time
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, deque
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 try:
@@ -30,6 +30,70 @@ except ImportError:
             from fastmcp import FastMCP
 
 mcp = FastMCP("skills-engine")
+
+class TelemetryTracker:
+    """Zero-allocation in-memory ring buffer tracking tool latency, error rates, and cache efficiency."""
+    def __init__(self, maxlen: int = 1000):
+        self.records = deque(maxlen=maxlen)
+        self.tool_counts = defaultdict(int)
+        self.tool_errors = defaultdict(int)
+        self.tool_latencies = defaultdict(list)
+        self.cache_hits = 0
+        self.cache_misses = 0
+
+    def record_call(self, tool_name: str, duration_ms: float, success: bool = True, cache_hit: bool = False):
+        self.records.append({
+            "tool": tool_name,
+            "duration_ms": round(duration_ms, 2),
+            "success": success,
+            "cache_hit": cache_hit,
+            "timestamp": time.time()
+        })
+        self.tool_counts[tool_name] += 1
+        if not success:
+            self.tool_errors[tool_name] += 1
+        if cache_hit:
+            self.cache_hits += 1
+        else:
+            self.cache_misses += 1
+
+        lat_list = self.tool_latencies[tool_name]
+        lat_list.append(duration_ms)
+        if len(lat_list) > 200:
+            lat_list.pop(0)
+
+    def get_summary(self) -> Dict[str, Any]:
+        total_calls = sum(self.tool_counts.values())
+        total_errors = sum(self.tool_errors.values())
+        error_rate = round((total_errors / total_calls * 100), 2) if total_calls > 0 else 0.0
+        total_cache_events = self.cache_hits + self.cache_misses
+        cache_ratio = round((self.cache_hits / total_cache_events * 100), 2) if total_cache_events > 0 else 0.0
+
+        tool_stats = {}
+        for tool, count in self.tool_counts.items():
+            lats = self.tool_latencies.get(tool, [])
+            avg_lat = round(sum(lats) / len(lats), 2) if lats else 0.0
+            sorted_lats = sorted(lats)
+            p95_idx = int(len(sorted_lats) * 0.95)
+            p95_lat = sorted_lats[min(p95_idx, len(sorted_lats) - 1)] if sorted_lats else 0.0
+            tool_stats[tool] = {
+                "calls": count,
+                "avg_latency_ms": avg_lat,
+                "p95_latency_ms": p95_lat,
+                "errors": self.tool_errors.get(tool, 0)
+            }
+
+        return {
+            "total_calls": total_calls,
+            "total_errors": total_errors,
+            "error_rate_percent": error_rate,
+            "cache_hit_ratio_percent": cache_ratio,
+            "tracked_buffer_size": len(self.records),
+            "tool_metrics": dict(sorted(tool_stats.items(), key=lambda x: x[1]["calls"], reverse=True))
+        }
+
+telemetry = TelemetryTracker()
+
 
 HOME_DIR = Path.home()
 DB_PATH = HOME_DIR / ".gemini/mcp-servers/skills-engine/skills_index.db"
@@ -961,6 +1025,72 @@ def extract_stems(norm_text: str) -> set:
             stems.add(w[1:])
     return stems
 
+
+ARABIC_PREFIXES = ("ال", "وال", "فال", "كال", "بال", "لل", "و", "ف", "ب", "ك", "ل")
+ARABIC_SUFFIXES = ("ات", "ين", "ون", "ية", "ان", "هم", "هن", "كم", "نا", "ها", "ة", "ه", "ي")
+
+ARABIC_CONCEPT_MAP: Dict[str, List[str]] = {
+    "بوت": ["bot", "telegram", "automation"],
+    "بوتات": ["bot", "telegram", "automation"],
+    "تيليجرام": ["telegram", "mtproto", "bot"],
+    "تليجرام": ["telegram", "mtproto", "bot"],
+    "صوت": ["voice", "audio", "webrtc"],
+    "اغاني": ["music", "audio", "stream"],
+    "موسيقى": ["music", "audio", "stream"],
+    "ذاكرة": ["memory", "ram", "jemalloc", "zero-ram-idle"],
+    "اداء": ["performance", "latency", "benchmark"],
+    "أداء": ["performance", "latency", "benchmark"],
+    "امان": ["security", "auth", "token"],
+    "أمان": ["security", "auth", "token"],
+    "حماية": ["security", "auth", "token"],
+    "واجهة": ["ui", "frontend", "design"],
+    "واجهات": ["ui", "frontend", "design"],
+    "تصميم": ["ui", "design", "css"],
+    "زر": ["button", "button-states", "ui"],
+    "ازرار": ["button", "button-states", "ui"],
+    "أزرار": ["button", "button-states", "ui"],
+    "تطوير": ["builder", "clean-architecture", "architecture"],
+    "مطور": ["builder", "clean-architecture", "architecture"],
+    "اختبار": ["testing", "test", "verification"],
+    "فحص": ["audit", "verification", "testing"],
+    "ويب": ["web", "frontend", "react"],
+    "ويبهوك": ["webhook", "telegram_webhook"],
+    "تنزيل": ["downloader", "media", "fastdl"],
+    "تحميل": ["downloader", "media", "fastdl"],
+}
+
+def expand_arabic_morphology(tokens: List[str]) -> List[str]:
+    expanded = set(tokens)
+    for tok in tokens:
+        norm = tok.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا").replace("ة", "ه").replace("ى", "ي")
+        expanded.add(norm)
+        # Check concept map
+        if tok in ARABIC_CONCEPT_MAP:
+            expanded.update(ARABIC_CONCEPT_MAP[tok])
+        if norm in ARABIC_CONCEPT_MAP:
+            expanded.update(ARABIC_CONCEPT_MAP[norm])
+
+        # Affix stripping
+        for pfx in ARABIC_PREFIXES:
+            if norm.startswith(pfx) and len(norm) - len(pfx) >= 3:
+                stem = norm[len(pfx):]
+                expanded.add(stem)
+                if stem in ARABIC_CONCEPT_MAP:
+                    expanded.update(ARABIC_CONCEPT_MAP[stem])
+                for sfx in ARABIC_SUFFIXES:
+                    if stem.endswith(sfx) and len(stem) - len(sfx) >= 3:
+                        root = stem[:-len(sfx)]
+                        expanded.add(root)
+                        if root in ARABIC_CONCEPT_MAP:
+                            expanded.update(ARABIC_CONCEPT_MAP[root])
+        for sfx in ARABIC_SUFFIXES:
+            if norm.endswith(sfx) and len(norm) - len(sfx) >= 3:
+                stem = norm[:-len(sfx)]
+                expanded.add(stem)
+                if stem in ARABIC_CONCEPT_MAP:
+                    expanded.update(ARABIC_CONCEPT_MAP[stem])
+    return list(expanded)
+
 def extract_intent_tokens(query: str) -> List[str]:
     q_clean = clean_query_text(query)
     norm = normalize_arabic(q_clean)
@@ -1256,7 +1386,8 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
         cur = conn.execute("""
             SELECT items.id, items.item_type, items.name, items.description, items.language, items.category,
                    items.quality_score, items.source_tier, items.content,
-                   bm25(items_fts, 20.0, 10.0, 15.0, 6.0, 6.0, 1.2) as rank_score
+                   bm25(items_fts, 20.0, 10.0, 15.0, 6.0, 6.0, 1.2) as rank_score,
+                   snippet(items_fts, -1, '<b>', '</b>', '...', 12) as match_snippet
             FROM items_fts
             JOIN items ON items.id = items_fts.id
             WHERE items_fts MATCH ? AND items.quality_score >= ?
@@ -1277,7 +1408,7 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
             
             cur_sem = conn.execute(f"""
                 SELECT items.id, items.item_type, items.name, items.description, items.language, items.category,
-                       items.quality_score, items.source_tier, items.content, -1.0 as rank_score
+                       items.quality_score, items.source_tier, items.content, -1.0 as rank_score, '' as match_snippet
                 FROM items
                 WHERE ({cluster_clauses}) AND items.quality_score >= ?
                 ORDER BY items.quality_score DESC
@@ -1305,7 +1436,7 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
     # Pass 1: Multi-domain guarantee (at least 1 item per detected active domain)
     if len(active_domains) > 1:
         for row in raw_candidates:
-            item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row
+            item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row[:10]
             if name in seen_names:
                 continue
             if language and language.lower() not in item_lang.lower():
@@ -1323,7 +1454,7 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
     for row in raw_candidates:
         if len(selected_rows) >= limit:
             break
-        item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row
+        item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row[:10]
         if name in seen_names:
             continue
         if language and language.lower() not in item_lang.lower():
@@ -1336,20 +1467,26 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
         selected_rows.append((row, d_tag))
 
     out = []
-    for (item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank), d_tag in selected_rows:
+    for row_item, d_tag in selected_rows:
+        item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row_item[:10]
+        snip = row_item[10] if len(row_item) > 10 else ""
         cleaned_desc = clean_description(desc, raw_content, max_len=140)
         tier_mult = 1.35 if tier == "official" else (1.2 if tier == "top-starred" else (1.1 if tier == "core" else 1.0))
         confidence = round(abs(rank) * (q_score / 50.0) * tier_mult * 100, 1)
 
         out.append((
-            item_id, item_type, name, item_lang, q_score, tier, cleaned_desc, confidence, d_tag
+            item_id, item_type, name, item_lang, q_score, tier, cleaned_desc, confidence, d_tag, snip
         ))
 
     return tuple(out)
 
 @mcp.tool()
 def search_agent_capabilities(query: str, domain: Optional[str] = None, language: Optional[str] = None, min_quality: int = 40, limit: int = 8, output_format: str = "json") -> Any:
+    """Fast hybrid search across 125+ skills, rules, and blueprints with BM25 + vector ranking."""
+    t0 = time.perf_counter()
     rows = _cached_search_capabilities(query.strip(), domain, language, min_quality, limit)
+    dur = (time.perf_counter() - t0) * 1000.0
+    telemetry.record_call("search_agent_capabilities", dur, success=True, cache_hit=bool(rows))
     results = [
         {
             "id": r[0],
@@ -1361,13 +1498,15 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
             "description": r[6],
             "confidence_score": r[7],
             "domain_tag": r[8],
+            "match_snippet": r[9] if len(r) > 9 and r[9] else "",
         }
         for r in rows
     ]
     if output_format in ("table", "compact"):
-        lines = ["| Name | Type | Quality | Lang | Description |", "| :--- | :---: | :---: | :---: | :--- |"]
+        lines = ["| Name | Type | Quality | Match Snippet / Overview |", "| :--- | :---: | :---: | :--- |"]
         for r in results:
-            lines.append(f"| `{r['name']}` | {r['type']} | {r['quality_score']} | {r['language']} | {r['description'][:100]} |")
+            snip = r.get("match_snippet") or r["description"][:100]
+            lines.append(f"| `{r['name']}` | {r['type']} | {r['quality_score']} | {snip} |")
         return "\n".join(lines)
     return results
 
@@ -2652,6 +2791,251 @@ def audit_web_application_quality(html_or_jsx: str) -> Dict[str, Any]:
         ]
     }
 
+
+TOOLS_METADATA_CATALOG: Dict[str, Dict[str, Any]] = {
+    "search_agent_capabilities": {
+        "summary": "Fast hybrid search across 125+ skills, rules, and blueprints with BM25 + vector ranking.",
+        "category": "discovery",
+        "domain": "core",
+        "params": ["query", "domain", "language", "min_quality", "limit", "output_format"],
+    },
+    "discover_tools": {
+        "summary": "Meta-tool for progressive tool discovery: find and unlock the exact tool for any task on demand.",
+        "category": "discovery",
+        "domain": "core",
+        "params": ["intent", "domain", "max_results"],
+    },
+    "get_smart_skill_summary": {
+        "summary": "Extract high-density overview, rules, invariants, and best practices from any skill/rule.",
+        "category": "retrieval",
+        "domain": "core",
+        "params": ["name"],
+    },
+    "get_exact_skill": {
+        "summary": "Stream complete markdown of a specific skill by exact name.",
+        "category": "retrieval",
+        "domain": "skills",
+        "params": ["name"],
+    },
+    "get_exact_rule": {
+        "summary": "Stream complete markdown of a governance rule by exact name.",
+        "category": "retrieval",
+        "domain": "governance",
+        "params": ["name"],
+    },
+    "get_core_governance_rules": {
+        "summary": "Get all primary rules governing code integrity, anti-sycophancy, and styling.",
+        "category": "governance",
+        "domain": "core",
+        "params": [],
+    },
+    "detect_project_stack": {
+        "summary": "Analyze workspace structure to detect programming languages, frameworks, and apply governance.",
+        "category": "analysis",
+        "domain": "project",
+        "params": ["directory_path"],
+    },
+    "verify_python_ast": {
+        "summary": "AST-level Python analysis detecting silent exception suppression, mutable defaults, and raw SQL.",
+        "category": "quality",
+        "domain": "python",
+        "params": ["code"],
+    },
+    "fix_code_rule_violations": {
+        "summary": "Audit code against master standards and provide structured remediation for violations.",
+        "category": "quality",
+        "domain": "code",
+        "params": ["code_content", "language"],
+    },
+    "activate_tool_suite": {
+        "summary": "Dynamically unlock specialized suites: telegram, architecture, quality, catalog.",
+        "category": "management",
+        "domain": "tools",
+        "params": ["suite_name"],
+    },
+    "list_available_suites": {
+        "summary": "List all specialized tool suites available for activation.",
+        "category": "management",
+        "domain": "tools",
+        "params": [],
+    },
+    "resolve_bot_service": {
+        "summary": "Resolve user query to exact bot microservice, repository path, and execution parameters.",
+        "category": "telegram",
+        "domain": "bots",
+        "params": ["user_query"],
+    },
+    "simulate_bot_pipeline": {
+        "summary": "Simulate Telegram bot routing pipeline, intent parsing, and service resolution.",
+        "category": "telegram",
+        "domain": "bots",
+        "params": ["user_utterance"],
+    },
+    "simulate_telegram_load": {
+        "summary": "Simulate high-concurrency Telegram load with flood-wait backoff and memory estimation.",
+        "category": "telegram",
+        "domain": "bots",
+        "params": ["bot_type", "concurrent_users"],
+    },
+    "audit_webhook_health": {
+        "summary": "Audit Telegram bot webhook endpoint, TLS configuration, secret headers, and latency.",
+        "category": "telegram",
+        "domain": "bots",
+        "params": ["webhook_url", "secret_token"],
+    },
+    "explain_ecosystem_map": {
+        "summary": "Get architectural map of multi-tenant Telegram bot factory, pipelines, and microservices.",
+        "category": "architecture",
+        "domain": "ecosystem",
+        "params": [],
+    },
+    "plan_agentic_workflow": {
+        "summary": "Generate production-grade agentic workflow plan for Rust/Python/Go bot systems.",
+        "category": "architecture",
+        "domain": "planning",
+        "params": ["goal", "target_stack"],
+    },
+    "audit_anti_sycophancy": {
+        "summary": "Audit assistant response for sycophancy, flattery, and uncritical agreement.",
+        "category": "governance",
+        "domain": "quality",
+        "params": ["response_text"],
+    },
+    "audit_ui_design": {
+        "summary": "Audit HTML/CSS for anti-AI slop compliance, color discipline, and button states.",
+        "category": "design",
+        "domain": "ui",
+        "params": ["css_or_html"],
+    },
+    "audit_web_application_quality": {
+        "summary": "Audit web frontend code against modern UI design, accessibility, and clean architecture.",
+        "category": "design",
+        "domain": "web",
+        "params": ["html_or_jsx"],
+    },
+    "benchmark_search_performance": {
+        "summary": "Run sub-millisecond latency benchmark on search engine with statistics.",
+        "category": "telemetry",
+        "domain": "performance",
+        "params": ["test_queries"],
+    },
+    "get_system_telemetry": {
+        "summary": "Inspect real-time server telemetry: latency percentiles, tool usage counts, and cache hit ratios.",
+        "category": "telemetry",
+        "domain": "monitoring",
+        "params": [],
+    },
+    "read_skill_resource_file": {
+        "summary": "Read secondary files or scripts from within a skill package safely.",
+        "category": "retrieval",
+        "domain": "skills",
+        "params": ["skill_name", "relative_path"],
+    },
+    "get_skill_toc": {
+        "summary": "Get table of contents / headings of a skill markdown file.",
+        "category": "retrieval",
+        "domain": "skills",
+        "params": ["name"],
+    },
+    "get_skill_section": {
+        "summary": "Extract specific section from a skill markdown file.",
+        "category": "retrieval",
+        "domain": "skills",
+        "params": ["name", "section_heading"],
+    },
+    "get_top_rated_skills": {
+        "summary": "Get top-rated skills filtered by category, language, or tier.",
+        "category": "discovery",
+        "domain": "skills",
+        "params": ["category", "language", "tier", "limit"],
+    },
+    "list_rules_overview": {
+        "summary": "List overview of all governance rules with titles and categories.",
+        "category": "discovery",
+        "domain": "governance",
+        "params": ["limit"],
+    },
+    "recommend_skills_for_context": {
+        "summary": "Recommend relevant skills based on user task description or code context.",
+        "category": "recommendation",
+        "domain": "core",
+        "params": ["context_description", "limit"],
+    },
+    "register_custom_directory": {
+        "summary": "Register a custom directory of skills or rules with zero-trust path sandboxing.",
+        "category": "management",
+        "domain": "admin",
+        "params": ["directory_path"],
+    },
+    "create_new_skill": {
+        "summary": "Create a new custom skill markdown package with metadata and triggers.",
+        "category": "management",
+        "domain": "admin",
+        "params": ["name", "description", "triggers", "instructions", "language", "category"],
+    },
+    "reload_skills_index": {
+        "summary": "Force full re-indexing of all skill and rule directories into SQLite database.",
+        "category": "management",
+        "domain": "admin",
+        "params": [],
+    },
+    "audit_skill_quality": {
+        "summary": "Audit quality score of a skill against production standards.",
+        "category": "quality",
+        "domain": "skills",
+        "params": ["skill_name_or_id"],
+    },
+}
+
+@mcp.tool()
+def discover_tools(intent: str, domain: Optional[str] = None, max_results: int = 6) -> Dict[str, Any]:
+    """Meta-tool for progressive tool discovery: find and unlock the exact tool for any task on demand."""
+    t0 = time.perf_counter()
+    tokens = extract_intent_tokens(intent)
+    scored = []
+
+    for name, meta in TOOLS_METADATA_CATALOG.items():
+        if domain and meta["domain"] != domain and meta["category"] != domain:
+            continue
+        text_corpus = f"{name} {meta['summary']} {meta['category']} {meta['domain']} {' '.join(meta['params'])}".lower()
+        overlap = sum(1 for t in tokens if t in text_corpus)
+        if overlap > 0:
+            score = overlap * 10
+            if any(t in name for t in tokens):
+                score += 20
+            scored.append((score, name, meta))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    matched = [
+        {
+            "name": s[1],
+            "summary": s[2]["summary"],
+            "category": s[2]["category"],
+            "domain": s[2]["domain"],
+            "parameters": s[2]["params"],
+            "relevance_score": s[0]
+        }
+        for s in scored[:max_results]
+    ]
+
+    dur = (time.perf_counter() - t0) * 1000.0
+    telemetry.record_call("discover_tools", dur, success=True, cache_hit=bool(matched))
+
+    return {
+        "query_intent": intent,
+        "matched_tools_count": len(matched),
+        "total_available_tools": len(TOOLS_METADATA_CATALOG),
+        "recommended_tool": matched[0]["name"] if matched else "search_agent_capabilities",
+        "matched_tools": matched or [
+            {"name": "search_agent_capabilities", "summary": TOOLS_METADATA_CATALOG["search_agent_capabilities"]["summary"], "parameters": TOOLS_METADATA_CATALOG["search_agent_capabilities"]["params"]}
+        ]
+    }
+
+@mcp.tool()
+def get_system_telemetry() -> Dict[str, Any]:
+    """Inspect real-time server telemetry: latency percentiles, tool usage counts, and cache hit ratios."""
+    return telemetry.get_summary()
+
 @mcp.tool()
 def reload_skills_index() -> Dict[str, Any]:
     sync_all_directories(force=True)
@@ -2674,6 +3058,11 @@ def reload_skills_index() -> Dict[str, Any]:
 # =========================================================
 
 if hasattr(mcp, "resource"):
+    @mcp.resource("system://metrics/realtime")
+    def get_realtime_metrics_resource() -> str:
+        """Stream real-time server performance, latency distributions, and cache efficiency."""
+        return json.dumps(telemetry.get_summary(), indent=2)
+
     @mcp.resource("skills://catalog/{name}")
     def get_skill_resource(name: str) -> str:
         """Stream raw markdown of a skill directly by URI."""
@@ -2783,7 +3172,23 @@ def enforce_mcp_deterministic_standards():
 enforce_mcp_deterministic_standards()
 
 def main():
-    mcp.run()
+    import argparse
+    parser = argparse.ArgumentParser(description="Antigravity Skills & Governance Engine MCP Server (2026 Enterprise Edition)")
+    parser.add_argument("--transport", choices=["stdio", "sse", "streamable-http"], default="stdio", help="MCP transport protocol (default: stdio)")
+    parser.add_argument("--host", default="127.0.0.1", help="Host address for HTTP/SSE (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8000, help="Port for HTTP/SSE (default: 8000)")
+    parser.add_argument("--stateless", action="store_true", help="Enable stateless HTTP mode (2026 spec)")
+    args, unknown = parser.parse_known_args()
+
+    if args.transport != "stdio":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+        if args.stateless:
+            mcp.settings.stateless_http = True
+        print(f"[*] Starting Antigravity MCP Server on {args.host}:{args.port} via {args.transport}...", file=sys.stderr)
+        mcp.run(transport=args.transport)
+    else:
+        mcp.run(transport="stdio")
 
 if __name__ == "__main__":
     main()
