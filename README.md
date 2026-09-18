@@ -32,7 +32,7 @@ cd ~/.gemini/antigravity-customizations
 ### What This Command Provisions:
 1. **Zero-Prompt Permissions**: Configures `permissionPreset: turbo` and `toolExecutionPolicy: always-proceed` across IDE and CLI to permanently eliminate confirmation dialogs.
 2. **Core Sovereign Rules**: Deploys anti-slop, honest engineering, strict comments, and memory safety rules to `~/.gemini/config/rules/`.
-3. **Go 1.26.5 Native MCP Engine**: Auto-provisions the official Go 1.26.5 toolchain if missing, compiles the 6.7MB statically linked `skills-engine` binary, and hot-activates all 51 tools with <2MB idle RAM and strict alphabetical caching.
+3. **Go 1.26.5 Native MCP Engine**: Auto-provisions the official Go 1.26.5 toolchain if missing, compiles the 7.2MB statically linked `skills-engine` binary, and hot-activates all 51 tools with <2MB idle RAM and strict alphabetical caching.
 4. **Telegram Bot API 10.3 Master Engine**: Ingests and builds real-time SQLite FTS5 indices for all **185 methods** and **400 types**.
 5. **Intelligent Dialect NLU Hook**: Deploys the Pre-Invocation hook with Arabic, Iraqi dialect, and English intent normalization.
 
@@ -214,7 +214,7 @@ When enabled, only 9 core discovery & validation tools are exposed initially. Sp
 ## Go 1.26.5 Native High-Performance Architecture
 
 The `skills-engine` MCP server is built as a self-contained, statically linked binary compiled with **Go 1.26.5**:
-- **Binary Footprint**: 6.7MB standalone static binary (`CGO_ENABLED=0`, zero external dependencies).
+- **Binary Footprint**: 7.2MB standalone static binary (`CGO_ENABLED=0`, zero external dependencies).
 - **RAM Efficiency**: Consumes **< 2MB RAM** at idle (compared to ~50MB in Python runtimes).
 - **Embedded Assets**: Embeds all 51 tool schemas and the complete Telegram Bot API 10.3 master specification (185 methods, 400 types) directly inside the binary via `//go:embed`.
 - **Automated Provisioning**: Universal `install.sh` detects machine architecture (`amd64` / `arm64`), downloads the official Go 1.26.5 archive if missing, and compiles the binary in under 2 seconds.
