@@ -1,3 +1,9 @@
+def _normalize_ar_text(text: str) -> str:
+    t = text.strip().lower()
+    for src, dst in [("أ", "ا"), ("إ", "ا"), ("آ", "ا"), ("ة", "ه"), ("ى", "ي")]:
+        t = t.replace(src, dst)
+    return t
+
 import subprocess
 import shutil
 import threading
@@ -4069,8 +4075,9 @@ def get_telegram_bot_api_spec(query: str, query_type: Optional[str] = None) -> D
     q = query.strip()
     target = q
 
+    norm_q = _normalize_ar_text(q)
     for ar_key, mapped_name in sorted(TG_ARABIC_INTENT_MAP.items(), key=lambda x: len(x[0]), reverse=True):
-        if ar_key in q:
+        if _normalize_ar_text(ar_key) in norm_q:
             target = mapped_name
             break
 
