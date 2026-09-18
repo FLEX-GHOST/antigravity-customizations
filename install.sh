@@ -124,8 +124,8 @@ if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
     cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"* "${MCP_SCHEMAS_DIR}/"
 fi
 
-# 9. Deploy pre-indexed high-speed knowledge base (6,030+ vetted entities & 185 Telegram methods)
-echo "[-] Deploying pre-indexed knowledge base (6,030+ verified entities)..."
+# 9. Deploy pre-indexed high-speed knowledge base (5,730+ vetted entities & 185 Telegram methods)
+echo "[-] Deploying pre-indexed knowledge base (5,730+ verified entities)..."
 DB_RELEASE_URL="https://github.com/FLEX-GHOST/antigravity-customizations/releases/latest/download/skills_index.db.gz"
 DB_TARGET="${MCP_SERVERS_DIR}/skills-engine/skills_index.db"
 
