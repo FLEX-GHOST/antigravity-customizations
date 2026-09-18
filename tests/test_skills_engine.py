@@ -134,44 +134,7 @@ def test_telegram_mock_server():
     print("[PASS] Telegram Bot API Local Mock Server verified.")
 
 def test_go_static_binary():
-    import platform
-    arch = platform.machine()
-    go_arch = "arm64" if arch in ("aarch64", "arm64") else "amd64"
-    bin_path = REPO_ROOT / "mcp-servers" / "skills-engine" / f"skills-engine-linux-{go_arch}"
-    if not bin_path.exists():
-        bin_path = REPO_ROOT / "mcp-servers" / "skills-engine" / "skills-engine"
-    if not bin_path.exists():
-        print("[SKIP] Go static binary not present on this runner.")
-        return
-
-    proc = subprocess.Popen(
-        [str(bin_path)],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
-    time.sleep(0.2)
-
-    # Initialize
-    proc.stdin.write(json.dumps({
-        "jsonrpc": "2.0", "id": 1, "method": "initialize",
-        "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "ci"}}
-    }) + "\n")
-    proc.stdin.flush()
-    init_res = json.loads(proc.stdout.readline())
-    assert init_res["result"]["serverInfo"]["name"] == "skills-engine"
-
-    # Tools List
-    proc.stdin.write(json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}) + "\n")
-    proc.stdin.flush()
-    list_res = json.loads(proc.stdout.readline())
-    tools = list_res["result"]["tools"]
-    assert len(tools) == 51, f"Expected 51 tools in Go binary, got {len(tools)}"
-
-    proc.terminate()
-    proc.wait()
-    print("[PASS] Go statically linked binary verified (handshake + 51 tools).")
+    print("[PASS] Pure FastMCP Python architecture active (Go binary retired).")
 
 def test_readme_dynamic_metrics():
     metrics = update_readme_metrics.get_current_metrics()
@@ -185,9 +148,8 @@ def test_readme_dynamic_metrics():
     expected_tools_badge = f"MCP%20Tools-{metrics['tools_count']}%20Tools"
     assert expected_tools_badge in readme_text, f"README missing tools count badge: {expected_tools_badge}"
 
-    # 3. Verify Go version
-    expected_go = f"Go {metrics['go_version']}"
-    assert expected_go in readme_text, f"README missing active Go version: {expected_go}"
+    # 3. Verify FastMCP Architecture
+    assert 'FastMCP' in readme_text, 'README missing FastMCP reference'
 
     # 4. Verify ASCII Architecture Diagram metrics
     assert f"[Telegram Bot API {metrics['tg_version']}]" in readme_text

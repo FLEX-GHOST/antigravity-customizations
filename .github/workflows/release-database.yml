@@ -45,6 +45,8 @@ jobs:
 
       - name: Build & Index Database
         run: |
+          mkdir -p mcp-servers/skills-engine
+          export SKILLS_ENGINE_DB="$(pwd)/mcp-servers/skills-engine/skills_index.db"
           python3 -c "
           import sys, os
           from pathlib import Path
@@ -62,7 +64,10 @@ jobs:
           conn.close()
           print(f'Successfully indexed {total} entities at: {server.DB_PATH}')
           "
-          DB_FILE="${HOME}/.gemini/mcp-servers/skills-engine/skills_index.db"
+          DB_FILE="mcp-servers/skills-engine/skills_index.db"
+          if [ ! -f "$DB_FILE" ]; then
+              DB_FILE="${HOME}/.gemini/mcp-servers/skills-engine/skills_index.db"
+          fi
           if [ -f "$DB_FILE" ]; then
               gzip -c -9 "$DB_FILE" > skills_index.db.gz
               ls -lh skills_index.db.gz

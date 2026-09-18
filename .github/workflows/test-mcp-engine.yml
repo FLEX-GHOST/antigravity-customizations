@@ -9,18 +9,12 @@ on:
 
 jobs:
   test-mcp-suite:
-    name: Test skills-engine (Go 1.26.5 & Python 3.11)
+    name: Test skills-engine (Pure FastMCP Python 3.11)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Set up Go 1.26.5
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'mcp-servers/skills-engine/go.mod'
-          cache: false
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -32,17 +26,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install "mcp[cli]" || pip install mcp fastmcp || true
 
-      - name: Build Go skills-engine Static Binary
-        run: |
-          cd mcp-servers/skills-engine
-          CGO_ENABLED=0 go build -ldflags="-s -w" -o skills-engine .
-          ls -lh skills-engine
-
       - name: Ensure README Metrics & Versions are Synchronized
         run: |
           chmod +x scripts/update_readme_metrics.py
           python3 scripts/update_readme_metrics.py
 
-      - name: Run Python & Go Enterprise Test Suite
+      - name: Run MCP Enterprise Test Suite
         run: |
           python3 tests/test_skills_engine.py

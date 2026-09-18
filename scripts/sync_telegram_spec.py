@@ -107,16 +107,7 @@ def fetch_and_sync(force: bool = False):
         print(f"[*] Updated embedded Go data in {go_tg_dir}")
 
     # 4. Re-compile Go multi-arch binaries if go is installed
-    if shutil.which("go"):
-        print("[*] Re-compiling Go multi-architecture static binaries with new Telegram spec...")
-        try:
-            subprocess.run(["go", "build", "-ldflags=-s -w", "-o", "skills-engine", "."], cwd=MCP_DIR, check=True)
-            subprocess.run(["go", "build", "-ldflags=-s -w", "-o", "skills-engine-linux-arm64", "."], cwd=MCP_DIR, env={**os.environ, "GOOS": "linux", "GOARCH": "arm64", "CGO_ENABLED": "0"}, check=True)
-            subprocess.run(["go", "build", "-ldflags=-s -w", "-o", "skills-engine-linux-amd64", "."], cwd=MCP_DIR, env={**os.environ, "GOOS": "linux", "GOARCH": "amd64", "CGO_ENABLED": "0"}, check=True)
-            print("[✓] Re-compiled skills-engine, skills-engine-linux-arm64, and skills-engine-linux-amd64 successfully!")
-        except Exception as e:
-            print(f"[!] Re-compilation note: {e}")
-
+    # 4. FastMCP Python engine operates directly on dynamic JSON specs
     # 5. Dynamically update README.md badges, numbers, and versions
     metrics = update_readme_metrics.get_current_metrics()
     metrics["tg_version"] = clean_ver
