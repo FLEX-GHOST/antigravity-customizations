@@ -85,20 +85,23 @@ def fetch_and_sync(force: bool = False):
     with open(refs_dir / "methods_table.md", "w", encoding="utf-8") as f:
         f.write("\n".join(table_lines) + "\n")
 
-    # 3. Synchronize to runtime and workspace directories if they exist
+    # 3. Synchronize to runtime and workspace directories if accessible
     extra_dirs = [
         Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods"),
         Path("/root/.gemini/config/skills/telegram-bot-api-methods"),
         Path("/root/.gemini/skills-catalog/skills/telegram-bot-api-methods"),
     ]
     for d in extra_dirs:
-        if d.exists() and d != SKILL_DIR:
-            dest_refs = d / "references"
-            dest_refs.mkdir(parents=True, exist_ok=True)
-            for fname in ["api_methods.json", "api_types.json", "version.json", "methods_table.md"]:
-                src = refs_dir / fname
-                if src.exists():
-                    shutil.copyfile(src, dest_refs / fname)
+        try:
+            if d.exists() and d != SKILL_DIR:
+                dest_refs = d / "references"
+                dest_refs.mkdir(parents=True, exist_ok=True)
+                for fname in ["api_methods.json", "api_types.json", "version.json", "methods_table.md"]:
+                    src = refs_dir / fname
+                    if src.exists():
+                        shutil.copyfile(src, dest_refs / fname)
+        except Exception:
+            pass
 
     print(f"[✓] Successfully synchronized Telegram Bot API to version {new_version}!")
     return True, new_version, len(new_methods), len(new_types)
