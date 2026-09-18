@@ -23,10 +23,11 @@ if ! command -v python3 >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1 || !
 fi
 
 # 2. Fast Python deps check (bypasses debian PyJWT uninstall-no-record-file)
-echo "[+] Checking Python runtime (mcp, pyyaml)..."
-python3 -c "import mcp, yaml" >/dev/null 2>&1 || {
-    python3 -m pip install --no-cache-dir --quiet --break-system-packages --ignore-installed mcp pyyaml 2>/dev/null || \
-    pip3 install --no-cache-dir --quiet --break-system-packages --ignore-installed mcp pyyaml
+echo "[+] Checking Python runtime (FastMCP, pyyaml)..."
+python3 -c "import yaml; from mcp.server.fastmcp import FastMCP" >/dev/null 2>&1 || \
+python3 -c "import yaml; from mcp.server import FastMCP" >/dev/null 2>&1 || {
+    python3 -m pip install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" pyyaml 2>/dev/null || \
+    pip3 install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" pyyaml
 }
 
 # 3. Fast source retrieval via streaming tarball (10x faster than git clone)

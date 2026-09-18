@@ -10,7 +10,16 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import yaml
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.fastmcp import FastMCP
+except ImportError:
+    try:
+        from mcp.server import FastMCP
+    except ImportError:
+        try:
+            from mcp.server.mcpserver import MCPServer as FastMCP
+        except ImportError:
+            from fastmcp import FastMCP
 
 mcp = FastMCP("skills-engine")
 
