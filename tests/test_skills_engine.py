@@ -134,7 +134,12 @@ def test_telegram_mock_server():
     print("[PASS] Telegram Bot API Local Mock Server verified.")
 
 def test_go_static_binary():
-    bin_path = REPO_ROOT / "mcp-servers" / "skills-engine" / "skills-engine"
+    import platform
+    arch = platform.machine()
+    go_arch = "arm64" if arch in ("aarch64", "arm64") else "amd64"
+    bin_path = REPO_ROOT / "mcp-servers" / "skills-engine" / f"skills-engine-linux-{go_arch}"
+    if not bin_path.exists():
+        bin_path = REPO_ROOT / "mcp-servers" / "skills-engine" / "skills-engine"
     if not bin_path.exists():
         print("[SKIP] Go static binary not present on this runner.")
         return
