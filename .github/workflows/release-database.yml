@@ -78,4 +78,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload v1.0.0 skills_index.db.gz --clobber || gh release create v1.0.0 skills_index.db.gz --title "v1.0.0 - Full Autonomous Engine & 5,430+ Indexed Skills" --notes "Automated release asset with verified database index" --clobber
+          gh release upload v1.1.0 skills_index.db.gz --clobber || gh release create v1.1.0 skills_index.db.gz --title "v1.1.0 - Full Autonomous Engine & 5,430+ Indexed Skills" --notes "Automated release asset with verified database index" --clobber
