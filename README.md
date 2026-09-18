@@ -1,7 +1,7 @@
 # Antigravity Enterprise Customizations & MCP Skills Engine
 
 [![Antigravity Compatible](https://img.shields.io/badge/Antigravity%20IDE-Compatible-success.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
-[![Active Items](https://img.shields.io/badge/Indexed%20Skills%20%26%20Rules-4%2C175%2B-blue.svg)](#)
+[![Active Items](https://img.shields.io/badge/Indexed%20Skills%20%26%20Rules-4%2C200%2B-blue.svg)](#)
 [![Budget Free](https://img.shields.io/badge/Context%20Budget%20Free-%3E80%25-brightgreen.svg)](#)
 [![Governance](https://img.shields.io/badge/Governance-Anti--Slop%20%7C%20Anti--Sycophancy-orange.svg)](#)
 
@@ -35,12 +35,12 @@ cd ~/.gemini/antigravity-customizations
                                +--------------------------------------------+
                                       |                              |
             [Always-On Core Rules: 11.6%]             [On-Demand MCP: 0.7%]
-            - anti_ai_design.md                       skills-engine (18 Tools)
+            - anti_ai_design.md                       skills-engine (23 Tools)
             - honest_engineering.md                                  |
             - strict_comment_discipline.md                           v
             - code_integrity.md                       +-----------------------------+
                                                       |  SQLite WAL FTS5 Database   |
-                                                      |   4,175+ Skills & Rules     |
+                                                      |   4,200+ Skills & Rules     |
                                                       +-----------------------------+
                                                                      |
                                       +------------------------------+------------------------------+
@@ -59,7 +59,7 @@ cd ~/.gemini/antigravity-customizations
 ### 1. 81%+ Free Context Budget (No Prompt Bloat)
 - Solves the **"Customization Budget Exceeded"** issue completely.
 - Moves large skill collections out of the eager prompt budget into an on-demand MCP index.
-- Reduces token footprint from **40.6% (8,121 tokens)** down to **0.7% (132 tokens)** while granting instant access to 4,175+ skills.
+- Reduces token footprint from **40.6% (8,121 tokens)** down to **0.7% (132 tokens)** while granting instant access to 4,200+ skills.
 
 ### 2. Top-Starred Community & Official Skills
 Integrated directly with:
@@ -85,7 +85,7 @@ Integrated directly with:
 
 ---
 
-## 18 Built-in MCP Tools
+## 23 Built-in MCP Tools
 
 | Tool | Purpose |
 | :--- | :--- |

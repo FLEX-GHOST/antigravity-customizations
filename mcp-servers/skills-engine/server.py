@@ -19,6 +19,7 @@ DB_PATH = Path("/root/.gemini/mcp-servers/skills-engine/skills_index.db")
 def get_all_search_paths() -> List[Path]:
     paths = [
         Path("/root/.gemini/config"),
+        Path("/root/antigravity-customizations"),
         Path("/root/.gemini/antigravity-ide/builtin/skills"),
         Path("/root/.gemini/antigravity-ide/builtin/rules"),
         Path("/root/storage-dashboard/.agents/skills"),
