@@ -1,3 +1,8 @@
+import json
+import ast
+import ctypes
+import select
+import struct
 import functools
 import math
 import os
@@ -522,15 +527,20 @@ CORE_GOVERNANCE_IDS = [
 _local = threading.local()
 
 def get_db_conn() -> sqlite3.Connection:
-    if not hasattr(_local, "conn") or _local.conn is None:
-        conn = sqlite3.connect(str(DB_PATH), timeout=15.0, check_same_thread=False)
-        conn.execute("PRAGMA journal_mode = WAL")
-        conn.execute("PRAGMA synchronous = NORMAL")
-        conn.execute("PRAGMA cache_size = -131072")  # 128MB RAM cache
-        conn.execute("PRAGMA mmap_size = 268435456") # 256MB memory mapped zero-copy I/O
-        conn.execute("PRAGMA temp_store = MEMORY")
-        conn.execute("PRAGMA busy_timeout = 15000")
-        _local.conn = conn
+    if hasattr(_local, "conn") and _local.conn is not None:
+        try:
+            _local.conn.execute("SELECT 1")
+            return _local.conn
+        except Exception:
+            _local.conn = None
+    conn = sqlite3.connect(str(DB_PATH), timeout=15.0, check_same_thread=False)
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA synchronous = NORMAL")
+    conn.execute("PRAGMA cache_size = -131072")
+    conn.execute("PRAGMA mmap_size = 268435456")
+    conn.execute("PRAGMA temp_store = MEMORY")
+    conn.execute("PRAGMA busy_timeout = 15000")
+    _local.conn = conn
     return _local.conn
 
 def init_db():
@@ -786,6 +796,126 @@ def ensure_initialized():
 
 ensure_initialized()
 
+_HOT_RELOAD_ACTIVE = False
+
+def index_single_file(path: Path):
+    if not path.is_file() or path.suffix not in (".md", ".mdc"):
+        return
+    try:
+        content = path.read_text(encoding="utf-8", errors="replace")
+        mtime = path.stat().st_mtime
+        q_score, tier = compute_quality_score(str(path), content)
+        if q_score <= 10:
+            return
+
+        is_skill = path.name == "SKILL.md"
+        name = path.parent.name if is_skill else path.stem
+        item_id = f"skill:{name}" if is_skill else f"rule:{name}"
+        item_type = "skill" if is_skill else "rule"
+
+        meta, body = extract_meta(content)
+        desc = clean_description(str(meta.get("description") or ""), content)
+        trigs = meta.get("triggers", [])
+        trigs_str = " ".join(str(t) for t in trigs) if isinstance(trigs, list) else str(trigs)
+        lang = meta.get("language") or detect_language_from_text(name, content)
+        cat = meta.get("category") or ("skill" if is_skill else "rule")
+
+        conn = get_db_conn()
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO items
+            (id, item_type, name, description, triggers, language, category, path, mtime, content, quality_score, source_tier)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (item_id, item_type, name, desc, trigs_str, lang, str(cat), str(path), mtime, content, q_score, tier)
+        )
+        conn.execute("DELETE FROM items_fts WHERE id = ?", (item_id,))
+        conn.execute(
+            """
+            INSERT INTO items_fts (id, name, description, triggers, language, category, body)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (item_id, name, desc, trigs_str, lang, str(cat), body[:3000])
+        )
+        conn.commit()
+    except Exception:
+        pass
+
+def delete_single_file(path: Path):
+    try:
+        is_skill = path.name == "SKILL.md"
+        name = path.parent.name if is_skill else path.stem
+        item_id = f"skill:{name}" if is_skill else f"rule:{name}"
+        conn = get_db_conn()
+        conn.execute("DELETE FROM items WHERE id = ? OR path = ?", (item_id, str(path)))
+        conn.execute("DELETE FROM items_fts WHERE id = ?", (item_id,))
+        conn.commit()
+    except Exception:
+        pass
+
+def _start_hot_reload_watcher():
+    global _HOT_RELOAD_ACTIVE
+
+    def watcher_thread():
+        global _HOT_RELOAD_ACTIVE
+        watch_paths = [
+            HOME_DIR / ".gemini/config/rules",
+            HOME_DIR / ".gemini/skills-catalog/skills",
+            HOME_DIR / ".gemini/config/skills",
+        ]
+        existing_watches = [p for p in watch_paths if p.exists()]
+        if not existing_watches:
+            return
+
+        try:
+            libc = ctypes.CDLL("libc.so.6", use_errno=True)
+            IN_MODIFY = 0x00000002
+            IN_CREATE = 0x00000100
+            IN_DELETE = 0x00000200
+            IN_MOVED_FROM = 0x00000040
+            IN_MOVED_TO = 0x00000080
+            IN_NONBLOCK = 0o00004000
+            IN_CLOEXEC = 0o02000000
+
+            fd = libc.inotify_init1(IN_NONBLOCK | IN_CLOEXEC)
+            if fd < 0:
+                return
+
+            wd_to_path = {}
+            for wp in existing_watches:
+                wd = libc.inotify_add_watch(fd, str(wp).encode(), IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVED_TO | IN_MOVED_FROM)
+                if wd >= 0:
+                    wd_to_path[wd] = wp
+
+            _HOT_RELOAD_ACTIVE = True
+
+            while True:
+                r, _, _ = select.select([fd], [], [], 2.0)
+                if r:
+                    data = os.read(fd, 4096)
+                    offset = 0
+                    while offset + 16 <= len(data):
+                        wd, mask, cookie, name_len = struct.unpack_from("iIII", data, offset)
+                        offset += 16
+                        name_bytes = data[offset:offset+name_len]
+                        offset += name_len
+                        filename = name_bytes.decode("utf-8", errors="replace").rstrip("\x00")
+                        if filename.endswith(".md") or filename.endswith(".mdc"):
+                            base_dir = wd_to_path.get(wd)
+                            if base_dir:
+                                target = base_dir / filename
+                                if mask & (IN_DELETE | IN_MOVED_FROM):
+                                    delete_single_file(target)
+                                else:
+                                    index_single_file(target)
+        except Exception:
+            _HOT_RELOAD_ACTIVE = False
+
+    t = threading.Thread(target=watcher_thread, daemon=True, name="SkillsEngine-InotifyWatcher")
+    t.start()
+
+_start_hot_reload_watcher()
+
 def normalize_arabic(text: str) -> str:
     text = re.sub(r"[\u064B-\u065F\u0670\u0640]", "", text)
     text = re.sub(r"[أإآ]", "ا", text)
@@ -949,6 +1079,36 @@ def clear_all_caches():
     _cached_skill_toc.cache_clear()
     _cached_skill_section.cache_clear()
 
+
+SEMANTIC_CLUSTERS = {
+    "telegram": ["bot", "telegram", "grammers", "teloxide", "tgcalls", "webhook", "webrtc", "mini-app", "twa", "mtproto", "floodwait"],
+    "voice_audio": ["audio", "voice", "speech", "sound", "webrtc", "shazam", "ffmpeg", "opus", "call", "voip", "transcoding"],
+    "rust_systems": ["rust", "tokio", "axum", "async", "jemalloc", "dashmap", "concurrency", "mutex", "borrow", "lifetimes"],
+    "database": ["database", "sql", "sqlite", "libsql", "postgres", "redis", "schema", "migration", "query"],
+    "frontend_ui": ["frontend", "ui", "ux", "react", "tailwind", "css", "animation", "typography", "design", "component", "canvas"],
+    "security": ["security", "auth", "token", "jwt", "session", "sanitization", "cwe", "vulnerability", "anti-sycophancy"],
+    "architecture": ["architecture", "clean", "hexagonal", "solid", "ddia", "distributed", "consensus", "pipeline"],
+    "golang": ["go", "golang", "goroutine", "channel", "gogram", "pion"],
+    "testing": ["test", "testing", "benchmark", "mock", "tdd", "coverage", "property-based"],
+}
+
+def compute_semantic_fingerprint(text: str) -> set:
+    text_lower = text.lower()
+    tokens = set(re.findall(r"\b[a-z0-9_-]{2,}\b", text_lower))
+    activated = set()
+    for cluster_name, kws in SEMANTIC_CLUSTERS.items():
+        if any(kw in tokens or kw in text_lower for kw in kws):
+            activated.add(cluster_name)
+    return activated
+
+def compute_trigram_jaccard(s1: str, s2: str) -> float:
+    s1, s2 = s1.lower(), s2.lower()
+    if len(s1) < 3 or len(s2) < 3:
+        return 0.1 if (s1 in s2 or s2 in s1) else 0.0
+    t1 = set(s1[i:i+3] for i in range(len(s1)-2))
+    t2 = set(s2[i:i+3] for i in range(len(s2)-2))
+    return len(t1 & t2) / max(1, len(t1 | t2))
+
 INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
     "telegram_music": {
         "keywords": ["music", "audio", "voice-chat", "stream", "pytgcalls", "rusttgcalls", "gotgcall", "playback", "webrtc", "ffmpeg", "flexmusic"],
@@ -1016,7 +1176,30 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
             ORDER BY (rank_score * (items.quality_score / 50.0))
             LIMIT 60
         """, (fts_query, min_quality))
-        raw_candidates = cur.fetchall()
+        raw_candidates = list(cur.fetchall())
+
+        # Hybrid Semantic Expansion via Semantic Clusters & Subwords
+        query_clusters = compute_semantic_fingerprint(query_key)
+        if query_clusters:
+            existing_candidate_ids = {r[0] for r in raw_candidates}
+            cluster_clauses = " OR ".join(["items.category LIKE ? OR items.triggers LIKE ? OR items.name LIKE ?" for _ in query_clusters])
+            params = []
+            for cl in query_clusters:
+                params.extend([f"%{cl}%", f"%{cl}%", f"%{cl}%"])
+            params.append(min_quality)
+            
+            cur_sem = conn.execute(f"""
+                SELECT items.id, items.item_type, items.name, items.description, items.language, items.category,
+                       items.quality_score, items.source_tier, items.content, -1.0 as rank_score
+                FROM items
+                WHERE ({cluster_clauses}) AND items.quality_score >= ?
+                ORDER BY items.quality_score DESC
+                LIMIT 20
+            """, tuple(params))
+            for sem_row in cur_sem.fetchall():
+                if sem_row[0] not in existing_candidate_ids:
+                    raw_candidates.append(sem_row)
+                    existing_candidate_ids.add(sem_row[0])
     except Exception:
         return ()
 
@@ -1471,41 +1654,143 @@ def detect_project_stack(directory_path: str = "/root/bots/factory") -> Dict[str
     }
 
 @mcp.tool()
-def verify_code_rules(code_content: str, language: str) -> Dict[str, Any]:
+
+def verify_python_ast(code: str) -> List[Dict[str, Any]]:
     violations = []
-    lines = code_content.splitlines()
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        return [{"line": e.lineno or 1, "rule": "syntax-error", "severity": "CRITICAL", "message": f"Python syntax error: {e.msg}"}]
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ExceptHandler):
+            if len(node.body) == 1 and (
+                isinstance(node.body[0], ast.Pass) or 
+                (isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and node.body[0].value.value is ...)
+            ):
+                violations.append({
+                    "line": node.lineno,
+                    "rule": "anti-empty-catch",
+                    "severity": "CRITICAL",
+                    "message": "Empty except block suppresses errors silently. Log or handle explicitly."
+                })
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for default in node.args.defaults:
+                if isinstance(default, (ast.List, ast.Dict, ast.Set)):
+                    violations.append({
+                        "line": node.lineno,
+                        "rule": "py-mutable-default",
+                        "severity": "HIGH",
+                        "message": "Dangerous mutable default argument. Use None and instantiate inside function."
+                    })
+        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "execute":
+            if node.args and isinstance(node.args[0], (ast.JoinedStr, ast.BinOp)):
+                violations.append({
+                    "line": node.lineno,
+                    "rule": "anti-sql-injection-raw",
+                    "severity": "CRITICAL",
+                    "message": "Unsanitized dynamic SQL string formatting detected in execute(). Use parameterized queries."
+                })
+    return violations
+
+def verify_rust_structural(code: str) -> List[Dict[str, Any]]:
+    violations = []
+    lines = code.splitlines()
+    in_test = False
+    in_async = False
+    lock_guards = {}
+
+    for idx, raw_line in enumerate(lines):
+        lineno = idx + 1
+        line = re.sub(r"//.*", "", raw_line).strip()
+        if not line:
+            continue
+
+        if "#[cfg(test)]" in line or "#[test]" in line or re.search(r"\bmod\s+tests?\b", line):
+            in_test = True
+
+        if re.search(r"\basync\s+(unsafe\s+)?fn\b", line):
+            in_async = True
+
+        # Track lock guard bindings
+        lock_match = re.search(r"let\s+([a-zA-Z0-9_]+)\s*=\s*.*(?:\.lock\(|\.read\(|\.write\()", line)
+        if lock_match and in_async:
+            var_name = lock_match.group(1)
+            lock_guards[var_name] = lineno
+
+        # Track explicit drop
+        drop_match = re.search(r"drop\(\s*([a-zA-Z0-9_]+)\s*\)", line)
+        if drop_match:
+            var_name = drop_match.group(1)
+            lock_guards.pop(var_name, None)
+
+        # Flag lock across await
+        if ".await" in line and in_async and lock_guards:
+            for g_var, g_line in list(lock_guards.items()):
+                violations.append({
+                    "line": lineno,
+                    "rule": "async-no-lock-await",
+                    "severity": "CRITICAL",
+                    "message": f"Holding Mutex/RwLock guard '{g_var}' (acquired line {g_line}) across an .await point. Drop guard before awaiting."
+                })
+
+        if not in_test:
+            if ".unwrap()" in line:
+                violations.append({"line": lineno, "rule": "err-no-unwrap-prod", "severity": "CRITICAL", "message": "Prohibited .unwrap() in production Rust. Propagate with ? or handle gracefully."})
+            if ".expect(" in line:
+                violations.append({"line": lineno, "rule": "err-no-unwrap-prod", "severity": "CRITICAL", "message": "Prohibited .expect() in production Rust. Propagate with ? or handle gracefully."})
+
+        if in_async:
+            if "std::thread::sleep" in line:
+                violations.append({"line": lineno, "rule": "async-no-block", "severity": "CRITICAL", "message": "Prohibited std::thread::sleep in Tokio thread. Use tokio::time::sleep or spawn_blocking."})
+            if "std::fs::" in line:
+                violations.append({"line": lineno, "rule": "async-no-block", "severity": "CRITICAL", "message": "Blocking std::fs in Tokio worker. Offload to tokio::task::spawn_blocking or tokio::fs."})
+
+        if "unbounded_channel" in line:
+            violations.append({"line": lineno, "rule": "async-bounded-channel", "severity": "CRITICAL", "message": "Banned unbounded channel. Use bounded mpsc::channel(cap) with backpressure."})
+
+        if "#![allow(" in line or "#[allow(" in line:
+            violations.append({"line": lineno, "rule": "no-allow-warnings", "severity": "HIGH", "message": "Suppressed compiler warning detected. Fix underlying root cause cleanly."})
+
+        if 'format!("-100' in line or 'replace("-100"' in line:
+            violations.append({"line": lineno, "rule": "no_lazy_fallbacks", "severity": "HIGH", "message": "Unvalidated -100 prefix formatting detected. Private user IDs must not have -100 prefix."})
+
+        if "Vec<u8>" in line and any(k in line for k in ("audio", "video", "media", "voice", "stream", "payload")):
+            violations.append({"line": lineno, "rule": "anti-raw-bytes-ram", "severity": "HIGH", "message": "Raw media bytes Vec<u8> stored in RAM. Stream payloads directly to disk and retain PathBuf."})
+
+    return violations
+
+def verify_go_structural(code: str) -> List[Dict[str, Any]]:
+    violations = []
+    lines = code.splitlines()
+    for idx, raw_line in enumerate(lines):
+        lineno = idx + 1
+        line = re.sub(r"//.*", "", raw_line).strip()
+        if not line:
+            continue
+        if "_ = " in line and ("err" in line or "error" in line):
+            violations.append({"line": lineno, "rule": "go-error-discipline", "severity": "CRITICAL", "message": "Silenced error with blank identifier `_ = err`. Always handle errors explicitly."})
+        if line.startswith("panic(") and "init()" not in code:
+            violations.append({"line": lineno, "rule": "go-no-panic-prod", "severity": "CRITICAL", "message": "Runtime panic() call in production Go handler. Return structured error."})
+        if re.search(r"\bgo\s+func\(", line) and "ctx" not in line and "done" not in line:
+            violations.append({"line": lineno, "rule": "go-goroutine-leak", "severity": "HIGH", "message": "Unsupervised goroutine launched without context cancellation or lifecycle tracking."})
+    return violations
+
+def verify_code_rules(code_content: str, language: str) -> Dict[str, Any]:
     lang = language.lower().strip()
+    violations = []
 
-    for idx, line in enumerate(lines):
-        l_num = idx + 1
+    if lang in ("rust", "rs"):
+        violations.extend(verify_rust_structural(code_content))
+    elif lang in ("python", "py"):
+        violations.extend(verify_python_ast(code_content))
+    elif lang in ("go", "golang"):
+        violations.extend(verify_go_structural(code_content))
+
+    for idx, line in enumerate(code_content.splitlines()):
         s = line.strip()
-
-        if lang in ("rust", "rs"):
-            if ".unwrap()" in s:
-                violations.append({"line": l_num, "rule": "err-no-unwrap-prod", "severity": "CRITICAL", "message": "Prohibited .unwrap() in production Rust. Propagate with ? or handle gracefully."})
-            if ".expect(" in s:
-                violations.append({"line": l_num, "rule": "err-no-unwrap-prod", "severity": "CRITICAL", "message": "Prohibited .expect() in production Rust. Propagate with ? or handle gracefully."})
-            if "#![allow(" in s or "#[allow(" in s:
-                violations.append({"line": l_num, "rule": "no-allow-warnings", "severity": "HIGH", "message": "Suppressed compiler warning detected. Fix the underlying root cause."})
-            if "unbounded_channel" in s:
-                violations.append({"line": l_num, "rule": "async-bounded-channel", "severity": "CRITICAL", "message": "Banned unbounded channel. Use bounded mpsc::channel(cap) with backpressure."})
-            if "std::thread::sleep" in s:
-                violations.append({"line": l_num, "rule": "async-no-block", "severity": "CRITICAL", "message": "Prohibited std::thread::sleep in Tokio thread. Use tokio::time::sleep or spawn_blocking."})
-            if 'format!("-100' in s or 'replace("-100"' in s:
-                violations.append({"line": l_num, "rule": "no_lazy_fallbacks", "severity": "HIGH", "message": "Unvalidated -100 prefix formatting detected. Private user IDs must not have -100 prefix."})
-            if "Vec<u8>" in s and any(k in s for k in ("audio", "video", "media", "voice", "stream", "payload")):
-                violations.append({"line": l_num, "rule": "anti-raw-bytes-ram", "severity": "HIGH", "message": "Raw media bytes Vec<u8> stored in RAM. Stream payloads directly to disk and retain PathBuf."})
-
-        elif lang in ("go", "golang"):
-            if "_ = " in s and ("err" in s or "error" in s):
-                violations.append({"line": l_num, "rule": "go-error-discipline", "severity": "CRITICAL", "message": "Silenced error with blank identifier `_ = err`. Always handle errors explicitly."})
-
-        elif lang in ("python", "py"):
-            if re.search(r"except\s*:\s*pass", s) or re.search(r"except\s+Exception\s*:\s*pass", s):
-                violations.append({"line": l_num, "rule": "anti-empty-catch", "severity": "CRITICAL", "message": "Empty except/pass block silences runtime errors. Log or handle explicitly."})
-
         if re.search(r"//\s*(TODO|FIXME|hack|temporary)", s, re.I) or re.search(r"#\s*(TODO|FIXME|hack|temporary)", s, re.I):
-            violations.append({"line": l_num, "rule": "code_integrity", "severity": "HIGH", "message": "TODO/FIXME placeholder detected. Complete execution required."})
+            violations.append({"line": idx + 1, "rule": "code_integrity", "severity": "HIGH", "message": "TODO/FIXME placeholder detected. Complete execution required."})
 
     return {
         "status": "FAILED" if any(v["severity"] == "CRITICAL" for v in violations) else "PASSED",
@@ -2245,3 +2530,91 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# =========================================================
+# Full MCP Protocol: Resources & Parameterized Prompts
+# =========================================================
+
+if hasattr(mcp, "resource"):
+    @mcp.resource("skills://catalog/{name}")
+    def get_skill_resource(name: str) -> str:
+        """Stream raw markdown of a skill directly by URI."""
+        conn = get_db_conn()
+        cur = conn.execute("SELECT content FROM items WHERE id = ? OR name = ?", (f"skill:{name}", name))
+        row = cur.fetchone()
+        if row:
+            return row[0]
+        return f"# Error: Skill '{name}' not found in catalog."
+
+    @mcp.resource("rules://governance/{name}")
+    def get_rule_resource(name: str) -> str:
+        """Stream raw markdown of a governance rule directly by URI."""
+        conn = get_db_conn()
+        cur = conn.execute("SELECT content FROM items WHERE id = ? OR name = ?", (f"rule:{name}", name))
+        row = cur.fetchone()
+        if row:
+            return row[0]
+        return f"# Error: Rule '{name}' not found in catalog."
+
+    @mcp.resource("system://engine/health")
+    def get_system_health_resource() -> str:
+        """Stream live engine diagnostic health and cache status."""
+        conn = get_db_conn()
+        total = conn.execute("SELECT count(*) FROM items").fetchone()[0]
+        skills = conn.execute("SELECT count(*) FROM items WHERE item_type = 'skill'").fetchone()[0]
+        rules = conn.execute("SELECT count(*) FROM items WHERE item_type = 'rule'").fetchone()[0]
+        high_q = conn.execute("SELECT count(*) FROM items WHERE quality_score >= 70").fetchone()[0]
+        data = {
+            "status": "HEALTHY",
+            "server": "skills-engine",
+            "protocol_version": "2024-11-05",
+            "items_total": total,
+            "skills_count": skills,
+            "rules_count": rules,
+            "high_quality_tier": high_q,
+            "hot_reloading_active": _HOT_RELOAD_ACTIVE,
+            "db_path": str(DB_PATH),
+        }
+        return json.dumps(data, indent=2)
+
+if hasattr(mcp, "prompt"):
+    @mcp.prompt("plan_telegram_bot")
+    def plan_telegram_bot_prompt(bot_purpose: str, architecture_style: str = "webhook") -> str:
+        """Generate structured planning template for a Bot API 9.4 Telegram Bot."""
+        return (
+            f"You are a Principal Telegram Bot Architect. Design a production-grade Telegram bot for: '{bot_purpose}'.\\n"
+            f"Architecture Style: {architecture_style}.\\n"
+            "Requirements:\\n"
+            "1. Conformance to Telegram Bot API 9.4+ standards.\\n"
+            "2. Deterministic Chat ID formatting (positive numeric for users, -100 for supergroups/channels).\\n"
+            "3. Multi-tenant shared webhook endpoint (Axum or FastAPI) if webhook style is chosen.\\n"
+            "4. Dynamic FloodWait retry with exponential backoff and random jitter.\\n"
+            "5. Zero raw media byte buffers (Vec<u8>) in RAM; stream directly to disk.\\n"
+            "Provide the complete architectural plan, state machine diagram, and initial module layout."
+        )
+
+    @mcp.prompt("review_rust_system")
+    def review_rust_system_prompt(code: str, focus: str = "production-readiness") -> str:
+        """Audit Rust code against Master Rules (zero-unwrap, cancellation safety, zero-RAM idle)."""
+        return (
+            f"Perform a strict, uncompromising code review on the following Rust code focusing on: '{focus}'.\\n"
+            "Check strictly for:\\n"
+            "1. err-no-unwrap-prod: Zero .unwrap() or .expect() outside tests.\\n"
+            "2. async-no-lock-await: Zero sync Mutex/RwLock held across .await.\\n"
+            "3. async-bounded-channel: Zero unbounded channels.\\n"
+            "4. anti-raw-bytes-ram: Zero Vec<u8> stored in persistent RAM structs.\\n"
+            "5. async-cancel-safety: Cancellation safety in tokio::select! branches.\\n\\n"
+            f"Code to review:\\n```rust\\n{code}\\n```\\n"
+        )
+
+    @mcp.prompt("audit_anti_sycophancy")
+    def audit_anti_sycophancy_prompt(proposed_architecture: str) -> str:
+        """Review an architecture adversarially, challenging flaws and surfacing trade-offs."""
+        return (
+            f"You are a pragmatic, skeptical Principal Systems Engineer. Evaluate the following proposed architecture:\n\n{proposed_architecture}\n\n"
+            "Instructions:\n"
+            "1. Zero sycophancy: Do not flatter the design or begin with pleasantries.\\n"
+            "2. Identify the single biggest point of failure (SPOF) or bottleneck.\\n"
+            "3. Surface exact operational trade-offs (memory, latency, maintainability).\\n"
+            "4. Provide a hardened, simpler alternative with minimal blast radius."
+        )
