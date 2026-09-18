@@ -1,1 +1,17 @@
-{"name":"register_custom_directory","description":"Register a custom directory of skills or rules with zero-trust path sandboxing.","parameters":{"properties":{"directory_path":{"title":"Directory Path","type":"string"}},"required":["directory_path"],"title":"register_custom_directoryArguments","type":"object"}}
+{
+  "name": "register_custom_directory",
+  "description": "Register a custom directory of skills or rules with zero-trust path sandboxing.",
+  "parameters": {
+    "properties": {
+      "directory_path": {
+        "title": "Directory Path",
+        "type": "string"
+      }
+    },
+    "required": [
+      "directory_path"
+    ],
+    "title": "register_custom_directoryArguments",
+    "type": "object"
+  }
+}

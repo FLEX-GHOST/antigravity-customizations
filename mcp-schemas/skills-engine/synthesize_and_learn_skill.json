@@ -1,0 +1,47 @@
+{
+  "name": "synthesize_and_learn_skill",
+  "description": "Synthesize a new learned skill from a solved problem and index it permanently into the knowledge base.",
+  "parameters": {
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string"
+      },
+      "problem_summary": {
+        "title": "Problem Summary",
+        "type": "string"
+      },
+      "solution_runbook": {
+        "title": "Solution Runbook",
+        "type": "string"
+      },
+      "category": {
+        "default": "learned",
+        "title": "Category",
+        "type": "string"
+      },
+      "triggers": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Triggers"
+      }
+    },
+    "required": [
+      "name",
+      "problem_summary",
+      "solution_runbook"
+    ],
+    "title": "synthesize_and_learn_skillArguments",
+    "type": "object"
+  }
+}

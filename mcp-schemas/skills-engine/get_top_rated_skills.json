@@ -1,1 +1,51 @@
-{"name":"get_top_rated_skills","description":"","parameters":{"properties":{"category":{"anyOf":[{"type":"string"},{"type":"null"}],"default":null,"title":"Category"},"language":{"anyOf":[{"type":"string"},{"type":"null"}],"default":null,"title":"Language"},"limit":{"default":10,"title":"Limit","type":"integer"},"tier":{"anyOf":[{"type":"string"},{"type":"null"}],"default":null,"title":"Tier"}},"title":"get_top_rated_skillsArguments","type":"object"}}
+{
+  "name": "get_top_rated_skills",
+  "description": "",
+  "parameters": {
+    "properties": {
+      "category": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Category"
+      },
+      "language": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Language"
+      },
+      "tier": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Tier"
+      },
+      "limit": {
+        "default": 10,
+        "title": "Limit",
+        "type": "integer"
+      }
+    },
+    "title": "get_top_rated_skillsArguments",
+    "type": "object"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "register_federated_mcp_server",
+  "description": "Register and proxy a downstream federated MCP server under central governance.",
+  "parameters": {
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string"
+      },
+      "endpoint": {
+        "title": "Endpoint",
+        "type": "string"
+      },
+      "transport": {
+        "default": "stdio",
+        "title": "Transport",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "endpoint"
+    ],
+    "title": "register_federated_mcp_serverArguments",
+    "type": "object"
+  }
+}

@@ -1,1 +1,17 @@
-{"name":"simulate_bot_pipeline","description":"","parameters":{"properties":{"user_utterance":{"title":"User Utterance","type":"string"}},"required":["user_utterance"],"title":"simulate_bot_pipelineArguments","type":"object"}}
+{
+  "name": "simulate_bot_pipeline",
+  "description": "",
+  "parameters": {
+    "properties": {
+      "user_utterance": {
+        "title": "User Utterance",
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_utterance"
+    ],
+    "title": "simulate_bot_pipelineArguments",
+    "type": "object"
+  }
+}

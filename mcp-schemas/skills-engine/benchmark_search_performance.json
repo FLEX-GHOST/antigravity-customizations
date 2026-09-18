@@ -1,1 +1,25 @@
-{"name":"benchmark_search_performance","description":"","parameters":{"properties":{"test_queries":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"default":null,"title":"Test Queries"}},"title":"benchmark_search_performanceArguments","type":"object"}}
+{
+  "name": "benchmark_search_performance",
+  "description": "",
+  "parameters": {
+    "properties": {
+      "test_queries": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Test Queries"
+      }
+    },
+    "title": "benchmark_search_performanceArguments",
+    "type": "object"
+  }
+}

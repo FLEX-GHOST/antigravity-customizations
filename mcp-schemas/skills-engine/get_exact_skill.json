@@ -1,1 +1,17 @@
-{"name":"get_exact_skill","description":"","parameters":{"properties":{"name":{"title":"Name","type":"string"}},"required":["name"],"title":"get_exact_skillArguments","type":"object"}}
+{
+  "name": "get_exact_skill",
+  "description": "",
+  "parameters": {
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "title": "get_exact_skillArguments",
+    "type": "object"
+  }
+}

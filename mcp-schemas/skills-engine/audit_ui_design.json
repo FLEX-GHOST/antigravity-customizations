@@ -1,1 +1,17 @@
-{"name":"audit_ui_design","description":"","parameters":{"properties":{"css_or_html":{"title":"Css Or Html","type":"string"}},"required":["css_or_html"],"title":"audit_ui_designArguments","type":"object"}}
+{
+  "name": "audit_ui_design",
+  "description": "",
+  "parameters": {
+    "properties": {
+      "css_or_html": {
+        "title": "Css Or Html",
+        "type": "string"
+      }
+    },
+    "required": [
+      "css_or_html"
+    ],
+    "title": "audit_ui_designArguments",
+    "type": "object"
+  }
+}

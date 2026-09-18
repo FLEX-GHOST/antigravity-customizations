@@ -1,1 +1,17 @@
-{"name":"activate_tool_suite","description":"Dynamically activate a specialized tool suite (telegram, architecture, quality, catalog).","parameters":{"properties":{"suite_name":{"title":"Suite Name","type":"string"}},"required":["suite_name"],"title":"activate_tool_suiteArguments","type":"object"}}
+{
+  "name": "activate_tool_suite",
+  "description": "Dynamically activate a specialized tool suite (telegram, architecture, quality, catalog).",
+  "parameters": {
+    "properties": {
+      "suite_name": {
+        "title": "Suite Name",
+        "type": "string"
+      }
+    },
+    "required": [
+      "suite_name"
+    ],
+    "title": "activate_tool_suiteArguments",
+    "type": "object"
+  }
+}

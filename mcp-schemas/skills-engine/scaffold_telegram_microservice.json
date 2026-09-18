@@ -1,0 +1,27 @@
+{
+  "name": "scaffold_telegram_microservice",
+  "description": "Composite Macro Tool: Generate complete, Bot API 9.4 compliant microservice boilerplate (Axum webhook, colored buttons, zero-RAM).",
+  "parameters": {
+    "properties": {
+      "service_type": {
+        "title": "Service Type",
+        "type": "string"
+      },
+      "bot_name": {
+        "title": "Bot Name",
+        "type": "string"
+      },
+      "target_stack": {
+        "default": "rust",
+        "title": "Target Stack",
+        "type": "string"
+      }
+    },
+    "required": [
+      "service_type",
+      "bot_name"
+    ],
+    "title": "scaffold_telegram_microserviceArguments",
+    "type": "object"
+  }
+}

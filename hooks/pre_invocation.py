@@ -26,7 +26,7 @@ def main():
     stack_desc = ", ".join(stack_items) if stack_items else "General Polyglot"
     msg = (
         f"⚡ [skills-engine Active] Workspace Stack: {stack_desc}. "
-        "Governance rules and 33 MCP tools loaded. "
+        "Governance rules and 38 MCP tools loaded. "
         "Autonomous protocol: Use discover_tools / AST checkers before reporting completion."
     )
 
