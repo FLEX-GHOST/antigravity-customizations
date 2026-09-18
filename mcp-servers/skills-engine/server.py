@@ -4097,9 +4097,11 @@ _TG_API_CACHE: Dict[str, Any] = {}
 def get_telegram_api_specs() -> Tuple[Dict[str, Any], Dict[str, Any]]:
     global _TG_API_CACHE
     spec_paths = [
-        Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/references"),
-        Path("/root/antigravity-customizations/skills/telegram-bot-api-methods/references"),
-        HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references"
+        Path(__file__).resolve().parent.parent.parent / "skills/telegram-bot-api-methods/references",
+        Path(__file__).resolve().parent / "data/telegram",
+        HOME_DIR / "antigravity-customizations/skills/telegram-bot-api-methods/references",
+        HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references",
+        HOME_DIR / "bots/factory/.agents/skills/telegram-bot-api-methods/references",
     ]
     target_m_file = None
     for p in spec_paths:
@@ -4113,9 +4115,11 @@ def get_telegram_api_specs() -> Tuple[Dict[str, Any], Dict[str, Any]]:
         return _TG_API_CACHE["methods"], _TG_API_CACHE["types"]
 
     spec_paths = [
-        Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/references"),
-        Path("/root/antigravity-customizations/skills/telegram-bot-api-methods/references"),
-        HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references"
+        Path(__file__).resolve().parent.parent.parent / "skills/telegram-bot-api-methods/references",
+        Path(__file__).resolve().parent / "data/telegram",
+        HOME_DIR / "antigravity-customizations/skills/telegram-bot-api-methods/references",
+        HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references",
+        HOME_DIR / "bots/factory/.agents/skills/telegram-bot-api-methods/references",
     ]
     methods, types = {}, {}
     for p in spec_paths:
@@ -4193,8 +4197,11 @@ def check_and_sync_github_updates(force: bool = False) -> Dict[str, Any]:
         return {"status": "SKIPPED_COOLDOWN", "elapsed_s": round(now - _LAST_GITHUB_CHECK_TIME, 1)}
 
     _LAST_GITHUB_CHECK_TIME = now
-    repo_dir = Path("/root/antigravity-customizations")
-    if not (repo_dir / ".git").exists():
+    repo_dir = Path(__file__).resolve().parent.parent.parent
+    try:
+        if not (repo_dir / ".git").exists():
+            return {"status": "NO_GIT_REPO"}
+    except Exception:
         return {"status": "NO_GIT_REPO"}
 
     try:
@@ -4236,14 +4243,17 @@ def check_and_sync_github_updates(force: bool = False) -> Dict[str, Any]:
         # Sync reference files
         ref_src = repo_dir / "skills" / "telegram-bot-api-methods" / "references"
         for target in [
-            Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/references"),
+            HOME_DIR / "bots/factory/.agents/skills/telegram-bot-api-methods/references",
             HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references"
         ]:
-            target.mkdir(parents=True, exist_ok=True)
-            for fname in ["api_methods.json", "api_types.json", "version.json", "methods_table.md"]:
-                sf = ref_src / fname
-                if sf.exists():
-                    shutil.copy2(sf, target / fname)
+            try:
+                target.mkdir(parents=True, exist_ok=True)
+                for fname in ["api_methods.json", "api_types.json", "version.json", "methods_table.md"]:
+                    sf = ref_src / fname
+                    if sf.exists():
+                        shutil.copy2(sf, target / fname)
+            except Exception:
+                pass
 
         # Clear in-memory spec cache
         _TG_API_CACHE.clear()
@@ -4356,9 +4366,11 @@ def sync_telegram_bot_api_upstream(force: bool = False) -> Dict[str, Any]:
     """Fetch and synchronize the latest official Telegram Bot API specification from upstream.
     Updates all 185+ methods and 400+ types, regenerates references, and reindexes the SQLite FTS5 database."""
     t0 = time.perf_counter()
-    sync_script = Path("/root/antigravity-customizations/scripts/sync_telegram_spec.py")
+    sync_script = Path(__file__).resolve().parent.parent.parent / "scripts/sync_telegram_spec.py"
     if not sync_script.exists():
-        sync_script = Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/scripts/sync_telegram_spec.py")
+        sync_script = HOME_DIR / "antigravity-customizations/scripts/sync_telegram_spec.py"
+    if not sync_script.exists():
+        sync_script = HOME_DIR / "bots/factory/.agents/skills/telegram-bot-api-methods/scripts/sync_telegram_spec.py"
 
     cmd = [sys.executable, str(sync_script)]
     if force:
