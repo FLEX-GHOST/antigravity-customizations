@@ -142,7 +142,7 @@ with open(cli_path, 'w') as f:
 "
 
 
-echo "[+] Deploying 18 IDE MCP Tool Schemas..."
+echo "[+] Deploying 29 IDE MCP Tool Schemas..."
 if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
     cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"*.json "${MCP_SCHEMAS_DIR}/"
 fi
@@ -190,7 +190,7 @@ fi
 echo "========================================================="
 echo "   Installation & Optimization Completed Successfully!"
 echo "   - Free Context Budget: >80% Available"
-echo "   - Active MCP Tools: 18 Tools Enabled"
+echo "   - Active MCP Tools: 29 Tools Enabled"
 echo "   - Knowledge Base: 4,175+ Verbatim Skills & Rules"
 echo "   - Governance: Anti-UI Slop & Anti-Sycophancy Enforced"
 echo "========================================================="

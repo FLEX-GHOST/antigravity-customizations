@@ -1,0 +1,1 @@
+{"name":"fix_code_rule_violations","description":"","parameters":{"properties":{"code_content":{"title":"Code Content","type":"string"},"language":{"title":"Language","type":"string"}},"required":["code_content","language"],"title":"fix_code_rule_violationsArguments","type":"object"}}

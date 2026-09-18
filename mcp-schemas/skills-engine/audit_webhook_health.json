@@ -1,0 +1,1 @@
+{"name":"audit_webhook_health","description":"","parameters":{"properties":{"secret_token":{"default":"","title":"Secret Token","type":"string"},"webhook_url":{"default":"","title":"Webhook Url","type":"string"}},"title":"audit_webhook_healthArguments","type":"object"}}

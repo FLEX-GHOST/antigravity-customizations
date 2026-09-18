@@ -1,0 +1,1 @@
+{"name":"simulate_telegram_load","description":"","parameters":{"properties":{"bot_type":{"default":"factory","title":"Bot Type","type":"string"},"concurrent_users":{"default":1000,"title":"Concurrent Users","type":"integer"}},"title":"simulate_telegram_loadArguments","type":"object"}}

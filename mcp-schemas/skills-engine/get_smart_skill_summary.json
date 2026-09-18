@@ -1,0 +1,1 @@
+{"name":"get_smart_skill_summary","description":"","parameters":{"properties":{"name":{"title":"Name","type":"string"}},"required":["name"],"title":"get_smart_skill_summaryArguments","type":"object"}}
