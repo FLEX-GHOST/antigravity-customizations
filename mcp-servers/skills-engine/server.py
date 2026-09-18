@@ -1719,6 +1719,32 @@ BOT_SERVICES_CATALOG: Dict[str, Dict[str, Any]] = {
         "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory"],
         "recommended_skills": ["skill:clean-architecture"]
     },
+    "telecom_service": {
+        "service_name": "Telecom Core & Balance Inquiries",
+        "bot_repository": "/root/bots/asiacell_api",
+        "engine_repository": "/root/bots/zain_api",
+        "primary_language": "Go",
+        "patterns": ["رصيد", "اسيا", "اسياسيل", "زين", "شحن كارت", "سيم كارت", "telecom", "asiacell", "zain", "balance"],
+        "required_params": ["phone_number"],
+        "missing_param_prompts": {
+            "phone_number": "ارسل رقم الهاتف او الخط (اسياسيل او زين) للتحقق من الرصيد والخدمات 📱"
+        },
+        "tool_definition": {
+            "name": "check_telecom_account",
+            "description": "Checks balance, active bundles, and SIM status for Asiacell and Zain lines.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "phone_number": {"type": "string", "description": "Subscriber MSISDN phone number."},
+                    "carrier": {"type": "string", "enum": ["asiacell", "zain"]}
+                },
+                "required": ["phone_number"]
+            }
+        },
+        "description": "Telecom subscriber inquiries and automation.",
+        "recommended_rules": ["rule:go", "rule:api-rate-limiting"],
+        "recommended_skills": ["skill:telecom-api-engineering", "skill:clean-code"]
+    },
     "restricted_downloader": {
         "service_name": "Restricted Content Downloader",
         "bot_repository": "/root/bots/restricted",
@@ -1958,6 +1984,73 @@ def audit_webhook_health(webhook_url: str = "", secret_token: str = "") -> Dict[
             "lifecycle": "Set drop_pending_updates: false on normal restarts to preserve user commands"
         },
         "recommended_skills": ["skill:telegram-webhook-architecture", "skill:telegram-bot-api", "skill:teloxide-production-patterns"]
+    }
+
+
+@mcp.tool()
+def explain_ecosystem_map() -> Dict[str, Any]:
+    bots_map = {
+        "factory": {"name": "Bot Factory & Multi-Tenant Core", "lang": "Rust", "path": "/root/bots/factory", "tech": ["Axum", "Grammers", "LibSQL", "Jemalloc", "DashMap"], "role": "Master bot factory dispatching updates to sub-bots via webhook and polling."},
+        "rusttgcalls": {"name": "Telegram WebRTC VoIP Engine", "lang": "Rust", "path": "/root/bots/rusttgcalls", "tech": ["Tokio", "Opus", "DTLS-SRTP", "RTP/RTCP"], "role": "High-throughput WebRTC voice chat streaming library."},
+        "music": {"name": "FlexMusic Group Call Bot", "lang": "Go", "path": "/root/bots/music", "tech": ["Gogram", "Gotgcall", "Pion WebRTC", "SQLite"], "role": "Voice chat music playback engine in Go."},
+        "fastdl-rs": {"name": "High-Speed Media Downloader", "lang": "Rust", "path": "/root/bots/fastdl-rs", "tech": ["Tokio", "Reqwest", "Stream Demux"], "role": "Core video and audio extraction engine."},
+        "social": {"name": "Social Media Downloader Bot", "lang": "Rust", "path": "/root/bots/social", "tech": ["Grammers", "FastDL"], "role": "Telegram bot for Instagram, TikTok, YouTube downloads."},
+        "shazam": {"name": "Shazam Audio Recognizer", "lang": "Rust", "path": "/root/bots/shazam", "tech": ["Grammers", "Songrec-lib", "FFmpeg"], "role": "Fingerprints voice notes and retrieves track metadata."},
+        "session": {"name": "MTProto Session Generator", "lang": "Rust", "path": "/root/bots/session", "tech": ["Grammers", "Pyrogram/Telethon V2"], "role": "Generates 2FA MTProto session strings."},
+        "convert": {"name": "Media Transcoder Bot", "lang": "Rust", "path": "/root/bots/convert", "tech": ["Grammers", "FFmpeg Pipes"], "role": "Zero-RAM format transcoding for audio and video."},
+        "restricted": {"name": "Restricted Content Saver", "lang": "Rust", "path": "/root/bots/restricted", "tech": ["Grammers Client"], "role": "Extracts protected media from noforwards Telegram channels."},
+        "asiacell_api": {"name": "Asiacell Telecom Gateway", "lang": "Go", "path": "/root/bots/asiacell_api", "tech": ["Go net/http", "Redis"], "role": "Telecom automation and subscriber account management."},
+        "zain_api": {"name": "Zain Telecom Gateway", "lang": "Go", "path": "/root/bots/zain_api", "tech": ["Go net/http", "Redis"], "role": "Zain line automation and balance inquiries."},
+        "akinatorrust": {"name": "Akinator Game Bot", "lang": "Rust", "path": "/root/bots/akinatorrust", "tech": ["Akinator-rs", "Grammers"], "role": "Interactive guessing game bot."},
+        "iploger": {"name": "IP & Network Utility Bot", "lang": "Rust", "path": "/root/bots/iploger", "tech": ["Grammers", "MaxMind GeoIP"], "role": "IP resolution and geo-lookup utility."},
+        "luagurad": {"name": "Lua Obfuscation Engine", "lang": "Lua/Rust", "path": "/root/bots/luagurad", "tech": ["AST Virtualization"], "role": "Bytecode protection for proprietary Lua scripts."},
+        "yt-api": {"name": "YouTube Fast Extractor", "lang": "Rust", "path": "/root/bots/yt-api", "tech": ["Grammers", "FastDL"], "role": "YouTube video and audio extraction service."}
+    }
+    return {
+        "ecosystem": "FLEX Telegram Bot Factory & Microservices",
+        "total_active_bots": len(bots_map),
+        "primary_languages": {"Rust": 11, "Go": 3, "Python/Lua": 2},
+        "services": bots_map
+    }
+
+@mcp.tool()
+def simulate_bot_pipeline(user_utterance: str) -> Dict[str, Any]:
+    resolved = resolve_bot_service(user_utterance)
+
+    if not resolved["is_ready_to_execute"]:
+        return {
+            "status": "AWAITING_INPUT",
+            "matched_service": resolved["matched_service"],
+            "missing_parameters": resolved["missing_parameters"],
+            "bot_reply": resolved["slot_filling_prompt"],
+            "reply_markup": {
+                "inline_keyboard": [
+                    [{"text": "❌ إلغاء الطلب", "callback_data": "cancel_op", "style": "danger"}]
+                ]
+            }
+        }
+
+    # Ready to execute simulation
+    s_key = resolved["service_key"]
+    return {
+        "status": "READY_TO_EXECUTE",
+        "matched_service": resolved["matched_service"],
+        "bot_repository": resolved["bot_repository"],
+        "extracted_parameters": resolved["extracted_parameters"],
+        "execution_pipeline": {
+            "step_1_ack": "HTTP 200 OK sent to Telegram Webhook within < 50ms",
+            "step_2_dispatch": f"Background worker spawned ({resolved['primary_language']})",
+            "step_3_action": "Telegram SendChatAction(upload_document / record_voice)",
+            "step_4_output": "Stream payload directly to user with Bot API 9.4 styled buttons"
+        },
+        "sample_response_markup": {
+            "inline_keyboard": [
+                [
+                    {"text": "⚡ تحميل مباشر", "callback_data": "dl_direct", "style": "primary"},
+                    {"text": "🎵 استخراج الصوت", "callback_data": "dl_audio", "style": "success"}
+                ]
+            ]
+        }
     }
 
 @mcp.tool()
