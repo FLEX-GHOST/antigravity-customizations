@@ -352,6 +352,9 @@ def get_all_search_paths() -> List[Path]:
     repo_root = Path(__file__).resolve().parent.parent.parent
     if repo_root.exists() and repo_root not in paths:
         paths.append(repo_root)
+    omni_skills = HOME_DIR / ".omni-skills"
+    if omni_skills.exists() and omni_skills not in paths:
+        paths.append(omni_skills)
     custom_root = HOME_DIR / "antigravity-customizations"
     if custom_root.exists() and custom_root not in paths:
         paths.append(custom_root)
@@ -1065,8 +1068,11 @@ def sync_all_directories(force: bool = False):
                 lang = meta.get("language") or detect_language_from_text(name, content)
                 cat = meta.get("category") or "skill"
 
-                to_insert_items.append((item_id, "skill", name, desc, trigs_str, lang, str(cat), str(p), mtime, content, q_score, tier))
-                to_insert_fts.append((item_id, name, desc, trigs_str, lang, str(cat), body[:3000]))
+                clean_content = content.encode('utf-8', 'ignore').decode('utf-8', 'ignore')
+                clean_desc = desc.encode('utf-8', 'ignore').decode('utf-8', 'ignore')
+                clean_body = body[:3000].encode('utf-8', 'ignore').decode('utf-8', 'ignore')
+                to_insert_items.append((item_id, "skill", name, clean_desc, trigs_str, lang, str(cat), str(p), mtime, clean_content, q_score, tier))
+                to_insert_fts.append((item_id, name, clean_desc, trigs_str, lang, str(cat), clean_body))
                 existing_items[item_id] = (str(p), q_score)
             except Exception:
                 continue
@@ -1098,8 +1104,11 @@ def sync_all_directories(force: bool = False):
                 desc = clean_description("", content)
                 lang = detect_language_from_text(name, content)
 
-                to_insert_items.append((item_id, "rule", name, desc, "", lang, "rule", str(p), mtime, content, q_score, tier))
-                to_insert_fts.append((item_id, name, desc, "", lang, "rule", content[:3000]))
+                clean_content = content.encode('utf-8', 'ignore').decode('utf-8', 'ignore')
+                clean_desc = desc.encode('utf-8', 'ignore').decode('utf-8', 'ignore')
+                clean_snippet = content[:3000].encode('utf-8', 'ignore').decode('utf-8', 'ignore')
+                to_insert_items.append((item_id, "rule", name, clean_desc, "", lang, "rule", str(p), mtime, clean_content, q_score, tier))
+                to_insert_fts.append((item_id, name, clean_desc, "", lang, "rule", clean_snippet))
                 existing_items[item_id] = (str(p), q_score)
             except Exception:
                 continue
@@ -1110,8 +1119,21 @@ def sync_all_directories(force: bool = False):
             conn.execute("DELETE FROM items_fts WHERE id = ?", (sid,))
 
         if to_insert_items:
-            conn.executemany("INSERT OR REPLACE INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", to_insert_items)
-            conn.executemany("INSERT OR REPLACE INTO items_fts VALUES (?, ?, ?, ?, ?, ?, ?)", to_insert_fts)
+            for i in range(0, len(to_insert_items), 500):
+                batch_items = to_insert_items[i:i+500]
+                batch_fts = to_insert_fts[i:i+500]
+                try:
+                    conn.executemany("INSERT OR REPLACE INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", batch_items)
+                    conn.executemany("INSERT OR REPLACE INTO items_fts VALUES (?, ?, ?, ?, ?, ?, ?)", batch_fts)
+                except Exception:
+                    for row_i, row_f in zip(batch_items, batch_fts):
+                        try:
+                            clean_i = [s.encode('utf-8', 'ignore').decode('utf-8', 'ignore') if isinstance(s, str) else s for s in row_i]
+                            clean_f = [s.encode('utf-8', 'ignore').decode('utf-8', 'ignore') if isinstance(s, str) else s for s in row_f]
+                            conn.execute("INSERT OR REPLACE INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", clean_i)
+                            conn.execute("INSERT OR REPLACE INTO items_fts VALUES (?, ?, ?, ?, ?, ?, ?)", clean_f)
+                        except Exception:
+                            continue
 
     last_sync_time = now
     if "clear_all_caches" in globals():
