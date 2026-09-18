@@ -70,11 +70,23 @@ def get_current_metrics():
     schema_dir = ROOT_DIR / "mcp-schemas" / "skills-engine"
     tools_count = len(list(schema_dir.glob("*.json"))) if schema_dir.exists() else 51
 
-    # 3. Skills and Rules counts
+    # 3. Skills and Rules counts & Indexed Entities
     skills_dir = ROOT_DIR / "skills"
     rules_dir = ROOT_DIR / "rules"
     skills_count = len([d for d in skills_dir.iterdir() if d.is_dir()]) if skills_dir.exists() else 0
     rules_count = len(list(rules_dir.glob("*.md"))) if rules_dir.exists() else 0
+
+    indexed_entities = 2160
+    db_path = Path.home() / ".gemini/mcp-servers/skills-engine/skills_index.db"
+    if db_path.exists():
+        try:
+            import sqlite3
+            with sqlite3.connect(str(db_path)) as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT COUNT(*) FROM items")
+                indexed_entities = cur.fetchone()[0]
+        except Exception:
+            pass
 
     # 4. Go version from go.mod first (canonical), fallback to go version
     go_ver = "1.26.5"
@@ -107,6 +119,7 @@ def get_current_metrics():
         "tools_count": tools_count,
         "skills_count": skills_count,
         "rules_count": rules_count,
+        "indexed_entities": indexed_entities,
         "go_version": go_ver,
         "bin_size": bin_size,
     }
@@ -144,6 +157,13 @@ def update_readme(metrics: dict = None) -> bool:
     engine_badge_regex = r"\[!\[Engine Architecture\]\(https://img\.shields\.io/badge/Engine-[^)]+\)\]\(#\)"
     new_engine_badge = f"[![Engine Architecture](https://img.shields.io/badge/Engine-Go%20{go_ver}%20%7C%20Static%20Binary%20({bin_sz})-blue.svg)](#)"
     content = re.sub(engine_badge_regex, new_engine_badge, content)
+
+    # 3b. Indexed Entities Badge
+    idx_cnt = metrics.get("indexed_entities", 2160)
+    rounded_idx = f"{(idx_cnt // 100) * 100:,}%2B".replace(",", "%2C")
+    entities_badge_regex = r"\[!\[Indexed Entities\]\(https://img\.shields\.io/badge/Indexed%20Entities-.*?\.svg\)\]\(#\)"
+    new_entities_badge = f"[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-{rounded_idx}%20(Go%20%26%20SQLite)-orange.svg)](#)"
+    content = re.sub(entities_badge_regex, new_entities_badge, content)
 
     # 4. Quick Start Bullet 3 (Go Engine)
     content = re.sub(
