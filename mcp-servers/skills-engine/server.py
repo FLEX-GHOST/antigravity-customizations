@@ -80,17 +80,17 @@ RAW_AR_STEM_MAP: Dict[str, str] = {
     "خدمة": "service microservice handler clean-architecture module",
     "خدمات": "services architecture modular clean-architecture service-layer",
     # --- Telegram Bots & Factory Architecture ---
-    "ويب هوك": "telegram-webhook-architecture webhook axum nginx token-hash secret-token setwebhook",
-    "ويب هك": "telegram-webhook-architecture webhook axum nginx token-hash secret-token",
-    "وب هوك": "telegram-webhook-architecture webhook axum nginx token-hash secret-token",
-    "سيرفر الويب هوك": "telegram-webhook-architecture webhook axum nginx multi-tenant token-hash",
-    "ربط الويب هوك": "telegram-webhook-architecture setwebhook webhook telegram-bot-api",
-    "توكن هاش": "telegram-webhook-architecture token-hash sha256 multi-tenant webhook",
-    "سيكريت توكن": "telegram-webhook-architecture secret-token x-telegram-bot-api-secret-token security",
-    "تاخير الرسائل بالويب هوك": "telegram-webhook-architecture instant-200-ok async-worker tokio joinset queue",
-    "تكرار الرسائل بالويب هوك": "telegram-webhook-architecture update-retry instant-200-ok idempotency",
-    "انغينكس ويب هوك": "telegram-webhook-architecture nginx reverse-proxy ssl proxy-buffering-off",
-    "اكسوم ويب هوك": "telegram-webhook-architecture axum rust tokio webhook multi-tenant",
+    "ويب هوك": "webhook-automation webhook axum nginx token-hash secret-token setwebhook",
+    "ويب هك": "webhook-automation webhook axum nginx token-hash secret-token",
+    "وب هوك": "webhook-automation webhook axum nginx token-hash secret-token",
+    "سيرفر الويب هوك": "webhook-automation webhook axum nginx multi-tenant token-hash",
+    "ربط الويب هوك": "webhook-automation setwebhook webhook telegram-bot-api",
+    "توكن هاش": "webhook-automation token-hash sha256 multi-tenant webhook",
+    "سيكريت توكن": "webhook-automation secret-token x-telegram-bot-api-secret-token security",
+    "تاخير الرسائل بالويب هوك": "webhook-automation instant-200-ok async-worker tokio joinset queue",
+    "تكرار الرسائل بالويب هوك": "webhook-automation update-retry instant-200-ok idempotency",
+    "انغينكس ويب هوك": "webhook-automation nginx reverse-proxy ssl proxy-buffering-off",
+    "اكسوم ويب هوك": "webhook-automation axum rust tokio webhook multi-tenant",
     "بوت ميوزك فليكس": "telegram-music-bot audio-streaming rusttgcalls gotgcall gogram pytgcalls voice-chat webrtc ffmpeg playback rust go golang python flexmusic queue",
     "بوت ميوزك": "telegram-music-bot audio-streaming rusttgcalls gotgcall pytgcalls voice-chat webrtc ffmpeg playback rust go golang python",
     "بوت الميوزك": "telegram-music-bot audio-streaming rusttgcalls gotgcall pytgcalls voice-chat webrtc ffmpeg playback rust go golang python",
@@ -949,7 +949,7 @@ INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
         "tag": "Clean Architecture & Integrity",
     },
     "telegram_webhook": {
-        "keywords": ["webhook", "token_hash", "axum", "nginx", "secret_token", "proxy_buffering", "setwebhook", "deletewebhook", "drop_pending_updates", "telegram-webhook-architecture"],
+        "keywords": ["webhook", "token_hash", "axum", "nginx", "secret_token", "proxy_buffering", "setwebhook", "deletewebhook", "drop_pending_updates", "webhook-automation"],
         "tag": "Telegram Webhook Architecture",
     },
     "media_download": {
@@ -1283,24 +1283,28 @@ def audit_anti_sycophancy(response_text: str) -> Dict[str, Any]:
 @mcp.tool()
 def audit_ui_design(css_or_html: str) -> Dict[str, Any]:
     violations = []
-    lines = css_or_html.splitlines()
+    lines_input = css_or_html.splitlines()
 
     anti_patterns = [
-        (r"(?i)(linear-gradient|radial-gradient).*#[789a-f][0-9a-f]{5}.*#[789a-f][0-9a-f]{5}", "anti_ai_design", "CRITICAL", "Generic AI purple/violet gradient detected. Use disciplined semantic palettes."),
-        (r"(?i)backdrop-filter:\s*blur\(", "anti_ai_design", "WARNING", "Faux glassmorphism detected without defined structural layer."),
-        (r"[\U0001F300-\U0001FAFF]", "anti_ai_design", "CRITICAL", "Raw emoji detected in UI markup. Use scalable SVGs (heroicons/lucide)."),
+        (r"(?i)(linear-gradient|radial-gradient).*#[789a-f][0-9a-f]{5}.*#[789a-f][0-9a-f]{5}", "anti_ai_design", "CRITICAL", "Generic AI purple/violet gradient detected. Use disciplined semantic palettes (see skill:better-colors)."),
+        (r"(?i)(linear-gradient|radial-gradient).*rgba\(\s*(124|139|99|168|147)\s*,\s*(58|92|102|85|51)", "anti_ai_design", "CRITICAL", "AI violet/indigo glow gradient detected. Use authentic semantic roles."),
+        (r"(?i)backdrop-filter:\s*blur\(", "anti_ai_design", "WARNING", "Faux glassmorphism detected without defined structural layer (see skill:impeccable)."),
+        (r"[🌀-🫿]", "anti_ai_design", "CRITICAL", "Raw emoji detected in UI markup. Use scalable monochrome SVGs from heroicons or lucide (see skill:better-icons)."),
+        (r"(?i)background-clip:\s*text", "anti_ai_design", "CRITICAL", "Gradient text detected. Weight and scale convey hierarchy, not novelty color fills (see skill:impeccable)."),
+        (r"(?i)box-shadow:\s*[3-9]px\s+[3-9]px\s+0px", "anti_ai_design", "WARNING", "Zero-blur hard block shadow detected without justified neobrutalist context."),
+        (r"(?i)(text-xs|font-semibold)\s+(uppercase|tracking-widest)", "anti_ai_design", "WARNING", "AI kicker/eyebrow all-caps label detected above heading. Let the heading carry its own weight."),
         (r"(?i)button[^{]*\{[^}]*\}", "button_states", "INFO", "Verify all 6 states are defined (rest, hover, active, focus-visible, disabled, loading)."),
     ]
 
-    for idx, line in enumerate(lines):
+    for idx, l_text in enumerate(lines_input):
         l_num = idx + 1
         for pat, rule, sev, desc in anti_patterns:
-            if re.search(pat, line):
+            if re.search(pat, l_text):
                 violations.append({
                     "line": l_num,
                     "rule": rule,
                     "severity": sev,
-                    "code_snippet": line.strip()[:100],
+                    "code_snippet": l_text.strip()[:100],
                     "issue": desc,
                 })
 
@@ -1309,7 +1313,6 @@ def audit_ui_design(css_or_html: str) -> Dict[str, Any]:
         "violations_count": len(violations),
         "violations": violations,
     }
-
 @mcp.tool()
 def get_skill_toc(name: str) -> Dict[str, Any]:
     s_name, headings, err = _cached_skill_toc(name)
@@ -1984,7 +1987,7 @@ def audit_webhook_health(webhook_url: str = "", secret_token: str = "") -> Dict[
             "reverse_proxy": "Nginx proxy_buffering off; allow 149.154.160.0/20; allow 91.108.4.0/22;",
             "lifecycle": "Set drop_pending_updates: false on normal restarts to preserve user commands"
         },
-        "recommended_skills": ["skill:telegram-webhook-architecture", "skill:telegram-bot-api", "skill:teloxide-production-patterns"]
+        "recommended_skills": ["skill:webhook-automation", "skill:telegram-bot", "skill:telegram-bot-builder"]
     }
 
 

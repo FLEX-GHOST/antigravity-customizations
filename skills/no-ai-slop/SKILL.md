@@ -1,6 +1,6 @@
 ---
 name: no-ai-slop
-description: "Purge conversational fluff, marketing jargon, and robotic prose from documentation and code comments."
+description: Edit drafts into sharper, more human writing while preserving the writer's personal voice, or detect AI-slop patterns without rewriting. Use when the user wants a draft clearer, more direct, more opinionated, or less AI-sounding, or asks whether writing reads as AI.
 ---
 
 # No AI slop

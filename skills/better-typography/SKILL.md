@@ -1,155 +1,162 @@
 ---
 name: better-typography
-description: 'Master web typography: type scales, line-height ratios, variable fonts, OpenType features (tnum, slashed-zero), wrapping & line measure (65ch), smart punctuation, CSS Cheat Sheet with Tailwind mappings, and mobile input accessibility.'
-license: MIT
-metadata:
-  version: "2.0.0"
+description: Focuses on type scale, spacing, sizing, variable fonts, OpenType features, wrapping, truncation and other details that make typography feel great across your product.
 ---
 
-# Web Typography: Complete Engineering Handbook
+# Typography
 
-A comprehensive engineering guide for digital typography: type scales, line heights, variable font axes, OpenType features, measure capping, smart punctuation, and mobile input accessibility.
+Typography is mostly restraint: a sensible scale, comfortable spacing, enough contrast. A label, a table cell, a marketing headline and an article paragraph do not share one set of rules.
 
----
+When reviewing, read the rendered page instead of scanning the code. Bad wrapping, widows and truncation only show up at real content lengths.
 
-## 1. Core Principles of Typography
+Write every fix in the project's styling system, and use the exact values below rather than familiar-looking equivalents. The [cheat sheet](css-cheat-sheet.md) maps each declaration to its Tailwind equivalent.
 
-Typography is mostly restraint: a disciplined scale, comfortable vertical rhythm, and sufficient contrast.
-- **Serve `.woff2`**: Use modern WOFF2 with Brotli compression on the web. `.ttf` and `.otf` are uncompressed desktop formats.
-- **Properties over Raw Tags**: When a CSS property exists, use it (`font-weight: 650`, `font-optical-sizing: auto`, `font-variant-numeric: tabular-nums`). Reserve raw `font-feature-settings` for custom axes (`"GRAD" 80`) or niche stylistic sets (`"ss01"`).
-- **Fewer Fonts & Weights**: Rarely use more than two typeface families (primary body/heading + monospace code).
-- **Weight Floor**: Below `18px`, stay at weight `400` or heavier. Weights under `300` are display-only at `28px`+; they degrade and disappear at small sizes.
-- **Font Smoothing on Root**:
-  ```css
-  html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  ```
+The words themselves belong to `better-writing`. Semantic heading structure belongs to `better-accessibility`. Spatial RTL layout and logical properties belong to `better-layout`. Contrast measurement belongs to `better-colors`. This skill owns how text renders, wraps and behaves in mixed-direction content.
 
----
+## Serve the right format
 
-## 2. Type Scale & Role Hierarchy
+Use `.woff2` on the web, for Brotli compression and broad support. `.woff` is a fallback for very old browsers. `.ttf` and `.otf` are desktop formats with no web compression. How the files load is the project's concern.
 
-A disciplined type scale maps each semantic role to an exact size, line-height, and weight:
+## Properties over raw tags
 
-| Role | CSS Size | Equivalent Pixels | Line-Height | Recommended Weight | Tailwind Class |
-|---|---|---|---|---|---|
-| **Display** | `2.25rem` | 36px | `1.1` | `700` (Bold) | `text-4xl leading-tight font-bold` |
-| **Title / H1** | `1.5rem` | 24px | `1.2` | `600` (SemiBold) | `text-2xl leading-snug font-semibold` |
-| **Heading / H2**| `1.125rem` | 18px | `1.3` | `600` (SemiBold) | `text-lg leading-snug font-semibold` |
-| **Body (Default)**| `1.0rem` | 16px | `1.5`–`1.6` | `400` (Regular) | `text-base leading-relaxed font-normal` |
-| **UI / Inputs** | `0.875rem` | 14px | `1.4` | `500` (Medium) | `text-sm leading-normal font-medium` |
-| **Captions / Pills**| `0.8125rem` | 13px | `1.3` | `500` (Medium) | `text-xs leading-normal font-medium` |
+When a CSS property exists, use it. `font-weight: 650` instead of `font-variation-settings: "wght" 650`. `font-optical-sizing: auto` instead of `"opsz"`. `font-variant-numeric: tabular-nums` instead of `font-feature-settings: "tnum" 1`.
 
-### Heading Hierarchy Rules
-- Map heading levels to descending steps of the scale. A visually subordinate heading must never overpower its parent.
-- Never choose an HTML heading element (`<h1>`–`<h6>`) merely for its browser default size; choose semantics first, then style in CSS.
+Properties keep working when a non-variable fallback renders. Reserve raw tags for custom axes (`"GRAD" 80`) and niche features (`"ss01" 1`) with no property of their own. Axes and feature tags are listed in [variable-fonts-and-opentype.md](variable-fonts-and-opentype.md).
 
----
+## Load intended weights and styles
 
-## 3. Line-Height, Letter-Spacing & Measure
+Browsers synthesize a weight or style the active family doesn't provide, distorting the real face. Load the faces the design uses.
 
-### Line-Height by Role
-- **Headings**: Tighter leading (`1.1` to `1.25`).
-- **Body Text**: Generous leading (`1.5` to `1.65`). Never use `leading-none` or `line-height: 1.1` on text that wraps to 3+ lines.
+`font-synthesis: none` turns synthesis off, but it erases emphasis rather than reporting it. Set it only after checking every required bold, italic, small-cap, superscript and subscript form stays distinct across the fallback stack.
 
-### Letter-Spacing (Tracking)
-- **Large Headings**: Slightly negative tracking (`-0.01em` to `-0.02em` / `tracking-tight`).
-- **Uppercase Badges & Overlines**: Slightly positive tracking (`0.05em` to `0.1em` / `tracking-wider`).
-- **Arabic Text**: Strictly `letter-spacing: 0` (Banned in Arabic script).
+## Fewer fonts, sizes and weights
 
-### Line Measure (Capping Length)
-Lines longer than 75 characters strain reading comprehension. Cap long-form prose between 60–75 characters per line:
-```css
-.article-body, .prose {
-  max-width: 65ch; /* Or max-w-2xl in Tailwind */
-}
-```
+Rarely use more than three fonts. Weight and size define hierarchy; overusing them hurts readability fast. Pair for contrast, not similarity: a serif headline over a sans body reads as deliberate, two near-identical sans-serifs read as a mistake.
 
----
+Below `18px`, stay at weight `400` or heavier. Weights under `300` are display-only at `28px`+; they disappear at text sizes. Pairing guidance is in [choosing-fonts.md](choosing-fonts.md).
 
-## 4. Wrapping, Overflow & Truncation
+## Use a type scale with semantic names
 
-| Goal | CSS Declaration | Tailwind Equivalent | Use Case |
-|---|---|---|---|
-| Balance heading wraps | `text-wrap: balance;` | `text-balance` | Short 2-3 line headlines |
-| Prevent single orphaned words | `text-wrap: pretty;` | `text-pretty` | Card descriptions, paragraphs |
-| Break long URLs or IDs | `overflow-wrap: break-word;` | `break-words` | User IDs, hashes, links |
-| Single-line truncation | `white-space: nowrap; overflow: hidden; text-overflow: ellipsis;` | `truncate` | Table cells, badges |
-| Multi-line clamp | `display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;` | `line-clamp-2` | Summary cards |
+Define a small set of sizes and deviate from it as little as possible. Hard-coded sizes with no system behind them break down at scale.
 
----
+Solo, default names like `text-sm` are fine when the usage rules are clear. On a team, name sizes by use (`text-body-sm`) so the rules survive other people. Scale construction is in [spacing-and-sizing.md](spacing-and-sizing.md).
 
-## 5. Variable Fonts & OpenType Features
+## Heading sizes descend with level
 
-### Common Variable Font Axes
-- `wght` (Weight: 100–900): Controlled via `font-weight: 550;`.
-- `opsz` (Optical Sizing): Controlled via `font-optical-sizing: auto;`.
-- `wdth` (Width): Controlled via `font-stretch: 90%;`.
+Map heading levels to descending steps of the type scale, so a visually subordinate heading never overpowers its parent. Adjacent levels may share a size toward the small end of the scale, as long as weight or spacing keeps them distinct. The semantic element is `better-accessibility`'s; this skill sets only the visual treatment.
 
-### High-Impact OpenType Features
+## Line-height by role
 
-```css
-/* 1. Tabular Numbers: Equal-width digits for changing counters/tables */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
+Headings tighter, around `1.1`. Body copy `1.5` to `1.6`. Prefer unitless values, so line-height scales with the font size; a fixed `24px` does not.
 
-/* 2. Slashed Zero: Distinguish number 0 from letter O */
-.slashed-zero {
-  font-variant-numeric: slashed-zero;
-}
+Tight line-height is for short text. Anything that wraps to three or more lines needs at least `1.4`, even in a height-constrained row.
 
-/* 3. Real Small Capitals */
-.small-caps {
-  font-variant-caps: small-caps;
-}
+## Letter-spacing by size
 
-/* 4. Stylistic Sets (e.g. Inter single-story 'a' or curved 'r') */
-.custom-style {
-  font-feature-settings: "ss01" 1, "cv11" 1;
-}
-```
+Large headings often look better with slightly negative letter-spacing. Small uppercase labels need a little positive letter-spacing, or the letters feel crowded. Body copy at reading sizes needs neither.
 
----
+## Cap the measure
 
-## 6. CSS Cheat Sheet: Vanilla CSS to Tailwind Mappings
+Long lines make it hard for the eye to find the next one. Cap long-form text around 60–75 characters per line. Any unit works, as long as a cap exists and the line length lands in range. See [unit choices and the pixel equivalents](wrapping-and-punctuation.md#measure-line-length).
 
-| Style Goal | Vanilla CSS | Tailwind CSS |
-|---|---|---|
-| **Tabular Numbers** | `font-variant-numeric: tabular-nums;` | `tabular-nums` |
-| **Slashed Zero** | `font-variant-numeric: slashed-zero;` | `slashed-zero` |
-| **Heading Balance** | `text-wrap: balance;` | `text-balance` |
-| **Orphan Prevention** | `text-wrap: pretty;` | `text-pretty` |
-| **Tight Tracking** | `letter-spacing: -0.025em;` | `tracking-tight` |
-| **Wide Tracking** | `letter-spacing: 0.05em;` | `tracking-wider` |
-| **Underline Offset** | `text-underline-offset: 4px;` | `underline-offset-4` |
-| **Skip Descenders** | `text-decoration-skip-ink: auto;` | `[text-decoration-skip-ink:auto]` |
-| **Text Truncation** | `overflow: hidden; text-overflow: ellipsis; white-space: nowrap;` | `truncate` |
-| **Line Clamp (3 lines)**| `-webkit-line-clamp: 3;` | `line-clamp-3` |
-| **Font Smoothing** | `-webkit-font-smoothing: antialiased;` | `antialiased` |
+## Wrap deliberately
 
----
+Four declarations, four jobs:
 
-## 7. Mobile Accessibility & Punctuation Rules
+- `text-wrap: balance` distributes text evenly across lines. Use it on headings.
+- `text-wrap: pretty` stops a single short word landing on the final line. Use it on descriptions.
+- `overflow-wrap: break-word` where a long word, link, or ID could escape the container.
+- `white-space: nowrap` on labels and badges where a line break looks broken.
 
-### 16px Input Rule for iOS Safari
-iOS Safari automatically zooms in and scales the entire viewport when any input element has a `font-size` smaller than `16px`.
-- Always set input font size to at least `16px` on mobile:
-  ```css
-  input, select, textarea {
-    font-size: 16px; /* Prevents auto-zoom on mobile */
-  }
-  @media (min-width: 640px) {
-    input, select, textarea {
-      font-size: 14px; /* Scaled down for desktop */
-    }
-  }
-  ```
+Skip `balance` and `pretty` in long-form text.
 
-### Smart Punctuation in Prose
-- **En Dash for Ranges**: Use `2024–2026`, not hyphen `2024-2026`.
-- **Em Dash for Asides**: Use `—` instead of two hyphens `--`.
-- **Ellipsis Character**: Use `…` (`&hellip;`), not three separate periods `...`.
-- **Non-Breaking Spaces**: Use `&nbsp;` between numbers and units (e.g. `16&nbsp;px`, `50&nbsp;MB`) so values never split across line wraps.
+## Tabular numbers on changing values
+
+Digits have different widths by default, so timers, counters and prices shift the layout as they update. Apply `font-variant-numeric: tabular-nums` to any value that changes.
+
+## Truncate without losing content
+
+For a single line, `text-overflow: ellipsis` with `overflow: hidden` and `white-space: nowrap`. For several, `line-clamp`. Truncation hides content. When the missing text matters, keep the full value reachable in a tooltip or an expanded view.
+
+## Write copy naturally, style with CSS
+
+Store text in natural case and control presentation with `text-transform`, so a redesign never means rewriting copy.
+
+Use smart punctuation in rendered text:
+
+- Curly quotes in prose, straight quotes in code.
+- An en dash for ranges: `2010–2020`.
+- The single ellipsis character, not three periods.
+- `&nbsp;` to hold `16 px` together across a line break.
+- `&shy;` to say where a long word may break.
+
+## Underlines from the font
+
+Default underlines sit wherever the browser decides. Pull position and thickness from the font's own metrics with `text-underline-position: from-font` and `text-decoration-thickness: from-font`. Tune by hand with `text-decoration-thickness`, `text-underline-offset` and `text-decoration-skip-ink`.
+
+`text-decoration-style` draws the line dotted, dashed, or wavy. A dotted underline is a common hint that a word carries extra information, such as an abbreviation or a defined term.
+
+Color is the only part of a real underline that animates reliably. So unless the only thing animating is the color, build the underline as a separate element rather than using `text-decoration`.
+
+## Inputs at 16px on mobile
+
+iOS Safari zooms the whole page when an input's text is smaller than `16px`. Two fixes hold the size at `16px` and look different, so ask which one the design wants:
+
+- Size the input up on mobile (`text-base sm:text-sm`). Changes how it looks on small screens.
+- Keep `font-size: 16px` and render the intended size with `transform: scale()`, compensating width and `line-height`. Identical at every viewport, more code to maintain.
+
+Both recipes are in [details-and-accessibility.md](details-and-accessibility.md).
+
+## Size and contrast floors
+
+Start long-form body text at `16px`, the browser default. Move off it only for a reason you can name: the typeface runs small, the measure is narrow, or the product is a dense professional tool.
+
+UI text can go smaller. `14px` is a useful starting point for inputs and menus, `13px` for captions and rarely below `12px`. Inputs still need `16px` on mobile.
+
+When text looks low-contrast, use `better-colors` to measure the rendered pair and `better-accessibility` to classify the requirement. Leave the colors alone unless asked.
+
+## Font smoothing on the root
+
+On macOS, text renders heavier than intended. Apply `-webkit-font-smoothing: antialiased` and `-moz-osx-font-smoothing: grayscale` once on the root layout, never per component. Tailwind's `antialiased` covers both.
+
+## Language and bidi behavior
+
+Set `lang` so browsers and assistive technology pick the right pronunciation, quotes and hyphenation. Set `dir` at the document or at the content boundary where direction changes. Preserve digit order, and use `<bdi>` to isolate a mixed-direction value. Spatial mirroring and logical CSS properties belong to `better-layout`.
+
+## Keep useful text selectable
+
+Keep text selectable by default. `::selection` can carry brand into the reading experience, as long as the selected combination stays legible.
+
+`user-select: none` belongs on a draggable or gesture-driven surface where accidental selection interferes. Never across the interface and never because a button label can be highlighted.
+
+## Before you finish
+
+| Mistake | Fix |
+| --- | --- |
+| Synthesized face differs from the design | Load the real face; disable only the verified synthesis mode |
+| Child heading visually overpowers its parent | Map that section's hierarchy to descending scale steps |
+| Heading element picked for its default size | Choose semantics first, then set the size in CSS |
+| Orphan on the last line of a paragraph | `text-wrap: pretty` |
+| Lopsided two-line heading | `text-wrap: balance` |
+| Justified text in an interface | `text-align: start`; reserve justify for specific editorial layouts |
+| Underline cuts through descenders | `text-decoration-skip-ink: auto`, `from-font` metrics |
+| Mixed-direction value renders in the wrong order | Correct `lang`/`dir`; isolate the value with `<bdi>` |
+| Selection disabled across application chrome | Restore it; suppress only where it conflicts with a drag or gesture |
+| Extra-info hint with no visual cue | Dotted underline via `text-decoration-style: dotted` |
+| Thin/Light weight on `14px` UI text | Weight `400`+ below `18px`; thin weights are display-only |
+| `leading-none` on a three-line card description | At least `1.4` on any text that wraps to 3+ lines |
+
+## Reporting
+
+**Severity.** `HIGH` makes text unreadable or truncates content with no way to recover it. `MEDIUM` breaks the type system or the heading hierarchy. `LOW` is isolated polish.
+
+**Verification.** Without a browser: computed size and weight for each heading level, checked descending; declared line-height and measure; truncation rules against realistic string lengths. With one: resize the viewport to catch wrapping, widows and truncation at real content lengths. Report every check you could not run as `Not verified`.
+
+**Format.** Group findings under the principle each violates, ordered by severity, one row per root cause listing every location it appears in:
+
+| Severity | Location | Before | After | Why |
+| --- | --- | --- | --- | --- |
+
+`Location` is `path/to/file:line`. `Why` names the principle and the user impact.
+
+End with `Block` when any `HIGH` remains, `Approve` otherwise, leaving the rest in the table as work to do. Never `Approve` coverage you did not inspect. With nothing to report, state "No actionable typography findings" and report verification.

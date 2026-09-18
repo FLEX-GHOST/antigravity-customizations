@@ -5,10 +5,16 @@ description: Anti-AI UI slop rules, semantic color ramps, button hierarchy, 6 in
 
 # Anti-AI UI Slop, Color Discipline & Button Architecture
 
-Strictly forbid cookie-cutter AI aesthetic defaults. Ship intentional, production-ready interfaces.
+Strictly forbid cookie-cutter AI aesthetic defaults. Ship intentional, human-crafted, production-ready interfaces.
 
-## 1. Anti-Default UI Slop Discipline
-- **Banned AI Cliches**: Never generate generic AI-purple/violet gradients on dark backgrounds, glowing blur blobs, centered hero text over dark mesh backgrounds, or three identical floating feature cards.
+## 1. Anti-Default UI Slop Discipline (The Craft Floor)
+- **Banned AI Cliches**:
+  - Never generate generic AI-purple/violet gradients (`#7c3aed`, `#8b5cf6`, `#6366f1`) on dark backgrounds.
+  - Never use glowing blur blobs, centered mesh backgrounds, or amorphous radial glow behind hero sections.
+  - Never use the three identical floating cards layout (icon + heading + paragraph). Use asymmetric layouts or contextual grids.
+  - Never use the hero-metric template (giant number + tiny label + accent) unless mathematically justified.
+  - Never place a kicker or uppercase tracked-out eyebrow label (`text-xs uppercase tracking-widest`) above headings. Let the heading speak.
+  - Never use gradient text (`background-clip: text`). Visual emphasis comes from typography weight, scale, and contrast.
 - **No Faux Glassmorphism**: Avoid slapping `backdrop-filter: blur()` and transparent borders on elements without structural hierarchy or clear purpose.
 - **Intentional Aesthetic Direction**: Infer the domain and user audience before styling. Pair typography thoughtfully; avoid defaulting to unstyled browser fonts or generic centered templates.
 
@@ -32,6 +38,7 @@ Strictly forbid cookie-cutter AI aesthetic defaults. Ship intentional, productio
   - `disabled`: Low contrast, `cursor: not-allowed`, and `aria-disabled="true"`.
   - `loading`: Visual spinner or pulse with preserved element dimensions.
 
-## 4. Vector Iconography Standards
+## 4. Vector Iconography & Browser Surfaces
 - **SVGs Over Emojis**: Never dump raw emojis into UI buttons, badges, or headers. Use clean, scalable SVGs from standard libraries (`lucide`, `phosphor`, `heroicons` via `better-icons`).
 - **Consistent Metrics**: Match stroke width, bounding box (16px, 20px, 24px), and optical weight across all icons on the same page.
+- **Style Browser Surfaces**: Custom focus rings, text selection (`::selection`), caret color, and scrollbars must be themed to match the palette rather than left at ugly browser defaults.
