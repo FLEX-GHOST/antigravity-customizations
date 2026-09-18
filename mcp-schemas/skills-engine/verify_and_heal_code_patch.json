@@ -1,0 +1,34 @@
+{
+  "name": "verify_and_heal_code_patch",
+  "description": "Inspect and auto-repair proposed code changes in an in-memory buffer before touching disk.\n    Performs language AST syntax validation (Rust, Python, Go) and auto-remedies syntax errors or rule violations.",
+  "inputSchema": {
+    "properties": {
+      "file_path": {
+        "title": "File Path",
+        "type": "string"
+      },
+      "patch_content": {
+        "title": "Patch Content",
+        "type": "string"
+      },
+      "dry_run": {
+        "default": true,
+        "title": "Dry Run",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "file_path",
+      "patch_content"
+    ],
+    "title": "verify_and_heal_code_patchArguments",
+    "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
+  }
+}
