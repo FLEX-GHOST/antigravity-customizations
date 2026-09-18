@@ -1,3 +1,6 @@
+import subprocess
+import shutil
+import threading
 import hmac
 import hashlib
 import concurrent.futures
@@ -3873,7 +3876,20 @@ _TG_API_CACHE: Dict[str, Any] = {}
 
 def get_telegram_api_specs() -> Tuple[Dict[str, Any], Dict[str, Any]]:
     global _TG_API_CACHE
-    if "methods" in _TG_API_CACHE and "types" in _TG_API_CACHE:
+    spec_paths = [
+        Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/references"),
+        Path("/root/antigravity-customizations/skills/telegram-bot-api-methods/references"),
+        HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references"
+    ]
+    target_m_file = None
+    for p in spec_paths:
+        m_file = p / "api_methods.json"
+        if m_file.exists():
+            target_m_file = m_file
+            break
+
+    curr_mtime = target_m_file.stat().st_mtime if target_m_file else 0.0
+    if "methods" in _TG_API_CACHE and "types" in _TG_API_CACHE and _TG_API_CACHE.get("mtime") == curr_mtime:
         return _TG_API_CACHE["methods"], _TG_API_CACHE["types"]
 
     spec_paths = [
@@ -3897,6 +3913,7 @@ def get_telegram_api_specs() -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
     _TG_API_CACHE["methods"] = methods
     _TG_API_CACHE["types"] = types
+    _TG_API_CACHE["mtime"] = curr_mtime
     return methods, types
 
 TG_ARABIC_INTENT_MAP = {
@@ -3939,8 +3956,112 @@ TG_ARABIC_INTENT_MAP = {
     "هدايا": "sendGift",
 }
 
+
+# =========================================================
+# Autonomous GitHub-to-MCP Synchronizer Engine
+# =========================================================
+
+_LAST_GITHUB_CHECK_TIME = 0.0
+_GITHUB_CHECK_COOLDOWN = 60.0  # Check at most once per 60s
+
+def check_and_sync_github_updates(force: bool = False) -> Dict[str, Any]:
+    """Autonomous engine: checks if GitHub bot pushed new Bot API methods,
+    and automatically pulls and re-indexes SQLite FTS5 with zero server intervention."""
+    global _LAST_GITHUB_CHECK_TIME, _TG_API_CACHE
+    now = time.time()
+    if not force and (now - _LAST_GITHUB_CHECK_TIME < _GITHUB_CHECK_COOLDOWN):
+        return {"status": "SKIPPED_COOLDOWN", "elapsed_s": round(now - _LAST_GITHUB_CHECK_TIME, 1)}
+
+    _LAST_GITHUB_CHECK_TIME = now
+    repo_dir = Path("/root/antigravity-customizations")
+    if not (repo_dir / ".git").exists():
+        return {"status": "NO_GIT_REPO"}
+
+    try:
+        res = subprocess.run(
+            ["git", "ls-remote", "origin", "refs/heads/main"],
+            cwd=str(repo_dir),
+            capture_output=True,
+            text=True,
+            timeout=8
+        )
+        if res.returncode != 0 or not res.stdout.strip():
+            return {"status": "REMOTE_CHECK_FAILED"}
+
+        remote_sha = res.stdout.strip().split()[0]
+        local_res = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(repo_dir),
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        local_sha = local_res.stdout.strip() if local_res.returncode == 0 else ""
+
+        if local_sha == remote_sha:
+            return {"status": "IN_SYNC", "sha": local_sha}
+
+        # GitHub bot committed an update! Pull changes
+        logger.info(f"[MCP Auto-Sync] GitHub bot pushed updates! {local_sha[:8]} -> {remote_sha[:8]}. Pulling...")
+        pull_res = subprocess.run(
+            ["git", "pull", "--ff-only", "origin", "main"],
+            cwd=str(repo_dir),
+            capture_output=True,
+            text=True,
+            timeout=15
+        )
+        if pull_res.returncode != 0:
+            return {"status": "PULL_ERROR", "error": pull_res.stderr}
+
+        # Sync reference files
+        ref_src = repo_dir / "skills" / "telegram-bot-api-methods" / "references"
+        for target in [
+            Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods/references"),
+            HOME_DIR / ".gemini/config/skills/telegram-bot-api-methods/references"
+        ]:
+            target.mkdir(parents=True, exist_ok=True)
+            for fname in ["api_methods.json", "api_types.json", "version.json", "methods_table.md"]:
+                sf = ref_src / fname
+                if sf.exists():
+                    shutil.copy2(sf, target / fname)
+
+        # Clear in-memory spec cache
+        _TG_API_CACHE.clear()
+
+        # Re-index SQLite FTS5 in real time
+        idx_res = sync_telegram_bot_api_upstream(force=True)
+
+        return {
+            "status": "AUTO_UPDATED",
+            "previous_sha": local_sha[:8],
+            "new_sha": remote_sha[:8],
+            "reindex_result": idx_res
+        }
+    except Exception as e:
+        return {"status": "ERROR", "error": str(e)}
+
+def _start_autonomous_github_watcher():
+    def _worker():
+        # Initial check on boot after 5s
+        time.sleep(5)
+        try:
+            check_and_sync_github_updates(force=True)
+        except Exception:
+            pass
+        while True:
+            try:
+                time.sleep(120)  # Continuous background check every 2 minutes
+                check_and_sync_github_updates(force=False)
+            except Exception:
+                pass
+    t = threading.Thread(target=_worker, daemon=True, name="mcp-github-watcher")
+    t.start()
+
+_start_autonomous_github_watcher()
+
 @mcp.tool()
 def get_telegram_bot_api_spec(query: str, query_type: Optional[str] = None) -> Dict[str, Any]:
+    check_and_sync_github_updates(force=False)
     """Retrieve full official specification, parameters, return types, and Rust execution pattern for any Telegram Bot API method or type (Bot API 10.3 / 9.4+).
     Supports English method names (e.g. 'sendMessage', 'sendPaidMedia', 'InlineKeyboardButton') and Arabic intents (e.g. 'حظر عضو', 'أزرار ملونة', 'رابط دعوة')."""
     t0 = time.perf_counter()
