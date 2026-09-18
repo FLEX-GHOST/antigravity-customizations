@@ -17,156 +17,419 @@ mcp = FastMCP("skills-engine")
 DB_PATH = Path("/root/.gemini/mcp-servers/skills-engine/skills_index.db")
 
 SEARCH_PATHS = [
-    Path("/root/.gemini/skills-catalog/repos/anthropics-skills"),
-    Path("/root/.gemini/skills-catalog/repos/alirezarezvani-claude-skills"),
-    Path("/root/.gemini/skills-catalog/repos/awesome-cursorrules"),
-    Path("/root/.gemini/skills-catalog/repos/composiohq-awesome-claude-skills"),
     Path("/root/.gemini/config"),
-    Path("/root/.gemini/antigravity-ide/brain/anti_slop_official_rules"),
+    Path("/root/.gemini/antigravity-ide/builtin/skills"),
+    Path("/root/.gemini/antigravity-ide/builtin/rules"),
     Path("/root/bots/factory/.agents"),
+    Path("/root/bots/music/.agents"),
+    Path("/root/bots/rusttgcalls/.agents"),
+    Path("/root/bots"),
     Path("/root/storage-dashboard/.agents/skills"),
     Path("/root/.gemini/skills-catalog"),
 ]
 
-# Comprehensive everyday Arab & Iraqi programmer dialect and technical intent map
-AR_STEM_MAP = {
-    # --- Common Everyday Actions & Directives (أوامر وطلبات البرمجة اليومية) ---
-    "حل مشكل": "root-cause systematic-debugging troubleshooting fix bug code_integrity",
-    "حل المشكل": "root-cause systematic-debugging troubleshooting fix bug code_integrity",
-    "مشكل": "debugging root-cause fix patch troubleshooting error",
-    "اضف ميز": "feature implementation builder scaffolding new-feature",
-    "اضافة ميز": "feature implementation builder scaffolding new-feature",
-    "ضيف ميز": "feature implementation builder scaffolding new-feature",
-    "سوي ميز": "feature implementation builder scaffolding new-feature",
-    "ضيف": "feature implementation builder add-feature",
-    "سويلي": "feature builder create implement",
-    "سوي": "feature builder create implement",
-    "ابني": "scaffolding builder architecture implementation",
-    "صلح": "fix bug refactor patch correct code_integrity systematic-debugging",
-    "فيكس": "bugfix patch refactor repair integrity systematic-debugging",
+RAW_AR_STEM_MAP: Dict[str, str] = {
+    # --- Telegram Bots & Factory Architecture ---
+    "بوت ميوزك فليكس": "telegram-music-bot audio-streaming rusttgcalls gotgcall gogram pytgcalls voice-chat webrtc ffmpeg playback rust go golang python flexmusic queue",
+    "بوت ميوزك": "telegram-music-bot audio-streaming rusttgcalls gotgcall pytgcalls voice-chat webrtc ffmpeg playback rust go golang python",
+    "بوت الميوزك": "telegram-music-bot audio-streaming rusttgcalls gotgcall pytgcalls voice-chat webrtc ffmpeg playback rust go golang python",
+    "بوت ميوزك بالرست": "rusttgcalls rust telegram-music-bot audio-streaming voice-chat webrtc tokio playback",
+    "بوت ميوزك رست": "rusttgcalls rust telegram-music-bot audio-streaming voice-chat webrtc tokio playback",
+    "بوت ميوزك بالجو": "gotgcall gogram golang telegram-music-bot audio-streaming voice-chat webrtc",
+    "بوت ميوزك جو": "gotgcall gogram golang telegram-music-bot audio-streaming voice-chat webrtc",
+    "بوت ميوزك بالكو": "gotgcall gogram golang telegram-music-bot audio-streaming voice-chat webrtc",
+    "بوت ميوزك كو": "gotgcall gogram golang telegram-music-bot audio-streaming voice-chat webrtc",
+    "بوت ميوزك بايثون": "pytgcalls pyrogram telethon python telegram-music-bot audio-streaming voice-chat",
+    "مكتبة ميوزك رست": "rusttgcalls rust telegram group-calls live-stream webrtc tokio rtc audio-streaming",
+    "مكتبة ميوزك جو": "gotgcall gogram go telegram group-calls voice-chat pion webrtc audio-streaming",
+    "مكتبة ميوزك": "rusttgcalls gotgcall pytgcalls telegram group-calls voice-chat webrtc audio-streaming library",
+    "رست تي جي كولز": "rusttgcalls rust telegram group-calls live-stream webrtc audio-streaming",
+    "جو تي جي كولز": "gotgcall gogram go telegram group-calls voice-chat webrtc",
+    "كو تي جي كولز": "gotgcall gogram go telegram group-calls voice-chat webrtc",
+    "فليكس بوت": "telegram-bot telegram-bot-builder factory multi-tenant webhook architecture",
+    "مصنع البوتات": "telegram-bot-builder telegram-bot factory multi-tenant webhook architecture teloxide",
+    "مصنع": "telegram-bot-builder telegram-bot factory multi-tenant webhook architecture",
+    "بوت تحميل من تيك توك": "telegram-bot media-downloader yt-dlp video-download tiktok extraction",
+    "بوت تحميل": "telegram-bot media-downloader yt-dlp video-download audio-download extraction",
+    "تحميل من تيك توك": "telegram-bot media-downloader yt-dlp video-download tiktok extraction",
+    "فاست دي ال": "fastdl-rs rust media-downloader yt-dlp video-download extraction",
+    "تيك توك": "tiktok media-downloader yt-dlp video-download",
+    "انستا": "instagram media-downloader yt-dlp reel story video-download",
+    "انستغرام": "instagram media-downloader yt-dlp reel story video-download",
+    "ستوري": "story telegram-bot media-downloader video-download instagram",
+    "ستوريات": "stories telegram-bot media-downloader video-download instagram",
+    "ريلز": "reels instagram media-downloader yt-dlp video-download",
+    "يوت": "youtube streaming ytdlp audio playback yt-dlp search",
+    "يوتيوب": "youtube streaming ytdlp audio playback yt-dlp search",
+    "شازام": "shazam audio-recognition music-search telegram-bot track-identification",
+    "بوت تحويل الصيغ": "ffmpeg media-converter audio-converter video-transcoding format-conversion",
+    "تحويل الصيغ": "ffmpeg media-converter audio-converter video-transcoding format-conversion",
+    "صيغ": "format conversion transcoding ffmpeg media audio video",
+    "صيغة": "format conversion transcoding ffmpeg media audio video",
+    "لعبة اكس او": "inline-keyboard game state-machine telegram-bot interactive",
+    "اكس او": "inline-keyboard game state-machine telegram-bot interactive",
+    "العاب انلاين": "inline-keyboard game state-machine telegram-bot interactive",
+    "تليجرام": "telegram-bot telegram-bot-builder webhook floodwait mtproto teloxide",
+    "تيليجرام": "telegram-bot telegram-bot-builder webhook floodwait mtproto teloxide",
+    "تليغرام": "telegram-bot telegram-bot-builder webhook floodwait mtproto teloxide",
+    "تليكرام": "telegram-bot telegram-bot-builder webhook floodwait mtproto teloxide",
+    "تلكرام": "telegram-bot telegram-bot-builder webhook floodwait mtproto teloxide",
+    "تلي": "telegram-bot telegram-bot-builder webhook floodwait mtproto teloxide",
+    "بوت": "telegram-bot bot automation client webhook worker polling",
+    "بوتات": "telegram-bot telegram-bot-builder factory multi-tenant webhook architecture",
+    "قناة": "channel broadcast telegram bot admin notification",
+    "كروب": "group chat supergroup telegram-bot permissions administration",
+    "جروب": "group chat supergroup telegram-bot permissions administration",
+    "مجموعة": "group chat telegram-bot permissions management administration",
+    "سوبركروب": "supergroup telegram-bot permissions administration",
+    "سوبرجروب": "supergroup telegram-bot permissions administration",
+    "ويب هوك": "webhook telegram-webhook axum warp actix endpoint",
+    "ويبهوك": "webhook telegram-webhook axum warp actix endpoint",
+    "بولينغ": "polling long-polling telegram worker loop teloxide",
+    "بولينج": "polling long-polling telegram worker loop teloxide",
+    "فلود": "floodwait rate-limit retry backoff jitter telegram 420",
+    "فلود ويت": "floodwait rate-limit retry backoff jitter telegram 420",
+    "ريت لمت": "rate-limit token-bucket sliding-window api-rate-limiting floodwait",
 
-    # --- UI, Design & Slop (واجهات، ألوان، أزرار، تصميم تعبان/زبالة/خايس) ---
-    "ازرار": "button-states interactive hover focus active telegram-button-styling button_hierarchy",
-    "زرار": "button-states interactive hover focus active telegram-button-styling",
-    "زر": "button states hierarchy interactive hover focus aria active",
-    "دكم": "button states hierarchy interactive hover focus telegram-button-styling",
-    "دكمه": "button states hierarchy interactive hover focus telegram-button-styling",
-    "كبس": "button states interactive click trigger action",
+    # --- Userbots, Assistant Accounts & MTProto Sessions ---
+    "حساب مساعد": "telegram client userbot mtproto telethon pyrogram grammers gogram session assistant",
+    "الحساب المساعد": "telegram client userbot mtproto telethon pyrogram grammers gogram session assistant",
+    "دعوة مساعد للمجموعة": "telegram userbot assistant group invite mtproto",
+    "مساعد": "telegram client userbot mtproto assistant session pyrogram telethon gogram",
+    "يوزر المساعد": "telegram client userbot mtproto assistant username session",
+    "اكاونت مساعد": "telegram client userbot mtproto assistant session",
+    "جلسة": "session-string pyrogram telethon mtproto session authentication auth-key grammers gogram",
+    "جلسات": "session-string pyrogram telethon mtproto session authentication auth-key grammers gogram",
+    "استخراج جلسة": "session-string pyrogram telethon mtproto session authentication auth-key grammers gogram",
+    "استخراج الجلسة": "session-string pyrogram telethon mtproto session authentication auth-key grammers gogram",
+    "جلسة بايروجرام": "pyrogram session string mtproto auth client userbot",
+    "جلسة تليثون": "telethon session string mtproto auth client userbot",
+    "جلسة كرامرز": "grammers session string mtproto auth rust client",
+    "جلسة غرامرز": "grammers session string mtproto auth rust client",
+    "جلسة جوجرام": "gogram session string mtproto auth go golang client",
+    "جلسة كوكرام": "gogram session string mtproto auth go golang client",
+    "بايروجرام": "pyrogram python telegram mtproto userbot",
+    "تليثون": "telethon python telegram mtproto userbot",
+    "كرامرز": "grammers rust telegram mtproto client",
+    "غرامرز": "grammers rust telegram mtproto client",
+    "جوجرام": "gogram golang go telegram mtproto client",
+    "كوكرام": "gogram golang go telegram mtproto client",
+    "سترنك": "session-string string-session mtproto telethon pyrogram gogram",
+    "فايل توكن": "bot-token file-token authorization telegram-api",
+    "توكن": "bot-token authentication telegram token api-key",
+
+    # --- Audio, Voice Chat, Streaming & Media ---
+    "ميوزك": "music voice-chat stream pytgcalls rusttgcalls gotgcall audio playback ffmpeg live-stream rust go python",
+    "اغاني": "music voice-chat stream audio playback ffmpeg queue",
+    "موسيقى": "music audio stream playback pytgcalls rusttgcalls gotgcall",
+    "صوت": "audio voice stream sound ffmpeg playback",
+    "مكالمة صوتية نشطة": "voice-chat group-call pytgcalls rusttgcalls gotgcall webrtc stream audio active",
+    "مكالمة صوتية": "voice-chat group-call pytgcalls rusttgcalls gotgcall webrtc stream audio",
+    "مكالمة نشطة": "active-voice-chat group-call pytgcalls stream audio",
+    "مكالمة": "voice-chat group-call pytgcalls rusttgcalls gotgcall webrtc stream audio",
+    "فويس جات": "voice-chat group-call stream audio playback pytgcalls gotgcall",
+    "فويس شات": "voice-chat group-call stream audio playback pytgcalls gotgcall",
+    "فويس": "voice-chat group-call stream audio playback",
+    "ستريم": "stream audio video pytgcalls rusttgcalls gotgcall live-stream",
+    "كول": "voice-call group-call pytgcalls stream audio",
+    "تشغيل صوت": "audio playback ffmpeg pytgcalls voice-chat stream",
+    "اف ام بيج": "ffmpeg transcoding audio video conversion stream",
+    "اف اف ام بيج": "ffmpeg transcoding audio video conversion stream",
+
+    # --- Group Moderation & Bot Administration ---
+    "طرد البوتات": "telegram-bot telegram group moderation ban kick anti-bot security administration",
+    "طرد": "telegram-bot telegram group moderation ban kick permissions administration",
+    "حظر": "telegram-bot group moderation ban restrict permissions floodwait",
+    "فك الحظر": "telegram-bot unban permissions administration group moderation",
+    "كتم الصوت": "telegram-bot mute audio restrict permissions administration moderation",
+    "كتم": "telegram-bot mute restrict permissions silence administration moderation",
+    "الغاء الكتم": "telegram-bot unmute permissions administration group moderation",
+    "تقييد": "telegram-bot restrict permissions mute ban member group moderation",
+    "تثبيت رسالة": "telegram-bot pin message announcement admin moderation",
+    "تثبيت": "telegram-bot pin message announcement admin moderation",
+    "الغاء التثبيت": "telegram-bot unpin message admin moderation",
+    "قفل الكل": "telegram-bot group moderation permissions lock unlock auto-delete antispam",
+    "قفل الروابط": "telegram-bot antispam lock links delete-message permissions group moderation",
+    "قفل التوجيه": "telegram-bot lock forwards restrict permissions group moderation",
+    "قفل الصور": "telegram-bot lock photos media permissions group moderation",
+    "قفل الملصقات": "telegram-bot lock stickers media permissions group moderation",
+    "قفل الملصق المميز": "telegram-bot lock premium sticker custom-emoji moderation",
+    "فتح الملصق المميز": "telegram-bot unlock premium sticker custom-emoji moderation",
+    "فتح وقفل": "telegram-bot lock unlock permissions antispam group moderation",
+    "فتح": "telegram-bot unlock permissions allow member administration group",
+    "قفل": "telegram-bot lock permissions restrict member group moderation",
+    "تفعيل": "telegram-bot enable activate feature bot command configuration",
+    "تعطيل": "telegram-bot disable deactivate feature bot configuration",
+    "صلاحيات": "permission policy authorization grant allow access admin-rights telegram",
+    "برمشن": "permission policy allow auto-approve authorization turbo",
+    "اذن": "permission policy allow authorization grant",
+    "ادمن": "admin administrator permissions telegram group management",
+    "مشرف": "admin moderator administrator telegram group permissions",
+    "منشئ": "owner creator telegram group permissions root",
+
+    # --- UI Design, Buttons, Colors & Styling (Bot API 9.4 Standards) ---
+    "حل مشكلة الازرار": "telegram-button-styling button-states hierarchy bot-api-9.4 style primary success danger",
+    "لون الازرار": "telegram-button-styling button-states better-colors bot-api-9.4 style primary success danger",
+    "الازرار": "telegram-button-styling button-states hierarchy bot-api-9.4 inline-keyboard",
+    "دكم": "telegram-button-styling button-states hierarchy interactive hover focus",
+    "دكمة": "telegram-button-styling button-states hierarchy interactive hover focus",
+    "زر شفاف": "telegram-button-styling minimal transparent button styling clean-ui",
+    "زر": "button states hierarchy interactive hover focus aria active telegram-button-styling",
+    "ازرار": "telegram-button-styling button-states hierarchy bot-api-9.4 inline-keyboard",
+    "كبسة": "button states interactive click trigger action telegram-button-styling",
+    "كيبورد انلاين": "inline-keyboard reply-markup callback-query telegram-button-styling",
+    "انلاين كيبورد": "inline-keyboard reply-markup callback-query telegram-button-styling",
+    "كيبورد": "inline-keyboard reply-markup telegram-button-styling",
+    "انلاين": "inline-keyboard callback-query telegram-button-styling",
+    "الالوان تعبانة": "anti-ui-slop anti_ai_design better-colors visual-design unslop",
+    "الالوان زبالة": "anti-ui-slop anti_ai_design better-colors visual-design unslop",
     "تعبان": "anti-ui-slop anti_ai_design design-taste-frontend better-ui visual-design",
-    "زبال": "anti-ui-slop anti_ai_design clean-code refactor unslop",
+    "تعبانة": "anti-ui-slop anti_ai_design design-taste-frontend better-ui visual-design",
+    "زبالة": "anti-ui-slop anti_ai_design clean-code refactor unslop",
     "خايس": "anti-ui-slop anti_ai_design clean-code refactor unslop",
+    "خايسة": "anti-ui-slop anti_ai_design clean-code refactor unslop",
     "سلوب": "anti-ui-slop antislop anti_ai_design unslop visual-design",
     "تصميم": "ui frontend visual design styling typography web better-ui design-taste-frontend",
+    "واجهة": "ui frontend visual design styling typography web css better-ui",
     "واجه": "ui frontend visual design styling typography web css better-ui",
     "فرونت": "frontend react nextjs ui tailwind css design",
     "الوان": "colors palette contrast semantic tokens wcag accessibility better-colors",
     "لون": "colors palette contrast semantic tokens better-colors",
+    "باليت": "color palette semantic tokens better-colors contrast",
+    "تدرج": "gradient aesthetic anti-ui-slop styling css",
+    "خلفية": "background styling surface elevated css ui",
+    "شيل الخلفية": "transparent background minimal styling clean-ui",
+    "بدون خلفية": "transparent background minimal styling clean-ui",
+    "سايبر سكيورتي": "cybersecurity dark terminal dashboard sleek visual design",
     "بنفسج": "anti-ui-slop purple gradient bloat aesthetic anti_ai_design",
     "ايقون": "icons svg vector symbols lucide phosphor better-icons",
+    "ايقونات": "icons svg vector symbols lucide phosphor better-icons",
     "رمز": "icons svg vector symbols lucide better-icons",
+    "رموز": "icons svg vector symbols lucide better-icons",
     "خطوط": "better-typography web-typography font hierarchy scale readability",
     "خط": "typography font hierarchy scale readability web-typography",
-    "كود وصخ": "clean-code refactor clean-architecture code_integrity unslop",
-    "نظف": "refactor clean-code architecture unslop code_integrity",
-    "رتب": "refactor clean-code architecture project_structure_standards",
-    "تنظيف": "refactor clean-code architecture unslop",
-    "معمار": "clean-architecture modularity decoupled ddd ports-adapters",
+    "فونت": "typography font hierarchy readability better-typography",
+    "ايموجي مميز": "custom-emoji telegram-button-styling vector icons premium",
+    "الايموجي المميز": "custom-emoji telegram-button-styling vector icons premium",
+    "ستيكر مميز": "custom-emoji sticker premium telegram bot media",
+    "الملصق المميز": "custom-emoji sticker premium telegram bot media",
+    "ستيكر": "sticker custom-emoji telegram bot media",
+    "ستيكرات": "stickers custom-emoji telegram bot media",
+    "ملصق متحرك": "animated-sticker telegram media lottie tgs",
+    "ملصق": "sticker custom-emoji telegram bot media",
+    "ملصقات": "stickers custom-emoji telegram bot media",
+    "ميني اب": "telegram-mini-app twa webview webapp javascript react",
+    "تليجرام ميني اب": "telegram-mini-app twa webview webapp native haptic",
 
-    # --- Performance, Crashes & Memory (الأداء، التعليق، الرام، الكراش) ---
+    # --- Bugs, Crashes, Diagnostics & Debugging ---
+    "ما جاي يشتغل": "systematic-debugging troubleshooting root-cause fix error-handling resilience",
+    "مجاي يشتغل": "systematic-debugging troubleshooting root-cause fix error-handling resilience",
+    "ما يشتغل": "systematic-debugging troubleshooting root-cause fix error-handling resilience",
+    "ما جاي يحفظ": "persistence database storage sqlite commit serialization bug-fix",
+    "مجاي يحفظ": "persistence database storage sqlite commit serialization bug-fix",
     "معلك": "deadlock mutex lock synchronization concurrency tokio async freeze hang",
-    "صافن": "deadlock tokio async hang freeze mutex concurrency",
-    "واكف": "debugging crash troubleshooting error resilience",
-    "عطلان": "debugging crash troubleshooting error resilience",
-    "ما يشتغل": "debugging troubleshooting root-cause fix error",
+    "صافن": "deadlock tokio async hang freeze mutex concurrency starvation",
+    "واكف": "systematic-debugging crash troubleshooting error resilience hang",
+    "عطلان": "systematic-debugging crash troubleshooting error resilience defect",
+    "معطل": "systematic-debugging crash troubleshooting error resilience defect",
+    "يطفي فجاة": "systematic-debugging crash panic zero-panic supervisor systemd recovery exit",
+    "يطفي وحده": "systematic-debugging crash panic zero-panic supervisor systemd recovery exit",
+    "يطفي": "systematic-debugging crash panic zero-panic supervisor systemd recovery exit",
+    "يموت": "systematic-debugging crash panic supervisor systemd recovery exit",
+    "كراش": "systematic-debugging panic zero-panic resilience fault-tolerance recovery crash",
+    "كرش": "systematic-debugging panic zero-panic resilience fault-tolerance recovery crash",
+    "ضرب ايرور": "systematic-debugging panic crash error exception fault traceback debug",
+    "يضرب ايرور": "systematic-debugging panic crash error exception fault traceback debug",
+    "ضرب": "panic crash error exception fault",
+    "ايرور": "systematic-debugging error exception traceback debug fault-tolerance",
+    "خطا": "error handling thiserror anyhow result resilience backoff",
+    "اخطاء": "error handling thiserror anyhow result resilience backoff",
+    "اكسبشن": "exception error handling debug traceback",
+    "انفايند": "null undefined error handling option result",
+    "نل": "null-safety option result error handling nil",
+    "نيل": "null nil-safety option result error handling lua",
+    "شنو هاي المشكلة": "systematic-debugging root-cause error-handling diagnostic",
+    "حل المشكلة": "systematic-debugging root-cause error-handling bug-fix",
+    "حل المشكلة هاي": "systematic-debugging root-cause error-handling bug-fix",
+    "هاي المشكلة": "systematic-debugging root-cause error-handling bug-fix",
+    "اكو مشكلة": "systematic-debugging root-cause error-handling bug-fix",
+    "صلح المشكلة": "systematic-debugging root-cause bug-fix error-handling",
+    "صلح الاخطاء": "systematic-debugging root-cause bug-fix error-handling",
+    "صلح": "systematic-debugging bug-fix error-handling root-cause",
+    "فيكس": "bug-fix patch systematic-debugging repair",
+
+    # --- Performance, Memory, Concurrency & Low-Latency ---
+    "استهلاك الرام": "rust_performance_memory zero-ram-idle jemalloc memory-leak heap profiling buffer-reuse",
+    "استهلاك الرام ميغابايت": "rust_performance_memory zero-ram-idle jemalloc memory-leak heap profiling",
+    "ياكل رام": "rust_performance_memory memory optimization ram leak buffer jemalloc zero-ram-idle profiling",
+    "تسريب ذاكرة": "rust_performance_memory memory leak buffer retain cycle jemalloc resource-cleanup heap profiling",
+    "تسريب": "rust_performance_memory memory leak buffer retain cycle jemalloc resource-cleanup heap profiling",
+    "ليك": "rust_performance_memory memory leak buffer jemalloc resource cleanup heap profiling",
+    "ذاكرة": "rust_performance_memory memory optimization ram buffer cache leak jemalloc zero-allocation",
+    "رام": "rust_performance_memory memory optimization ram buffer leak jemalloc zero-allocation zero-ram-idle",
     "ثكيل": "performance latency speed zero-allocation optimize profiling benchmark",
+    "بطيء": "performance latency speed zero-allocation optimize bottleneck",
     "بطي": "performance latency speed zero-allocation optimize bottleneck",
+    "سريع": "performance optimization fast speed latency low-latency zero-allocation",
+    "سرعة فائقة": "performance optimization fast speed latency low-latency zero-allocation",
     "سرع": "performance optimization fast speed latency low-latency",
     "اداء": "performance latency speed zero-allocation profiling benchmark",
     "تحسين": "optimization performance profiling clean architecture",
-    "ذاكر": "memory optimization ram buffer cache leak jemalloc zero-allocation",
-    "رام": "memory optimization ram buffer leak jemalloc zero-allocation zero-ram-idle",
-    "ياكل رام": "memory optimization ram leak buffer jemalloc zero-ram-idle",
-    "تسريب": "memory leak buffer retain cycle jemalloc resource-cleanup",
-    "ليك": "memory leak buffer jemalloc resource cleanup",
-    "كراش": "panic zero-panic resilience fault-tolerance recovery error-handling",
-    "يطفي": "crash panic resilience supervisor systemd recovery",
-    "يموت": "crash panic resilience supervisor systemd recovery",
-    "ضرب": "panic crash error exception fault",
-    "قفل": "deadlock mutex lock synchronization concurrency parking_lot dashmap",
     "تزامن": "concurrency async tokio channel joinset worker pool",
     "توازي": "parallel async concurrency worker thread pool",
+    "بلوك": "tokio blocking spawn_blocking async zero-blocking worker starvation",
+    "بلوكينغ": "tokio blocking spawn_blocking async zero-blocking worker starvation",
+    "شانل": "channel mpsc broadcast watch tokio bounded backpressure",
+    "باك بريشر": "backpressure bounded-channel rate-limiting tokio queue",
 
-    # --- Telegram Bots & MTProto (تليكرام، بوتات، فلود، ويب هوك) ---
-    "تليجرام": "telegram bot webhook floodwait mtproto teloxide",
-    "تيليجرام": "telegram bot webhook floodwait mtproto teloxide",
-    "تليغرام": "telegram bot webhook floodwait mtproto teloxide",
-    "تليكرام": "telegram bot webhook floodwait mtproto teloxide",
-    "تلكرام": "telegram bot webhook floodwait mtproto teloxide",
-    "تلي": "telegram bot webhook floodwait mtproto teloxide",
-    "بوت": "bot telegram automation client webhook worker polling",
-    "بوتات": "telegram bot factory multi-tenant webhook architecture",
-    "قناة": "channel broadcast telegram bot admin notification",
-    "كروب": "group chat supergroup telegram bot permissions",
-    "مجموعة": "group chat telegram bot permissions management",
-    "كيبورد": "inline-keyboard reply-markup telegram-button-styling",
-    "انلاين": "inline-keyboard callback-query telegram-button-styling",
-    "ويب هوك": "webhook telegram-webhook axum warp actix",
-    "ويبهوك": "webhook telegram-webhook axum warp actix",
-    "بولينغ": "polling long-polling telegram worker loop",
-    "بولينج": "polling long-polling telegram worker loop",
-    "فلود": "floodwait rate-limit retry backoff jitter telegram 420",
-    "حظر": "floodwait rate-limit retry backoff jitter telegram ban",
-    "ستيكر": "sticker custom-emoji telegram bot media",
-    "ايموجي": "custom-emoji telegram-button-styling vector icons",
+    # --- Clean Code, Integrity & Verification ---
+    "نظف الكود": "clean-code clean-architecture code_integrity strict_comment_discipline unslop",
+    "نظف المشروع": "clean-code clean-architecture project_structure_standards unslop",
+    "نظف": "refactor clean-code architecture unslop code_integrity",
+    "تنظيف": "refactor clean-code architecture unslop",
+    "رتب الكود": "clean-code refactor architecture project_structure_standards",
+    "رتب": "refactor clean-code architecture project_structure_standards",
+    "ترتيب": "clean-code refactor architecture project_structure_standards",
+    "كود وصخ": "clean-code refactor clean-architecture code_integrity unslop",
+    "بالاستناد على المرجع": "code_integrity strict_comment_discipline backward-compatibility clean-code",
+    "بدون زيادة ولا نقصان": "code_integrity strict_comment_discipline backward-compatibility clean-code",
+    "نفسها": "code_integrity backward-compatibility preservation",
+    "شيل التعليقات": "strict_comment_discipline zero-ai-pollution clean-code",
+    "بدون تعليقات": "strict_comment_discipline zero-ai-pollution clean-code",
+    "المرجع": "code_integrity backward-compatibility clean-architecture reference",
+    "معمارية": "clean-architecture modularity decoupled ddd ports-adapters",
+    "معمار": "clean-architecture modularity decoupled ddd ports-adapters",
+    "كلين اركتكشر": "clean-architecture decoupled ddd modularity ports-adapters",
+    "تأكد بعد": "verification_discipline testing unit integration verification e2e",
+    "شيك بعد": "verification_discipline testing unit integration verification e2e",
+    "افحص": "verification_discipline testing unit integration verification audit",
+    "فحص كامل": "verification_discipline testing unit integration verification audit",
+    "شيك": "verification_discipline testing audit inspection check",
+    "تأكد": "verification_discipline testing inspection verification check",
+    "اختبار": "testing tdd pytest unit integration verification e2e",
+    "تيست": "testing unit integration verification tdd cargo-test",
+    "امان": "security vulnerability injection scanner sanitize auth owasp",
+    "حماية": "security vulnerability sanitize authentication jwt ssl",
+    "حماي": "security vulnerability sanitize authentication jwt ssl",
+    "ثغرة": "vulnerability exploit patch security injection xss sql",
+    "ثغر": "vulnerability exploit patch security injection xss sql",
 
-    # --- Errors & Resilience (الأخطاء والاستثناءات) ---
-    "خطا": "error handling thiserror anyhow result resilience backoff",
-    "ايرور": "error exception traceback debug fault-tolerance",
-    "اكسبشن": "exception error handling debug traceback",
-    "انفايند": "null undefined error handling option result",
-    "نل": "null-safety option result error handling",
+    # --- Git & Deployment ---
+    "ارفع التحديث": "git-commit-standards git-workflows conventional-commits git-push",
+    "ارفع التحديث مالته": "git-commit-standards git-workflows conventional-commits git-push",
+    "ارفع ل github": "git-commit-standards git-workflows git-push remote",
+    "ارفع على github": "git-commit-standards git-workflows git-push remote",
+    "ارفع": "git-commit-standards git-workflows git-push deploy upload",
+    "حدث": "git update refresh upgrade version keep-alive",
+    "تحديث": "git update refresh upgrade version dependencies",
+    "كمت": "git commit conventional-commits git-commit-standards",
+    "كوميت": "git commit conventional-commits git-commit-standards",
+    "بوش": "git push remote origin main git-workflows",
+    "ريبو": "repository git github git-workflows",
+    "مستودع": "repository git github git-workflows",
 
-    # --- Database & Storage (قواعد البيانات والتخزين) ---
+    # --- Directives & Action Verbs (Iraqi Dialect) ---
+    "سويلي": "create build implement generate add feature",
+    "سوي": "create build implement generate action",
+    "ضيفلي": "add create implement extend feature append",
+    "ضيف": "add create implement extend feature",
+    "عدلي": "edit update modify refactor adjust fix",
+    "عدل": "edit update modify refactor adjust fix",
+    "امسحلي": "delete remove clean purge erase strip",
+    "امسح": "delete remove clean purge erase strip",
+    "شيللي": "remove strip delete clean drop omit",
+    "شيل": "remove strip delete clean drop omit",
+    "شيلها": "remove strip delete clean drop omit",
+    "شيلهة": "remove strip delete clean drop omit",
+    "صلحلي": "fix repair debug resolve root-cause patch",
+    "صلح": "fix repair debug resolve root-cause patch",
+    "شوفلي": "inspect analyze find investigate check search diagnose",
+    "شوف": "inspect analyze find investigate check search diagnose",
+    "شيكلي": "verify audit check inspect test validate",
+    "طلعلي": "extract search retrieve display find show",
+    "طلع": "extract search retrieve display find show",
+    "نزللي": "install download clone fetch setup",
+    "نزل": "install download clone fetch setup",
+    "حول كود": "convert migrate translate refactor lua-to-rust port",
+    "حول": "convert migrate translate refactor transform port",
+    "كمل": "complete continue execute finish finalize resume",
+    "ابني": "build compile cargo architecture create construct",
+
+    # --- Search & Web ---
+    "ابحث في الانترنت وتعلم": "web-search search research documentation modern-api learn",
+    "ابحث في الانترنت عن": "web-search search research documentation query",
+    "ابحث في الانترنت": "web-search search research documentation web",
+    "ابحث": "web-search search research documentation web",
+    "اتعلم": "learn research documentation study best-practices",
+
+    # --- Databases ---
+    "قاعدة بيانات": "database sql sqlite postgres storage query schema migration",
     "قاعد": "database sql sqlite postgres storage query schema migration",
+    "بيانات": "database data storage dataset persist sqlite postgres",
     "بيان": "database data storage dataset persist sqlite postgres",
     "داتا": "database sqlite postgres sql query storage",
+    "داتابيز": "database sqlite postgres sql query storage schema",
     "سيكول": "sql sqlite postgres database query migration",
     "جدول": "database table schema sql migration sqlite",
-    "تخزين": "storage persist database file-system cache",
+    "تخزين": "storage persist database file-system cache disk",
     "كويري": "query sql database indexing optimization",
+    "كاش": "cache in-memory redis memory lru cache-layer",
 
-    # --- Languages & Frameworks (لغات وأطر العمل) ---
-    "رست": "rust tokio memory cargo async zero-allocation jemalloc",
-    "روست": "rust tokio memory cargo async zero-allocation jemalloc",
-    "بايثون": "python fastapi pydantic pytest asyncio",
+    # --- Languages & OS ---
+    "رست": "rust tokio memory cargo async zero-allocation jemalloc rust-patterns",
+    "روست": "rust tokio memory cargo async zero-allocation jemalloc rust-patterns",
+    "بايثون": "python fastapi pydantic pytest asyncio telethon pyrogram",
+    "لوا": "lua script migration lua-to-rust syntax",
     "جو": "go golang goroutine channel gin-gonic",
+    "كولانج": "go golang goroutine channel gin-gonic",
     "تايب": "typescript ts types interfaces generics react",
-    "جافاسكربت": "javascript nodejs ecmascript typescript",
-    "رياكت": "react frontend hooks state components nextjs",
-    "نيكست": "nextjs react ssr frontend components",
-
-    # --- System & DevOps (الأنظمة، السيرفرات، الشبكات) ---
+    "تايب سكربت": "typescript ts types interfaces generics react nodejs",
+    "جافاسكربت": "javascript nodejs ecmascript typescript frontend",
+    "رياكت": "react frontend hooks state components nextjs ui",
+    "نيكست": "nextjs react ssr frontend components web",
     "لينكس": "linux debian ubuntu systemd process terminal bash shell",
+    "يوبنتو": "ubuntu linux debian systemd apt package terminal",
     "سيرفر": "server daemon systemd linux deployment proxy nginx",
     "خادم": "server daemon systemd linux deployment proxy nginx",
+    "حاوية": "docker container dockerfile compose kubernetes orchestration",
     "حاوي": "docker container dockerfile compose kubernetes",
-    "دوكر": "docker container dockerfile compose orchestration",
-    "شبك": "network http websocket tls client rate-limit",
-    "ويب": "web html css vanilla responsive api integration",
-    "امان": "security vulnerability injection scanner sanitize auth owasp",
-    "حماي": "security vulnerability sanitize authentication jwt ssl",
-    "ثغر": "vulnerability exploit patch security injection xss sql",
-    "اختبار": "testing tdd pytest unit integration verification e2e",
-    "تيست": "testing unit integration verification tdd",
+    "دوكر": "docker container dockerfile compose orchestration containerization",
+    "كونتينر": "docker container containerization dockerfile compose",
+    "شبكة": "network http websocket tls client rate-limit connection",
+    "شبك": "network http websocket tls client rate-limit connection",
+    "ويب": "web html css vanilla responsive api integration frontend",
 
-    # --- Permissions & Governance (صلاحيات، حوكمة، صدق تقني) ---
+    # --- Governance & Honesty ---
+    "برمشن تلقائي": "permission policy allow auto-approve authorization turbo",
+    "بدون برمشن": "permission policy allow auto-approve authorization turbo",
     "برمشن": "permission policy allow auto-approve authorization turbo",
+    "صلاحية": "permission policy authorization grant allow access",
     "صلاحي": "permission policy authorization grant allow access",
-    "إذن": "permission policy allow authorization grant",
-    "مجامل": "honest-engineering anti-sycophancy unslop frank blunt truth",
+    "اذن": "permission policy allow authorization grant",
+    "بدون مجاملة": "honest-engineering anti-sycophancy unslop frank blunt truth",
+    "كافي مجاملة": "honest-engineering anti-sycophancy unslop frank blunt truth",
+    "مجاملة": "honest-engineering anti-sycophancy unslop frank blunt truth",
     "تزلف": "anti-sycophancy honest-engineering frank blunt",
     "نفاق": "anti-sycophancy honest-engineering frank",
+    "صراحة": "honest-engineering frank blunt technical truth",
     "صراح": "honest-engineering frank blunt technical truth",
+    "احجي الصدك": "honest-engineering frank blunt technical truth anti-sycophancy",
+    "تيربو": "permission auto-approve authorization turbo antigravity-cli",
+}
+
+def normalize_arabic(text: str) -> str:
+    text = re.sub(r"[\u064B-\u065F\u0670]", "", text)
+    text = re.sub(r"[أإآ]", "ا", text)
+    text = re.sub(r"ة", "ه", text)
+    text = re.sub(r"ى", "ي", text)
+    text = re.sub(r"گ", "ك", text)
+    text = re.sub(r"پ", "ب", text)
+    text = re.sub(r"ڤ", "ف", text)
+    text = re.sub(r"ژ", "ز", text)
+    return text.lower()
+
+AR_STEM_MAP: Dict[str, str] = {
+    normalize_arabic(k): v for k, v in RAW_AR_STEM_MAP.items()
 }
 
 CORE_GOVERNANCE_IDS = [
@@ -436,25 +699,41 @@ def ensure_initialized():
 
 ensure_initialized()
 
-def normalize_arabic(text: str) -> str:
-    text = re.sub(r"[\u064B-\u065F\u0670]", "", text)
-    text = re.sub(r"[أإآ]", "ا", text)
-    text = re.sub(r"ة", "ه", text)
-    text = re.sub(r"ى", "ي", text)
-    return text.lower()
+def extract_stems(norm_text: str) -> set:
+    words = re.findall(r"[\u0621-\u064A]+", norm_text)
+    stems = set(words)
+    for w in words:
+        for suf in ("لي", "ها", "هه", "هم", "كم", "ني", "نا", "ك", "ت", "ات", "ين", "ون"):
+            if len(w) > len(suf) + 2 and w.endswith(suf):
+                stems.add(w[:-len(suf)])
+        if len(w) > 4 and (w.startswith("وال") or w.startswith("فال") or w.startswith("بال") or w.startswith("كال")):
+            stems.add(w[3:])
+            stems.add(w[1:])
+        elif len(w) > 3 and w.startswith("لل"):
+            stems.add(w[2:])
+        elif len(w) > 3 and w.startswith("ال"):
+            stems.add(w[2:])
+        elif len(w) > 3 and (w.startswith("و") or w.startswith("ف") or w.startswith("ب") or w.startswith("ل")):
+            stems.add(w[1:])
+    return stems
 
 def expand_query(query: str) -> str:
     norm = normalize_arabic(query)
+    stems = extract_stems(norm)
     expanded = query
     matched_exps = set()
     for stem, exp in sorted(AR_STEM_MAP.items(), key=lambda x: len(x[0]), reverse=True):
-        if stem in norm:
-            for word in exp.split():
-                matched_exps.add(word)
+        if " " in stem:
+            if stem in norm:
+                for word in exp.split():
+                    matched_exps.add(word)
+        else:
+            if stem in norm or stem in stems:
+                for word in exp.split():
+                    matched_exps.add(word)
     if matched_exps:
         expanded += " " + " ".join(matched_exps)
     return expanded
-
 # In-memory LRU caching for ultra-low latency (< 0.1ms)
 @functools.lru_cache(maxsize=512)
 def _cached_exact_skill(name: str) -> str:
@@ -553,8 +832,8 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
     if not clean_tokens:
         return []
 
-    # Weighted query parts: prefix search
-    fts_query_parts = [f'"{tok}"*' for tok in clean_tokens[:14]]
+    # Weighted query parts: prefix search with 25 tokens
+    fts_query_parts = [f'"{tok}"*' for tok in clean_tokens[:25]]
     fts_query = " OR ".join(fts_query_parts)
 
     conn = get_db_conn()
@@ -572,8 +851,13 @@ def search_agent_capabilities(query: str, domain: Optional[str] = None, language
             LIMIT 50
         """, (fts_query, min_quality))
 
+        seen_names = set()
         for row in cur.fetchall():
             item_id, item_type, name, desc, item_lang, cat, q_score, tier, raw_content, rank = row
+            if name in seen_names:
+                continue
+            seen_names.add(name)
+
             if language and language.lower() not in item_lang.lower():
                 continue
             if domain and domain.lower() not in name.lower() and domain.lower() not in cat.lower():
