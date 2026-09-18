@@ -26,18 +26,20 @@ except ImportError:
 
 mcp = FastMCP("skills-engine")
 
-DB_PATH = Path("/root/.gemini/mcp-servers/skills-engine/skills_index.db")
+HOME_DIR = Path.home()
+DB_PATH = HOME_DIR / ".gemini/mcp-servers/skills-engine/skills_index.db"
 
 def get_all_search_paths() -> List[Path]:
     paths = [
-        Path("/root/.gemini/config"),
-        Path("/root/antigravity-customizations"),
-        Path("/root/.gemini/antigravity-ide/builtin/skills"),
-        Path("/root/.gemini/antigravity-ide/builtin/rules"),
-        Path("/root/storage-dashboard/.agents/skills"),
-        Path("/root/.gemini/skills-catalog"),
+        HOME_DIR / ".gemini/config",
+        HOME_DIR / ".gemini/skills-catalog",
+        HOME_DIR / ".gemini/antigravity-ide/builtin/skills",
+        HOME_DIR / ".gemini/antigravity-ide/builtin/rules",
     ]
-    bots_dir = Path("/root/bots")
+    custom_root = HOME_DIR / "antigravity-customizations"
+    if custom_root.exists():
+        paths.append(custom_root)
+    bots_dir = HOME_DIR / "bots"
     if bots_dir.exists():
         for agent_dir in sorted(bots_dir.glob("*/.agents")):
             if agent_dir.is_dir():
@@ -1374,7 +1376,7 @@ def register_custom_directory(directory_path: str) -> Dict[str, Any]:
 @mcp.tool()
 def create_new_skill(name: str, description: str, triggers: List[str], instructions: str, language: str = "general", category: str = "custom") -> Dict[str, Any]:
     safe_name = re.sub(r"[^\w-]", "-", name.lower().strip())
-    target_dir = Path("/root/.gemini/skills-catalog/skills") / safe_name
+    target_dir = HOME_DIR / ".gemini/skills-catalog/skills" / safe_name
     target_dir.mkdir(parents=True, exist_ok=True)
     skill_file = target_dir / "SKILL.md"
 
