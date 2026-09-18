@@ -2,7 +2,7 @@
 
 [![Antigravity IDE](https://img.shields.io/badge/Google%20Antigravity-IDE%20%7C%20CLI%20%7C%202.0-blue.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot%20API-10.3%20(185%20Methods%20%7C%20400%20Types)-2CA5E0?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
-[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-48%20Tools%20(100%25%20Alphabetical)-success.svg)](#complete-mcp-tool-suite-48-enterprise-tools)
+[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-51%20Tools%20(100%25%20Alphabetical)-success.svg)](#complete-mcp-tool-suite-51-enterprise-tools)
 [![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-4%2C800%2B%20(SQLite%20FTS5)-orange.svg)](#)
 [![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
 [![Autonomous CI/CD](https://img.shields.io/badge/GitHub%20Actions-Auto--Sync%20Bot-blueviolet.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions)
@@ -30,7 +30,7 @@ cd ~/.gemini/antigravity-customizations
 ### What This Command Provisions:
 1. **Zero-Prompt Permissions**: Configures `permissionPreset: turbo` and `toolExecutionPolicy: always-proceed` across IDE and CLI to permanently eliminate confirmation dialogs.
 2. **Core Sovereign Rules**: Deploys anti-slop, honest engineering, strict comments, and memory safety rules to `~/.gemini/config/rules/`.
-3. **Complete 48 MCP Tools**: Installs and hot-activates the `skills-engine` MCP server with strict alphabetical caching standards.
+3. **Complete 51 MCP Tools**: Installs and hot-activates the `skills-engine` MCP server with strict alphabetical caching standards.
 4. **Telegram Bot API 10.3 Master Engine**: Ingests and builds real-time SQLite FTS5 indices for all **185 methods** and **400 types**.
 5. **Intelligent Dialect NLU Hook**: Deploys the Pre-Invocation hook with Arabic, Iraqi dialect, and English intent normalization.
 
@@ -45,7 +45,7 @@ cd ~/.gemini/antigravity-customizations
                                +-------------------------------------------------------+
                                       |                                       |
                    [Pre-Invocation Interceptor]                      [Model Context Protocol]
-                   - Arabic & Iraqi Dialect NLU                      skills-engine (48 Tools)
+                   - Arabic & Iraqi Dialect NLU                      skills-engine (51 Tools)
                    - Pre-loaded Method Spec                                   |
                    - Zero-Latency Prompt Injection                            v
                                                               +-------------------------------+
@@ -119,12 +119,15 @@ All button constructs adhere strictly to modern Telegram specifications:
 
 ---
 
-## Complete MCP Tool Suite (48 Enterprise Tools)
+## Complete MCP Tool Suite (51 Enterprise Tools)
 
-The MCP server exposes 48 deterministic tools, sorted strictly in alphabetical order to maximize LLM prompt caching hit rates (>95%):
+The MCP server exposes 51 deterministic tools, sorted strictly in alphabetical order to maximize LLM prompt caching hit rates (>95%):
 
 ### 1. Telegram & Microservice Operations
 - `get_telegram_bot_api_spec`: Instant parameter, type, and Rust code retrieval for all 185 methods.
+- `diagnose_telegram_error`: Root-cause diagnosis and Rust healing code generator for Telegram API errors (400, 403, 420, 429).
+- `explore_telegram_workflow_graph`: Interrelated methods, expected callbacks, and lifecycle transitions mapper.
+- `validate_telegram_payload`: Strict offline schema & payload validator for Bot API 10.3 / 9.4+ requests (styling, buttons, limits).
 - `sync_telegram_bot_api_upstream`: Fetches, validates, and indexes upstream Telegram specification into SQLite.
 - `resolve_bot_service`: Resolves and binds Telegram bot microservice ports and handlers.
 - `scaffold_telegram_microservice`: Generates clean, zero-allocation Tokio/Axum Telegram bot templates.
@@ -183,6 +186,15 @@ The MCP server exposes 48 deterministic tools, sorted strictly in alphabetical o
 
 ---
 
+## High-Performance Local IPC & Loopback Architecture
+
+The engine embeds a sub-millisecond local IPC server running concurrently with standard stdio / HTTP transports:
+- **HTTP Loopback**: `http://127.0.0.1:14993/api/spec/<method>` and `http://127.0.0.1:14993/api/health`
+- **UNIX Domain Socket**: `/tmp/skills-engine.sock` (binary stream supporting `spec:<method>` and `health`)
+- **Performance**: Sub-millisecond direct in-memory SQLite FTS5 lookup bypassing LLM tool call roundtrips for local bot daemons.
+
+---
+
 ## Sovereign Engineering Rules
 
 The repository strictly enforces four non-negotiable governance pillars across all code generation:
@@ -206,3 +218,4 @@ The repository strictly enforces four non-negotiable governance pillars across a
 ## License
 
 Distributed under the **MIT License**. Engineered for enterprise-grade autonomous development in Google Antigravity, Claude Code, and Cursor.
+

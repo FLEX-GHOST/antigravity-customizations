@@ -1,0 +1,29 @@
+{
+  "name": "diagnose_telegram_error",
+  "description": "Diagnose any raw Telegram Bot API error string/code, explain the exact invariant violated, and generate production Rust healing code.",
+  "inputSchema": {
+    "properties": {
+      "error_message": {
+        "title": "Error Message",
+        "type": "string"
+      },
+      "error_code": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Error Code"
+      }
+    },
+    "required": [
+      "error_message"
+    ],
+    "title": "diagnose_telegram_errorArguments",
+    "type": "object"
+  }
+}

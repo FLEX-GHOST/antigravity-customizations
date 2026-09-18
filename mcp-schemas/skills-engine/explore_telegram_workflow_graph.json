@@ -1,0 +1,17 @@
+{
+  "name": "explore_telegram_workflow_graph",
+  "description": "Retrieve interrelated methods, expected callbacks, and lifecycle transitions for any Telegram Bot API method or type.",
+  "inputSchema": {
+    "properties": {
+      "entrypoint": {
+        "title": "Entrypoint",
+        "type": "string"
+      }
+    },
+    "required": [
+      "entrypoint"
+    ],
+    "title": "explore_telegram_workflow_graphArguments",
+    "type": "object"
+  }
+}

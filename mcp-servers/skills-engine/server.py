@@ -4347,6 +4347,279 @@ def sync_telegram_bot_api_upstream(force: bool = False) -> Dict[str, Any]:
         "message": f"Successfully synchronized and indexed all {len(methods)} Telegram methods and {len(types)} types into SQLite FTS5."
     }
 
+
+# =========================================================
+# Phase 7: Advanced Operational Tools & Workflow Graph
+# =========================================================
+
+TELEGRAM_WORKFLOW_MAP = {
+    "sendMessage": {
+        "related_types": ["InlineKeyboardMarkup", "InlineKeyboardButton", "Message", "MessageEntity"],
+        "next_steps": ["editMessageText", "deleteMessage", "pinChatMessage"],
+        "callbacks_handled": ["answerCallbackQuery"]
+    },
+    "sendPhoto": {
+        "related_types": ["InlineKeyboardMarkup", "InputFile", "Message"],
+        "next_steps": ["editMessageCaption", "deleteMessage"],
+        "callbacks_handled": ["answerCallbackQuery"]
+    },
+    "sendPaidMedia": {
+        "related_types": ["PaidMedia", "PaidMediaPurchased", "StarTransaction"],
+        "next_steps": ["getStarTransactions", "refundStarPayment"],
+        "callbacks_handled": []
+    },
+    "sendGift": {
+        "related_types": ["Gift", "Gifts", "StarTransaction"],
+        "next_steps": ["getAvailableGifts", "verifyUser", "verifyChat"],
+        "callbacks_handled": []
+    },
+    "setWebhook": {
+        "related_types": ["WebhookInfo", "Update"],
+        "next_steps": ["getWebhookInfo", "deleteWebhook"],
+        "callbacks_handled": []
+    },
+    "createForumTopic": {
+        "related_types": ["ForumTopic", "ForumTopicCreated", "ForumTopicEdited"],
+        "next_steps": ["editForumTopic", "closeForumTopic", "reopenForumTopic", "deleteForumTopic", "unpinAllForumTopicMessages"],
+        "callbacks_handled": []
+    },
+    "createChatInviteLink": {
+        "related_types": ["ChatInviteLink", "ChatJoinRequest"],
+        "next_steps": ["approveChatJoinRequest", "declineChatJoinRequest", "revokeChatInviteLink"],
+        "callbacks_handled": []
+    },
+    "InlineKeyboardButton": {
+        "related_types": ["InlineKeyboardMarkup", "CallbackQuery"],
+        "next_steps": ["answerCallbackQuery", "editMessageReplyMarkup", "editMessageText"],
+        "callbacks_handled": ["answerCallbackQuery"]
+    }
+}
+
+TELEGRAM_ERROR_DIAGNOSTICS = {
+    "BUTTON_TYPE_INVALID": {
+        "code": 400,
+        "cause": "Inline button configuration violates Telegram Bot API 9.4+ schema. Often caused by mixing url with callback_data or invalid style property.",
+        "fix_explanation": "Ensure button has either 'url' OR 'callback_data' (never both). Use valid style: 'primary' | 'success' | 'danger'.",
+        "rust_fix": 'InlineKeyboardButton {\n    text: "Submit".into(),\n    callback_data: Some("submit".into()),\n    style: Some("primary".into()),\n    ..Default::default()\n}'
+    },
+    "BUTTON_USER_PRIVACY_RESTRICTED": {
+        "code": 400,
+        "cause": "Target user privacy settings prevent adding them via button or link.",
+        "fix_explanation": "Provide fallback text with t.me deep link instead of direct user selection button.",
+        "rust_fix": '// Handle privacy restriction gracefully\nlet url = format!("https://t.me/share/url?url={}&text={}", link, text);'
+    },
+    "message is not modified": {
+        "code": 400,
+        "cause": "Attempted to call editMessageText or editMessageReplyMarkup with identical content.",
+        "fix_explanation": "Check current message content in local state before issuing edit call, or ignore error 400 matching 'message is not modified'.",
+        "rust_fix": 'if let Err(e) = client.edit_message_text(...).await {\n    if !e.to_string().contains("message is not modified") {\n        return Err(e.into());\n    }\n}'
+    },
+    "bot was blocked by the user": {
+        "code": 403,
+        "cause": "The private user blocked the bot or deleted their Telegram account.",
+        "fix_explanation": "Deactivate user record in PostgreSQL/SQLite and cease outgoing messages to prevent FloodWait penalties.",
+        "rust_fix": 'sqlx::query!("UPDATE users SET is_active = false WHERE telegram_id = $1", user_id).execute(&pool).await?;'
+    },
+    "Too Many Requests: retry after": {
+        "code": 429,
+        "cause": "Exceeded Telegram Bot API rate limits (FloodWait).",
+        "fix_explanation": "Extract retry_after seconds, apply tokio sleep with random jitter (100ms..1000ms), and retry.",
+        "rust_fix": 'let wait = retry_after_secs + rand::thread_rng().gen_range(1..=3);\ntokio::time::sleep(tokio::time::Duration::from_secs(wait)).await;'
+    }
+}
+
+@mcp.tool()
+def diagnose_telegram_error(error_message: str, error_code: Optional[int] = None) -> Dict[str, Any]:
+    """Diagnose any raw Telegram Bot API error string/code, explain the exact invariant violated, and generate production Rust healing code."""
+    msg = error_message.lower()
+    matched_key = None
+    for k in TELEGRAM_ERROR_DIAGNOSTICS:
+        if k.lower() in msg:
+            matched_key = k
+            break
+
+    if matched_key:
+        diag = TELEGRAM_ERROR_DIAGNOSTICS[matched_key]
+        return {
+            "status": "DIAGNOSED",
+            "error_pattern": matched_key,
+            "http_status": diag["code"],
+            "root_cause": diag["cause"],
+            "remediation_guidance": diag["fix_explanation"],
+            "rust_healing_snippet": diag["rust_fix"]
+        }
+
+    status = error_code or (400 if "bad request" in msg else (403 if "forbidden" in msg else 500))
+    return {
+        "status": "GENERAL_DIAGNOSIS",
+        "raw_error": error_message,
+        "inferred_status": status,
+        "root_cause": "Uncataloged Telegram API error. Inspect parameters and chat_id formatting.",
+        "remediation_guidance": "Verify that private chat IDs are positive numbers and channels use the -100 prefix.",
+        "rust_healing_snippet": "// Check chat_id format\nlet chat_id_str = if is_channel { format!(\"-100{}\", bare_id) } else { bare_id.to_string() };"
+    }
+
+@mcp.tool()
+def explore_telegram_workflow_graph(entrypoint: str) -> Dict[str, Any]:
+    """Retrieve interrelated methods, expected callbacks, and lifecycle transitions for any Telegram Bot API method or type."""
+    q = entrypoint.strip()
+    target = None
+    for k in TELEGRAM_WORKFLOW_MAP:
+        if k.lower() == q.lower():
+            target = k
+            break
+
+    if target:
+        wf = TELEGRAM_WORKFLOW_MAP[target]
+        return {
+            "status": "FOUND",
+            "entrypoint": target,
+            "related_types": wf["related_types"],
+            "downstream_methods": wf["next_steps"],
+            "expected_callbacks": wf["callbacks_handled"],
+            "architecture_recommendation": f"When implementing {target}, design handlers for: {', '.join(wf['next_steps'])}"
+        }
+
+    return {
+        "status": "NOT_IN_GRAPH",
+        "entrypoint": entrypoint,
+        "available_graph_nodes": list(TELEGRAM_WORKFLOW_MAP.keys()),
+        "recommendation": "Use get_telegram_bot_api_spec for direct method specification."
+    }
+
+@mcp.tool()
+def validate_telegram_payload(method: str, payload_json: str) -> Dict[str, Any]:
+    """Strict offline schema & payload validator for Telegram Bot API 10.3 / 9.4+ requests (checks text length, button rows <= 8, callback length <= 64B, and button styling)."""
+    try:
+        data = json.loads(payload_json) if isinstance(payload_json, str) else payload_json
+    except Exception as e:
+        return {"status": "INVALID_JSON", "error": str(e)}
+
+    violations = []
+    m = method.strip()
+
+    if "text" in data and isinstance(data["text"], str):
+        if len(data["text"]) > 4096:
+            violations.append(f"Text length ({len(data['text'])}) exceeds Telegram 4096 character limit.")
+
+    if "caption" in data and isinstance(data["caption"], str):
+        if len(data["caption"]) > 1024:
+            violations.append(f"Caption length ({len(data['caption'])}) exceeds Telegram 1024 character limit.")
+
+    if "chat_id" in data:
+        cid = str(data["chat_id"]).strip()
+        if cid.startswith("-") and not cid.startswith("-100") and len(cid) > 10:
+            violations.append(f"Suspicious chat_id format '{cid}'. Supergroups and channels must have '-100' prefix.")
+
+    markup = data.get("reply_markup", {})
+    if isinstance(markup, dict) and "inline_keyboard" in markup:
+        rows = markup.get("inline_keyboard", [])
+        if len(rows) > 100:
+            violations.append(f"Inline keyboard row count ({len(rows)}) exceeds Telegram 100 row limit.")
+        for r_idx, row in enumerate(rows):
+            if len(row) > 8:
+                violations.append(f"Row {r_idx} contains {len(row)} buttons, exceeding Telegram maximum of 8 buttons per row.")
+            for b_idx, btn in enumerate(row):
+                if "callback_data" in btn:
+                    cb = btn["callback_data"].encode("utf-8")
+                    if len(cb) > 64:
+                        violations.append(f"Button [{r_idx}][{b_idx}] callback_data exceeds 64 bytes ({len(cb)} bytes).")
+                if "style" in btn:
+                    if btn["style"] not in ["primary", "success", "danger"]:
+                        violations.append(f"Button [{r_idx}][{b_idx}] invalid style '{btn['style']}'. Must be 'primary', 'success', or 'danger'.")
+
+    if m == "sendPaidMedia":
+        if "star_count" not in data or int(data.get("star_count", 0)) <= 0:
+            violations.append("sendPaidMedia requires 'star_count' > 0.")
+
+    return {
+        "status": "PASS" if not violations else "VIOLATIONS_FOUND",
+        "method": m,
+        "violation_count": len(violations),
+        "violations": violations,
+        "is_bot_api_10_3_compliant": len(violations) == 0
+    }
+
+def _start_local_ipc_server():
+    import socket
+    import os
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    class LocalQueryHandler(BaseHTTPRequestHandler):
+        def log_message(self, format, *args):
+            pass
+
+        def do_GET(self):
+            try:
+                path = self.path
+                if path.startswith("/api/spec/"):
+                    query = path.split("/api/spec/")[1].split("?")[0]
+                    res = get_telegram_bot_api_spec(query)
+                    payload = json.dumps(res, ensure_ascii=False).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+                elif path.startswith("/api/health"):
+                    payload = b'{"status":"HEALTHY","service":"skills-engine","version":"2.5"}'
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(payload)
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+
+    def _http_worker():
+        try:
+            server_addr = ("127.0.0.1", 14993)
+            HTTPServer.allow_reuse_address = True
+            httpd = HTTPServer(server_addr, LocalQueryHandler)
+            httpd.serve_forever()
+        except Exception:
+            pass
+
+    def _unix_worker():
+        sock_path = "/tmp/skills-engine.sock"
+        try:
+            if os.path.exists(sock_path):
+                try:
+                    os.remove(sock_path)
+                except Exception:
+                    pass
+            server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            server_sock.bind(sock_path)
+            server_sock.listen(5)
+            while True:
+                conn, _ = server_sock.accept()
+                try:
+                    raw_req = conn.recv(1024).decode("utf-8").strip()
+                    if raw_req.startswith("spec:"):
+                        q = raw_req.split("spec:", 1)[1].strip()
+                        resp = json.dumps(get_telegram_bot_api_spec(q), ensure_ascii=False)
+                    elif raw_req == "health":
+                        resp = '{"status":"HEALTHY","service":"skills-engine","ipc":"unix"}'
+                    else:
+                        resp = '{"error":"unknown command"}'
+                    conn.sendall(resp.encode("utf-8"))
+                except Exception:
+                    pass
+                finally:
+                    conn.close()
+        except Exception:
+            pass
+
+    t_http = threading.Thread(target=_http_worker, daemon=True, name="mcp-local-http")
+    t_http.start()
+    t_unix = threading.Thread(target=_unix_worker, daemon=True, name="mcp-local-unix")
+    t_unix.start()
+
+_start_local_ipc_server()
+
 def enforce_mcp_deterministic_standards():
     """Enforce July 2026 MCP specification: deterministic tool ordering & safety metadata."""
     if hasattr(mcp, "_tool_manager") and hasattr(mcp._tool_manager, "_tools"):
