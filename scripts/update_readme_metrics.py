@@ -160,7 +160,7 @@ def update_readme(metrics: dict = None) -> bool:
 
     # 3b. Indexed Entities Badge
     idx_cnt = metrics.get("indexed_entities", 2160)
-    rounded_idx = f"{(idx_cnt // 100) * 100:,}%2B".replace(",", "%2C")
+    rounded_idx = f"{(idx_cnt // 10) * 10:,}%2B".replace(",", "%2C")
     entities_badge_regex = r"\[!\[Indexed Entities\]\(https://img\.shields\.io/badge/Indexed%20Entities-.*?\.svg\)\]\(#\)"
     new_entities_badge = f"[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-{rounded_idx}%20(Go%20%26%20SQLite)-orange.svg)](#)"
     content = re.sub(entities_badge_regex, new_entities_badge, content)
