@@ -1250,11 +1250,12 @@ def audit_anti_sycophancy(response_text: str) -> Dict[str, Any]:
     lines = response_text.splitlines()
 
     sycophancy_indicators = [
-        (r"(?i)\b(great question|excellent question|you are absolutely right|you're absolutely right|certainly[!,]|i would be happy to help|i'd be happy to help|i am thrilled to|excellent idea|good point|wonderful question|thank you for asking)\b", "Sycophantic flattery or servile opener"),
-        (r"(?i)(سؤال ممتاز|سؤال رائع|أنت على حق تماما|أنت محق تماما|بالتأكيد يسعدني|يسعدني مساعدتك|فكرة رائعة جدا|يا له من سؤال|مما لا شك فيه|في الختام يجدر الذكر)", "Arabic sycophantic flattery or conversational filler"),
-        (r"(?i)\b(delve|tapestry|testament|seamless|holistic|leverage|cutting-edge|elevate|multifaceted|beacon|pivotal|revolutionize)\b", "AI stock filler buzzword"),
+        (r"(?i)\b(great question|excellent question|you are absolutely right|you're absolutely right|certainly[!,]|i would be happy to help|i'd be happy to help|i am thrilled to|excellent idea|good point|wonderful question|thank you for asking|brilliant idea|amazing point)\b", "Sycophantic flattery or servile opener"),
+        (r"(?i)(سؤال ممتاز|سؤال رائع|أنت على حق تماما|أنت محق تماما|بالتأكيد يسعدني|يسعدني مساعدتك|فكرة رائعة جدا|يا له من سؤال|طبعا من عيوني|تدلل|امرك يا غالي|فكرة عبقرية|انت الافضل|كلامك ذهب|مضبوط مية بالمية)", "Arabic colloquial flattery or servile opener"),
+        (r"(?i)\b(i apologize for the confusion|sorry about that|my apologies|sorry for the misunderstanding|اعتذر بشدة|اعتذر عن الخطأ|اسف جدا|أعتذر عن الخطأ، معك حق)\b", "Servile apology instead of direct root-cause fix"),
+        (r"(?i)\b(delve|tapestry|testament|seamless|holistic|leverage|cutting-edge|elevate|multifaceted|beacon|pivotal|revolutionize|game-changer|groundbreaking)\b", "AI stock filler buzzword"),
+        (r"(?i)\b(in this fast-paced world|at the end of the day|let's dive in|without further ado|مما لا شك فيه|في الختام يجدر الذكر|جدير بالذكر)\b", "Conversational filler or rhetorical padding"),
         (r"(?i)\b(as an ai language model|as an ai|in conclusion, it is important to remember|it is worth noting that|keep in mind that)\b", "Patronizing AI disclaimer or robotic closure"),
-        (r"(?i)(i apologize for the confusion|my apologies, you are right|sorry about that, you're right|أعتذر عن الخطأ، معك حق)", "Reflexive folding to user pushback without technical justification"),
     ]
 
     for idx, line in enumerate(lines):
@@ -2146,6 +2147,48 @@ def simulate_telegram_load(bot_type: str = "factory", concurrent_users: int = 10
             "Mandatory HTTP 200 OK fast acknowledgment (< 50ms) to prevent Telegram retry flooding",
             "Enable Jemalloc with background_thread:true and dirty_decay_ms:0",
             notes
+        ]
+    }
+
+
+@mcp.tool()
+def audit_web_application_quality(html_or_jsx: str) -> Dict[str, Any]:
+    violations = []
+    lines = html_or_jsx.splitlines()
+    code_text = html_or_jsx.lower()
+
+    if "<img" in code_text:
+        for idx, line in enumerate(lines):
+            if "<img" in line.lower():
+                if "alt=" not in line.lower():
+                    violations.append({"line": idx + 1, "category": "Accessibility", "severity": "HIGH", "message": "<img> tag missing alt attribute (WCAG 2.2 AA violation)."})
+                if "width=" not in line.lower() and "aspect-ratio" not in line.lower():
+                    violations.append({"line": idx + 1, "category": "Performance (CLS)", "severity": "MEDIUM", "message": "<img> tag missing explicit width/height or aspect-ratio (causes layout shifts)."})
+
+    if 'target="_blank"' in code_text or "target='_blank'" in code_text:
+        for idx, line in enumerate(lines):
+            if "_blank" in line.lower() and "noopener" not in line.lower():
+                violations.append({"line": idx + 1, "category": "Security", "severity": "HIGH", "message": "External link target='_blank' missing rel='noopener noreferrer' (reverse tabnabbing risk)."})
+
+    if "dangerouslysetinnerhtml" in code_text or ".innerhtml" in code_text:
+        violations.append({"line": 1, "category": "Security (XSS)", "severity": "CRITICAL", "message": "dangerouslySetInnerHTML / innerHTML detected. Sanitize with DOMPurify."})
+
+    for idx, line in enumerate(lines):
+        if any(b in line.lower() for b in ("<button", "button", "role='button'")):
+            if re.search(r"[🌀-🫿]", line):
+                violations.append({"line": idx + 1, "category": "Anti-AI UI Slop", "severity": "CRITICAL", "message": "Raw emoji in button. Use clean, scalable SVGs (Lucide / Heroicons)."})
+
+    if re.search(r"(linear-gradient|radial-gradient).*#[789a-f][0-9a-f]{5}", code_text):
+        violations.append({"line": 1, "category": "Anti-AI UI Slop", "severity": "HIGH", "message": "Generic AI purple/violet gradient detected. Use disciplined semantic palette tokens."})
+
+    return {
+        "status": "FAILED" if any(v["severity"] == "CRITICAL" for v in violations) else ("WARNINGS" if violations else "PASSED"),
+        "total_issues": len(violations),
+        "violations": violations,
+        "recommendations": [
+            "Use modern semantic HTML5 (<main>, <nav>, <header>)",
+            "Enforce 6 button interactive states (rest, hover, active, focus-visible, disabled, loading)",
+            "Ensure normal text achieves 4.5:1 contrast against background (WCAG 2.2 AA)"
         ]
     }
 
