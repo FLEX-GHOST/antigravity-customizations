@@ -1063,7 +1063,7 @@ def sync_all_directories(force: bool = False):
                 mtime = p.stat().st_mtime
                 q_score, tier = compute_quality_score(str(p), content)
 
-                if tier == "stub" or q_score < 5:
+                if tier == "stub" or q_score < 40:
                     purged_stubs.append(item_id)
                     continue
 
@@ -1103,7 +1103,7 @@ def sync_all_directories(force: bool = False):
                 mtime = p.stat().st_mtime
                 q_score, tier = compute_quality_score(str(p), content)
 
-                if tier == "stub" or q_score < 5:
+                if tier == "stub" or q_score < 40:
                     purged_stubs.append(item_id)
                     continue
 
