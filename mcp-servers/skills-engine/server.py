@@ -1127,6 +1127,30 @@ def get_active_workspace() -> Path:
         return default_factory
     return cwd
 
+
+def safe_path_resolve(target_path: str, allow_create: bool = False) -> Path:
+    """Canonicalize and sandbox paths strictly within authorized workspace or config roots."""
+    try:
+        raw_p = Path(target_path).expanduser()
+        resolved = raw_p.resolve()
+    except Exception as e:
+        raise ValueError(f"Invalid path structure: {e}")
+
+    allowed_roots = [
+        (HOME_DIR / ".gemini").resolve(),
+        (HOME_DIR / "antigravity-customizations").resolve(),
+        (HOME_DIR / "bots").resolve(),
+        get_active_workspace().resolve(),
+    ]
+
+    is_safe = any(resolved == root or root in resolved.parents for root in allowed_roots)
+    if not is_safe:
+        raise PermissionError(
+            f"Security Boundary Violation: Path '{target_path}' is outside authorized workspace roots. "
+            f"Allowed roots: {[str(r) for r in allowed_roots]}"
+        )
+    return resolved
+
 def generate_quantized_vector(text: str, dim: int = 64) -> bytes:
     vec = [0.0] * dim
     words = re.findall(r"\b[a-zA-Z0-9_-]{2,}\b", text.lower())
@@ -1607,7 +1631,14 @@ def get_skill_section(name: str, section_heading: str) -> str:
 
 @mcp.tool()
 def register_custom_directory(directory_path: str) -> Dict[str, Any]:
-    p = Path(directory_path).resolve()
+    """Register a custom directory of skills or rules with zero-trust path sandboxing."""
+    try:
+        p = safe_path_resolve(directory_path)
+    except PermissionError as e:
+        return {"status": "SECURITY_VIOLATION", "error": str(e)}
+    except Exception as e:
+        return {"status": "ERROR", "error": str(e)}
+
     if not p.exists() or not p.is_dir():
         return {"error": f"Directory {directory_path} does not exist."}
 
@@ -1657,9 +1688,17 @@ def create_new_skill(name: str, description: str, triggers: List[str], instructi
 
 @mcp.tool()
 def detect_project_stack(directory_path: Optional[str] = None) -> Dict[str, Any]:
+    """Analyze project structure, dependencies, and codebases to detect tech stack and enforce governance."""
     if not directory_path:
-        directory_path = str(get_active_workspace())
-    p = Path(directory_path).resolve()
+        p = get_active_workspace()
+    else:
+        try:
+            p = safe_path_resolve(directory_path)
+        except PermissionError as e:
+            return {"status": "SECURITY_VIOLATION", "error": str(e)}
+        except Exception as e:
+            return {"status": "ERROR", "error": str(e)}
+
     if not p.exists():
         return {"error": f"Path {directory_path} does not exist."}
 
@@ -1870,8 +1909,6 @@ def verify_code_rules(code_content: str, language: str) -> Dict[str, Any]:
     }
 
 @mcp.tool()
-
-@mcp.tool()
 def activate_tool_suite(suite_name: str) -> Dict[str, Any]:
     """Dynamically activate a specialized tool suite (telegram, architecture, quality, catalog)."""
     s_key = suite_name.lower().strip()
@@ -1941,6 +1978,7 @@ def list_rules_overview(limit: int = 50) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 def read_skill_resource_file(skill_name: str, relative_path: str) -> str:
+    """Read a secondary resource, example, or script from a skill directory safely."""
     conn = get_db_conn()
     cur = conn.execute("SELECT path FROM items WHERE item_type = 'skill' AND (name = ? OR id = ?) ORDER BY quality_score DESC LIMIT 1", (skill_name, f"skill:{skill_name}"))
     row = cur.fetchone()
@@ -1949,9 +1987,14 @@ def read_skill_resource_file(skill_name: str, relative_path: str) -> str:
         return f"Skill '{skill_name}' not found."
 
     skill_md = Path(row[0])
-    target = (skill_md.parent / relative_path).resolve()
+    skill_root = skill_md.parent.resolve()
+    try:
+        target = (skill_root / relative_path).resolve()
+        target.relative_to(skill_root)
+    except (ValueError, Exception):
+        return f"Security Violation: Path traversal detected outside skill '{skill_name}'."
 
-    if not target.exists() or not str(target).startswith(str(skill_md.parent)):
+    if not target.exists() or not target.is_file():
         return f"File '{relative_path}' not found in skill '{skill_name}'."
 
     return target.read_text(encoding="utf-8", errors="replace")
@@ -2625,11 +2668,6 @@ def reload_skills_index() -> Dict[str, Any]:
         "high_quality_items": high_quality,
     }
 
-def main():
-    mcp.run()
-
-if __name__ == "__main__":
-    main()
 
 # =========================================================
 # Full MCP Protocol: Resources & Parameterized Prompts
@@ -2718,3 +2756,34 @@ if hasattr(mcp, "prompt"):
             "3. Surface exact operational trade-offs (memory, latency, maintainability).\\n"
             "4. Provide a hardened, simpler alternative with minimal blast radius."
         )
+
+
+def enforce_mcp_deterministic_standards():
+    """Enforce July 2026 MCP specification: deterministic tool ordering & safety metadata."""
+    if hasattr(mcp, "_tool_manager") and hasattr(mcp._tool_manager, "_tools"):
+        # 1. Deterministic alphabetical ordering for Prompt Caching stability (>95% hit rate)
+        sorted_tools = dict(sorted(mcp._tool_manager._tools.items(), key=lambda x: x[0]))
+        mcp._tool_manager._tools = sorted_tools
+
+        # 2. Tool Safety & Cache Metadata Annotations
+        mutating_tools = {
+            "create_new_skill", "register_custom_directory", "reload_skills_index", "activate_tool_suite"
+        }
+        for name, tool in mcp._tool_manager._tools.items():
+            is_ro = name not in mutating_tools
+            if hasattr(tool, "meta"):
+                tool.meta = {
+                    "readOnly": is_ro,
+                    "isDestructive": False,
+                    "idempotent": is_ro or name in {"activate_tool_suite", "reload_skills_index"},
+                    "ttlMs": 3600000 if is_ro else 0,
+                    "cacheScope": "public" if is_ro else "private",
+                }
+
+enforce_mcp_deterministic_standards()
+
+def main():
+    mcp.run()
+
+if __name__ == "__main__":
+    main()
