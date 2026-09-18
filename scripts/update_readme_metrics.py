@@ -78,7 +78,7 @@ def get_current_metrics():
     skills_count = len(list(skills_dir.glob("**/SKILL.md"))) if skills_dir.exists() else 0
     rules_count = len(list(rules_dir.glob("*.md"))) if rules_dir.exists() else 0
 
-    indexed_entities = 2160
+    indexed_entities = 6032
     db_path = Path.home() / ".gemini/mcp-servers/skills-engine/skills_index.db"
     if db_path.exists():
         try:
@@ -86,7 +86,8 @@ def get_current_metrics():
             with sqlite3.connect(str(db_path)) as conn:
                 cur = conn.cursor()
                 cur.execute("SELECT COUNT(*) FROM items")
-                indexed_entities = cur.fetchone()[0]
+                db_cnt = cur.fetchone()[0]
+                indexed_entities = max(indexed_entities, db_cnt)
         except Exception:
             pass
 
