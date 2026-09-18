@@ -9,7 +9,7 @@ MCP_SCHEMAS_DIR="${HOME_DIR}/.gemini/antigravity-ide/mcp/skills-engine"
 CATALOG_DIR="${HOME_DIR}/.gemini/skills-catalog"
 
 echo "========================================================="
-echo "   Antigravity Turbo Installer (Ultra-Fast Parallel Engine)"
+echo "   Antigravity Customizations & MCP Server"
 echo "========================================================="
 
 # 1. Fast prerequisites verification
@@ -23,9 +23,9 @@ if ! command -v python3 >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1 || !
 fi
 
 # 2. Fast Python deps check (bypasses debian PyJWT uninstall-no-record-file)
-echo "[+] Checking Python runtime (FastMCP, pyyaml)..."
-python3 -c "import yaml; from mcp.server.fastmcp import FastMCP" >/dev/null 2>&1 || \
-python3 -c "import yaml; from mcp.server import FastMCP" >/dev/null 2>&1 || {
+echo "[+] Checking Python runtime..."
+python3 -c "from mcp.server.fastmcp import FastMCP" 2>/dev/null || python3 -c "from mcp.server.mcpserver import MCPServer" 2>/dev/null || python3 -c "from mcp.server import FastMCP" 2>/dev/null || {
+
     python3 -m pip install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" pyyaml 2>/dev/null || \
     pip3 install --no-cache-dir --quiet --break-system-packages --ignore-installed "mcp<2" pyyaml
 }
@@ -145,7 +145,7 @@ except Exception as e:
 pkill -f "${MCP_SERVERS_DIR}/skills-engine/server.py" 2>/dev/null || true
 
 echo "========================================================="
-echo "   Turbo Installation Completed in Record Time!"
+echo "   Installation Completed"
 echo "   - Status: Active & Auto-Approved"
 echo "   - Active MCP Tools: 29 Tools Enabled"
 echo "   - Free Context Budget: >85% Preserved"

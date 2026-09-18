@@ -9,7 +9,10 @@ import time
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 try:
     from mcp.server.fastmcp import FastMCP
 except ImportError:
@@ -632,13 +635,25 @@ def extract_meta(content: str) -> Tuple[Dict[str, Any], str]:
     parts = content.split("---", 2)
     if len(parts) < 3:
         return {}, content
-    try:
-        data = yaml.safe_load(parts[1])
-        if isinstance(data, dict):
-            return data, parts[2]
-    except Exception:
-        pass
-    return {}, parts[2]
+    data = {}
+    if yaml is not None:
+        try:
+            loaded = yaml.safe_load(parts[1])
+            if isinstance(loaded, dict):
+                data = loaded
+        except Exception:
+            pass
+    if not data:
+        for line in parts[1].splitlines():
+            line = line.strip()
+            if ":" in line and not line.startswith("#"):
+                k, v = line.split(":", 1)
+                k = k.strip()
+                v = v.strip().strip("'\"")
+                if v.startswith("[") and v.endswith("]"):
+                    v = [x.strip().strip("'\"") for x in v[1:-1].split(",") if x.strip()]
+                data[k] = v
+    return data, parts[2]
 
 def extract_first_desc(content: str) -> str:
     return clean_description("", content, max_len=200)
@@ -1371,7 +1386,10 @@ def create_new_skill(name: str, description: str, triggers: List[str], instructi
         "category": category,
     }
 
-    yaml_block = yaml.dump(frontmatter, sort_keys=False).strip()
+    if yaml is not None:
+        yaml_block = yaml.dump(frontmatter, sort_keys=False).strip()
+    else:
+        yaml_block = "\n".join(f"{k}: {v}" for k, v in frontmatter.items())
     full_content = f"---\n{yaml_block}\n---\n\n# {name}\n\n{instructions}\n"
 
     skill_file.write_text(full_content, encoding="utf-8")
