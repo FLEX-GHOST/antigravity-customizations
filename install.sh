@@ -84,8 +84,7 @@ cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
 EOF_MCP
 sed -i "s|__HOME__|${HOME_DIR}|g" "${CONFIG_DIR}/mcp_config.json"
 
-echo "[-] Initializing skills and rules index..."
-python3 -c "import sys; sys.path.append('${MCP_SERVERS_DIR}/skills-engine'); import server; server.ensure_initialized()" >/dev/null 2>&1 || true
+# Skills and rules index will be initialized after knowledge base deployment
 
 # 7. Configure permissions (auto-allow all tools, eliminate popups across CLI and IDE)
 echo "[-] Configuring zero-prompt execution permissions..."
@@ -129,9 +128,25 @@ echo "[-] Deploying pre-indexed knowledge base (5,730+ verified entities)..."
 DB_RELEASE_URL="https://github.com/FLEX-GHOST/antigravity-customizations/releases/latest/download/skills_index.db.gz"
 DB_TARGET="${MCP_SERVERS_DIR}/skills-engine/skills_index.db"
 
-if curl -fsSL -I "$DB_RELEASE_URL" >/dev/null 2>&1; then
-    curl -fsSL "$DB_RELEASE_URL" | gzip -d > "$DB_TARGET" 2>/dev/null || true
+pkill -9 -f "${MCP_SERVERS_DIR}/skills-engine/server.py" 2>/dev/null || true
+rm -f "${DB_TARGET}" "${DB_TARGET}-wal" "${DB_TARGET}-shm" "${DB_TARGET}.tmp"
+
+TMP_GZ=$(mktemp)
+if curl -fsSL "$DB_RELEASE_URL" -o "$TMP_GZ" 2>/dev/null; then
+    if gzip -t "$TMP_GZ" 2>/dev/null; then
+        gzip -dc "$TMP_GZ" > "${DB_TARGET}.tmp" 2>/dev/null || true
+        if command -v sqlite3 >/dev/null 2>&1; then
+            if sqlite3 "${DB_TARGET}.tmp" "PRAGMA integrity_check;" 2>/dev/null | grep -q "ok"; then
+                mv -f "${DB_TARGET}.tmp" "$DB_TARGET"
+            else
+                rm -f "${DB_TARGET}.tmp"
+            fi
+        else
+            mv -f "${DB_TARGET}.tmp" "$DB_TARGET"
+        fi
+    fi
 fi
+rm -f "$TMP_GZ" "${DB_TARGET}.tmp"
 
 python3 -c "
 import sys, os

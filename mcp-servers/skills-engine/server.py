@@ -862,13 +862,21 @@ CORE_GOVERNANCE_IDS = [
 
 _local = threading.local()
 
-def get_db_conn() -> sqlite3.Connection:
+def reset_db_files():
     if hasattr(_local, "conn") and _local.conn is not None:
         try:
-            _local.conn.execute("SELECT 1")
-            return _local.conn
+            _local.conn.close()
         except Exception:
-            _local.conn = None
+            pass
+        _local.conn = None
+    for p in [DB_PATH, DB_PATH.with_name(DB_PATH.name + "-wal"), DB_PATH.with_name(DB_PATH.name + "-shm")]:
+        try:
+            if p.exists():
+                p.unlink()
+        except Exception:
+            pass
+
+def _create_raw_connection() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH), timeout=30.0, check_same_thread=False, isolation_level=None)
     conn.execute("PRAGMA journal_mode = WAL")
@@ -877,10 +885,35 @@ def get_db_conn() -> sqlite3.Connection:
     conn.execute("PRAGMA mmap_size = 268435456")
     conn.execute("PRAGMA temp_store = MEMORY")
     conn.execute("PRAGMA busy_timeout = 30000")
-    _local.conn = conn
-    return _local.conn
+    return conn
+
+def get_db_conn() -> sqlite3.Connection:
+    if hasattr(_local, "conn") and _local.conn is not None:
+        try:
+            _local.conn.execute("SELECT 1")
+            return _local.conn
+        except Exception:
+            try:
+                _local.conn.close()
+            except Exception:
+                pass
+            _local.conn = None
+    try:
+        _local.conn = _create_raw_connection()
+        return _local.conn
+    except (sqlite3.DatabaseError, sqlite3.OperationalError):
+        reset_db_files()
+        _local.conn = _create_raw_connection()
+        return _local.conn
 
 def init_db():
+    try:
+        _do_init_db()
+    except (sqlite3.DatabaseError, sqlite3.OperationalError):
+        reset_db_files()
+        _do_init_db()
+
+def _do_init_db():
     conn = get_db_conn()
     conn.execute("""
     CREATE TABLE IF NOT EXISTS items (
@@ -1665,28 +1698,6 @@ TOOL_SUITES = {
             "discover_tools", "activate_tool_suite", "list_available_suites",
             "recommend_skills_for_context"
         ]
-    },
-    "all": {
-        "description": "Full enterprise suite containing all 51 active tools across all domains",
-        "tools": [
-            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
-            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
-            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
-            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
-            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
-            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
-            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
-            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
-            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
-            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
-            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
-            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
-            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
-            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
-            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
-            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
-            "verify_and_heal_code_patch", "verify_python_ast"
-        ]
     }
 }
 _ACTIVE_SUITES = set(["telegram", "governance", "systems_rust", "agentic_memory", "search_catalog"])
@@ -1727,28 +1738,6 @@ INTENT_DOMAINS: Dict[str, Dict[str, Any]] = {
     "testing_verification": {
         "keywords": ["verification", "testing", "unit", "integration", "qa", "audit", "senior-qa"],
         "tag": "Verification & Testing",
-    },
-    "all": {
-        "description": "Full enterprise suite containing all 51 active tools across all domains",
-        "tools": [
-            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
-            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
-            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
-            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
-            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
-            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
-            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
-            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
-            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
-            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
-            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
-            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
-            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
-            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
-            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
-            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
-            "verify_and_heal_code_patch", "verify_python_ast"
-        ]
     }
 }
 
@@ -1811,9 +1800,10 @@ def _cached_search_capabilities(query_key: str, domain: Optional[str], language:
     def tag_item(name: str, desc: str, content: str) -> Tuple[str, str]:
         comb = (name + " " + desc + " " + content[:600]).lower()
         for d_name in active_domains:
-            kws = INTENT_DOMAINS[d_name]["keywords"]
+            d_data = INTENT_DOMAINS.get(d_name, {})
+            kws = d_data.get("keywords", [])
             if any(k in comb for k in kws):
-                return (d_name, INTENT_DOMAINS[d_name]["tag"])
+                return (d_name, d_data.get("tag", "General"))
         return ("general", "General")
 
     seen_names = set()
@@ -2771,28 +2761,6 @@ BOT_SERVICES_CATALOG: Dict[str, Dict[str, Any]] = {
         "description": "Fetches and re-hosts content from Telegram channels with restricted permissions.",
         "recommended_rules": ["rule:rust_standards", "rule:rust_performance_memory"],
         "recommended_skills": ["skill:telegram-bot-builder"]
-    },
-    "all": {
-        "description": "Full enterprise suite containing all 51 active tools across all domains",
-        "tools": [
-            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
-            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
-            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
-            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
-            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
-            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
-            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
-            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
-            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
-            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
-            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
-            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
-            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
-            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
-            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
-            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
-            "verify_and_heal_code_patch", "verify_python_ast"
-        ]
     }
 }
 
@@ -4540,28 +4508,6 @@ TELEGRAM_WORKFLOW_MAP = {
         "related_types": ["InlineKeyboardMarkup", "CallbackQuery"],
         "next_steps": ["answerCallbackQuery", "editMessageReplyMarkup", "editMessageText"],
         "callbacks_handled": ["answerCallbackQuery"]
-    },
-    "all": {
-        "description": "Full enterprise suite containing all 51 active tools across all domains",
-        "tools": [
-            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
-            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
-            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
-            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
-            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
-            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
-            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
-            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
-            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
-            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
-            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
-            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
-            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
-            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
-            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
-            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
-            "verify_and_heal_code_patch", "verify_python_ast"
-        ]
     }
 }
 
@@ -4595,28 +4541,6 @@ TELEGRAM_ERROR_DIAGNOSTICS = {
         "cause": "Exceeded Telegram Bot API rate limits (FloodWait).",
         "fix_explanation": "Extract retry_after seconds, apply tokio sleep with random jitter (100ms..1000ms), and retry.",
         "rust_fix": 'let wait = retry_after_secs + rand::thread_rng().gen_range(1..=3);\ntokio::time::sleep(tokio::time::Duration::from_secs(wait)).await;'
-    },
-    "all": {
-        "description": "Full enterprise suite containing all 51 active tools across all domains",
-        "tools": [
-            "activate_tool_suite", "audit_anti_sycophancy", "audit_project_full_governance",
-            "audit_skill_quality", "audit_ui_design", "audit_web_application_quality",
-            "audit_webhook_health", "benchmark_search_performance", "cancel_mcp_task",
-            "create_new_skill", "detect_project_stack", "diagnose_telegram_error",
-            "discover_tools", "explain_ecosystem_map", "explore_telegram_workflow_graph",
-            "fix_code_rule_violations", "get_core_governance_rules", "get_distributed_trace_spans",
-            "get_exact_rule", "get_exact_skill", "get_mcp_task_status", "get_skill_section",
-            "get_skill_toc", "get_smart_skill_summary", "get_system_telemetry",
-            "get_telegram_bot_api_spec", "get_top_rated_skills", "list_all_rules_manifest",
-            "list_all_skills_manifest", "list_available_suites", "list_rules_overview",
-            "pin_skill_for_session", "plan_agentic_workflow", "read_skill_resource_file",
-            "recommend_skills_for_context", "register_custom_directory", "register_federated_mcp_server",
-            "reload_skills_index", "resolve_bot_service", "resolve_skill_for_intent",
-            "scaffold_telegram_microservice", "search_agent_capabilities", "simulate_bot_pipeline",
-            "simulate_telegram_load", "simulate_telegram_webhook_update", "sync_telegram_bot_api_upstream",
-            "synthesize_and_learn_skill", "unpin_skill_for_session", "validate_telegram_payload",
-            "verify_and_heal_code_patch", "verify_python_ast"
-        ]
     }
 }
 
