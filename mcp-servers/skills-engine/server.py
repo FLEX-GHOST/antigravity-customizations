@@ -3512,7 +3512,7 @@ def main():
     parser = argparse.ArgumentParser(description="Antigravity Skills & Governance Engine MCP Server (2026 Enterprise Edition)")
     parser.add_argument("--transport", choices=["stdio", "sse", "streamable-http"], default="stdio", help="MCP transport protocol (default: stdio)")
     parser.add_argument("--host", default="127.0.0.1", help="Host address for HTTP/SSE (default: 127.0.0.1)")
-    parser.add_argument("--port", type=int, default=8000, help="Port for HTTP/SSE (default: 8000)")
+    parser.add_argument("--port", type=int, default=14993, help="Port for HTTP/SSE (default: 14993)")
     parser.add_argument("--stateless", action="store_true", help="Enable stateless HTTP mode (2026 spec)")
     args, unknown = parser.parse_known_args()
 
