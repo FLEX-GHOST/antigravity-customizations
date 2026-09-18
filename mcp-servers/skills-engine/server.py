@@ -348,39 +348,45 @@ FEDERATED_SERVERS: Dict[str, Dict[str, Any]] = {}
 
 
 HOME_DIR = Path.home()
-DB_PATH = HOME_DIR / ".gemini/mcp-servers/skills-engine/skills_index.db"
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parents[1]
+LOCAL_DB = BASE_DIR / "skills_index.db"
+SYSTEM_DB = HOME_DIR / ".gemini/mcp-servers/skills-engine/skills_index.db"
+DB_PATH = LOCAL_DB if (LOCAL_DB.exists() and LOCAL_DB.stat().st_size > 1000000) else (SYSTEM_DB if SYSTEM_DB.exists() else LOCAL_DB)
 
 def get_all_search_paths() -> List[Path]:
-    paths = [
-        HOME_DIR / ".gemini/config",
+    paths = []
+    if REPO_ROOT.exists():
+        if (REPO_ROOT / "skills").exists():
+            paths.append(REPO_ROOT / "skills")
+        if (REPO_ROOT / "rules").exists():
+            paths.append(REPO_ROOT / "rules")
+        paths.append(REPO_ROOT)
+    paths.extend([
+        HOME_DIR / ".gemini/skills-catalog/skills",
         HOME_DIR / ".gemini/skills-catalog",
+        HOME_DIR / ".gemini/config/skills",
+        HOME_DIR / ".gemini/config/rules",
+        HOME_DIR / ".gemini/config",
         HOME_DIR / ".gemini/antigravity-ide/builtin/skills",
         HOME_DIR / ".gemini/antigravity-ide/builtin/rules",
         HOME_DIR / ".gemini/antigravity-cli/builtin/skills",
         HOME_DIR / ".gemini/antigravity-cli/builtin/rules",
-    ]
-    repo_root = Path(__file__).resolve().parent.parent.parent
-    if repo_root.exists() and repo_root not in paths:
-        paths.append(repo_root)
-    omni_skills = HOME_DIR / ".omni-skills"
-    if omni_skills.exists() and omni_skills not in paths:
-        paths.append(omni_skills)
-    custom_root = HOME_DIR / "antigravity-customizations"
-    if custom_root.exists() and custom_root not in paths:
-        paths.append(custom_root)
+    ])
     bots_dir = HOME_DIR / "bots"
     if bots_dir.exists():
         for agent_dir in sorted(bots_dir.glob("*/.agents")):
             if agent_dir.is_dir():
                 paths.append(agent_dir)
         paths.append(bots_dir)
-    matrx_dir = HOME_DIR / "matrx"
-    if matrx_dir.exists():
-        for agent_dir in sorted(matrx_dir.glob("*/.agents")):
-            if agent_dir.is_dir():
-                paths.append(agent_dir)
-        paths.append(matrx_dir)
-    return paths
+    seen = set()
+    valid = []
+    for p in paths:
+        rp = p.resolve()
+        if rp.exists() and rp.is_dir() and str(rp) not in seen:
+            seen.add(str(rp))
+            valid.append(rp)
+    return valid
 
 SEARCH_PATHS = get_all_search_paths()
 
