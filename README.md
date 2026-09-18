@@ -4,7 +4,7 @@
 [![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot%20API-10.3%20(185%20Methods%20%7C%20400%20Types)-2CA5E0?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
 [![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-51%20Tools%20(Go%201.26.5%20Native)-success.svg)](#complete-mcp-tool-suite-51-enterprise-tools)
 [![Engine Architecture](https://img.shields.io/badge/Engine-Go%201.26.5%20%7C%20Static%20Binary%20(6.7MB)-blue.svg)](#)
-[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-5%2C430%2B%20(Go%20%26%20SQLite)-orange.svg)](#)
+[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-2%2C160%2B%20(Go%20%26%20SQLite)-orange.svg)](#)
 [![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
 [![Autonomous CI/CD](https://img.shields.io/badge/GitHub%20Actions-Auto--Sync%20Bot-blueviolet.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions)
 [![CI/CD Test Suite](https://img.shields.io/badge/CI%2FCD-Automated%20Test%20Suite-success.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions/workflows/test-mcp-engine.yml)
