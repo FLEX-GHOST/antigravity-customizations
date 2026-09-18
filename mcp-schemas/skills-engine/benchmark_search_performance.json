@@ -1,7 +1,7 @@
 {
   "name": "benchmark_search_performance",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "test_queries": {
         "anyOf": [
@@ -21,5 +21,12 @@
     },
     "title": "benchmark_search_performanceArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

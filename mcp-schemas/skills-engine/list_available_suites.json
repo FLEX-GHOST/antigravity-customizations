@@ -1,9 +1,16 @@
 {
   "name": "list_available_suites",
   "description": "List all available tool suites, their description, and their tools.",
-  "parameters": {
+  "inputSchema": {
     "properties": {},
     "title": "list_available_suitesArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

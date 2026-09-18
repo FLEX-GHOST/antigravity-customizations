@@ -1,7 +1,7 @@
 {
   "name": "list_rules_overview",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "limit": {
         "default": 50,
@@ -11,5 +11,12 @@
     },
     "title": "list_rules_overviewArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

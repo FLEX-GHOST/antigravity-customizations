@@ -1,7 +1,7 @@
 {
   "name": "verify_python_ast",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "code": {
         "title": "Code",
@@ -13,5 +13,12 @@
     ],
     "title": "verify_python_astArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

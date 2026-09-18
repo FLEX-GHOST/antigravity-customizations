@@ -1,7 +1,7 @@
 {
   "name": "plan_agentic_workflow",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "goal": {
         "title": "Goal",
@@ -18,5 +18,12 @@
     ],
     "title": "plan_agentic_workflowArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

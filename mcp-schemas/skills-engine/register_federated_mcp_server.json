@@ -1,7 +1,7 @@
 {
   "name": "register_federated_mcp_server",
   "description": "Register and proxy a downstream federated MCP server under central governance.",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "name": {
         "title": "Name",
@@ -23,5 +23,12 @@
     ],
     "title": "register_federated_mcp_serverArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": false,
+    "isDestructive": false,
+    "idempotent": false,
+    "ttlMs": 0,
+    "cacheScope": "private"
   }
 }

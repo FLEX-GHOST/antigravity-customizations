@@ -1,7 +1,7 @@
 {
   "name": "audit_anti_sycophancy",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "response_text": {
         "title": "Response Text",
@@ -13,5 +13,12 @@
     ],
     "title": "audit_anti_sycophancyArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "activate_tool_suite",
   "description": "Dynamically activate a specialized tool suite (telegram, architecture, quality, catalog).",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "suite_name": {
         "title": "Suite Name",
@@ -13,5 +13,12 @@
     ],
     "title": "activate_tool_suiteArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": false,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 0,
+    "cacheScope": "private"
   }
 }

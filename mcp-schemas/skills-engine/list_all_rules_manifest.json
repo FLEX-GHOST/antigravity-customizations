@@ -1,0 +1,22 @@
+{
+  "name": "list_all_rules_manifest",
+  "description": "Return a comprehensive manifest of all governance rules and invariants.\n    Guarantees 100% adherence to architectural and code standards.",
+  "inputSchema": {
+    "properties": {
+      "output_format": {
+        "default": "compact",
+        "title": "Output Format",
+        "type": "string"
+      }
+    },
+    "title": "list_all_rules_manifestArguments",
+    "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "get_smart_skill_summary",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "name": {
         "title": "Name",
@@ -13,5 +13,12 @@
     ],
     "title": "get_smart_skill_summaryArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

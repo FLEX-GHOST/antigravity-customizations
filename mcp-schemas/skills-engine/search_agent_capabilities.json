@@ -1,7 +1,7 @@
 {
   "name": "search_agent_capabilities",
   "description": "Fast hybrid search across 125+ skills, rules, and blueprints with BM25 + vector ranking.",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "query": {
         "title": "Query",
@@ -52,5 +52,12 @@
     ],
     "title": "search_agent_capabilitiesArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

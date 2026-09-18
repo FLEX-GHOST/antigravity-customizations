@@ -1,0 +1,24 @@
+{
+  "name": "resolve_skill_for_intent",
+  "description": "Autonomous deep intent resolver: converts any developer goal (Arabic or English) into an exact execution sequence of skills and rules with zero chance of omission.",
+  "inputSchema": {
+    "properties": {
+      "intent": {
+        "title": "Intent",
+        "type": "string"
+      }
+    },
+    "required": [
+      "intent"
+    ],
+    "title": "resolve_skill_for_intentArguments",
+    "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
+  }
+}

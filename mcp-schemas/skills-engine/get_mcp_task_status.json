@@ -1,7 +1,7 @@
 {
   "name": "get_mcp_task_status",
   "description": "Retrieve execution status, progress, duration, and results of an asynchronous MCP background task (SEP-2663).",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "task_id": {
         "title": "Task Id",
@@ -13,5 +13,12 @@
     ],
     "title": "get_mcp_task_statusArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

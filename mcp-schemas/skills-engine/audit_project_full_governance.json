@@ -1,7 +1,7 @@
 {
   "name": "audit_project_full_governance",
   "description": "Composite Macro Tool: Execute complete project stack detection, rule audit, AST checks, and compliance scoring in a single roundtrip.",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "workspace_path": {
         "anyOf": [
@@ -18,5 +18,12 @@
     },
     "title": "audit_project_full_governanceArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

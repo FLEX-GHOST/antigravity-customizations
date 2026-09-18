@@ -1,7 +1,7 @@
 {
   "name": "get_skill_section",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "name": {
         "title": "Name",
@@ -18,5 +18,12 @@
     ],
     "title": "get_skill_sectionArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "audit_ui_design",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "css_or_html": {
         "title": "Css Or Html",
@@ -13,5 +13,12 @@
     ],
     "title": "audit_ui_designArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

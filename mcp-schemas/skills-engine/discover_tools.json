@@ -1,7 +1,7 @@
 {
   "name": "discover_tools",
   "description": "Meta-tool for progressive tool discovery: find and unlock the exact tool for any task on demand.",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "intent": {
         "title": "Intent",
@@ -30,5 +30,12 @@
     ],
     "title": "discover_toolsArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "get_top_rated_skills",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "category": {
         "anyOf": [
@@ -47,5 +47,12 @@
     },
     "title": "get_top_rated_skillsArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

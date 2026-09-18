@@ -1,7 +1,7 @@
 {
   "name": "detect_project_stack",
   "description": "Analyze project structure, dependencies, and codebases to detect tech stack and enforce governance.",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "directory_path": {
         "anyOf": [
@@ -18,5 +18,12 @@
     },
     "title": "detect_project_stackArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

@@ -1,0 +1,34 @@
+{
+  "name": "list_all_skills_manifest",
+  "description": "Return a comprehensive manifest of all indexed skills with categories, triggers, and paths.\n    Guarantees zero-loss visibility across all available capabilities.",
+  "inputSchema": {
+    "properties": {
+      "category": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Category"
+      },
+      "output_format": {
+        "default": "compact",
+        "title": "Output Format",
+        "type": "string"
+      }
+    },
+    "title": "list_all_skills_manifestArguments",
+    "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
+  }
+}

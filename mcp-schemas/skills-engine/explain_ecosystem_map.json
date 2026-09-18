@@ -1,9 +1,16 @@
 {
   "name": "explain_ecosystem_map",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {},
     "title": "explain_ecosystem_mapArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

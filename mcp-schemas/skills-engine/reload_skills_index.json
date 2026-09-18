@@ -1,9 +1,16 @@
 {
   "name": "reload_skills_index",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {},
     "title": "reload_skills_indexArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": false,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 0,
+    "cacheScope": "private"
   }
 }

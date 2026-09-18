@@ -1,7 +1,7 @@
 {
   "name": "recommend_skills_for_context",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "file_path": {
         "anyOf": [
@@ -42,5 +42,12 @@
     },
     "title": "recommend_skills_for_contextArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

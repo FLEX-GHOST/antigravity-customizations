@@ -1,7 +1,7 @@
 {
   "name": "get_exact_skill",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "name": {
         "title": "Name",
@@ -13,5 +13,12 @@
     ],
     "title": "get_exact_skillArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

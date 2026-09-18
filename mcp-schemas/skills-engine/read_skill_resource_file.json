@@ -1,7 +1,7 @@
 {
   "name": "read_skill_resource_file",
   "description": "Read a secondary resource, example, or script from a skill directory safely.",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "skill_name": {
         "title": "Skill Name",
@@ -18,5 +18,12 @@
     ],
     "title": "read_skill_resource_fileArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

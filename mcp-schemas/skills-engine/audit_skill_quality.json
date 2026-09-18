@@ -1,7 +1,7 @@
 {
   "name": "audit_skill_quality",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "skill_name_or_id": {
         "title": "Skill Name Or Id",
@@ -13,5 +13,12 @@
     ],
     "title": "audit_skill_qualityArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

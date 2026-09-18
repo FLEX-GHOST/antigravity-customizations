@@ -1,7 +1,7 @@
 {
   "name": "simulate_bot_pipeline",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "user_utterance": {
         "title": "User Utterance",
@@ -13,5 +13,12 @@
     ],
     "title": "simulate_bot_pipelineArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

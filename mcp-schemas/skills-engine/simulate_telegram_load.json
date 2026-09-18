@@ -1,7 +1,7 @@
 {
   "name": "simulate_telegram_load",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "bot_type": {
         "default": "factory",
@@ -16,5 +16,12 @@
     },
     "title": "simulate_telegram_loadArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

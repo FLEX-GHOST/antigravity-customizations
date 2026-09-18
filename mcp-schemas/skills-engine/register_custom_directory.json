@@ -1,7 +1,7 @@
 {
   "name": "register_custom_directory",
   "description": "Register a custom directory of skills or rules with zero-trust path sandboxing.",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "directory_path": {
         "title": "Directory Path",
@@ -13,5 +13,12 @@
     ],
     "title": "register_custom_directoryArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": false,
+    "isDestructive": false,
+    "idempotent": false,
+    "ttlMs": 0,
+    "cacheScope": "private"
   }
 }

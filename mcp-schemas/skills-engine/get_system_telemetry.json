@@ -1,9 +1,16 @@
 {
   "name": "get_system_telemetry",
   "description": "Inspect real-time server telemetry: latency percentiles, tool usage counts, and cache hit ratios.",
-  "parameters": {
+  "inputSchema": {
     "properties": {},
     "title": "get_system_telemetryArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

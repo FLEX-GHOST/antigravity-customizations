@@ -1,7 +1,7 @@
 {
   "name": "audit_webhook_health",
   "description": "",
-  "parameters": {
+  "inputSchema": {
     "properties": {
       "webhook_url": {
         "default": "",
@@ -16,5 +16,12 @@
     },
     "title": "audit_webhook_healthArguments",
     "type": "object"
+  },
+  "metadata": {
+    "readOnly": true,
+    "isDestructive": false,
+    "idempotent": true,
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

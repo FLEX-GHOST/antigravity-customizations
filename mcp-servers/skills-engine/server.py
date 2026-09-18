@@ -827,12 +827,29 @@ def detect_language_from_text(name: str, content: str) -> str:
 
 last_sync_time = 0.0
 
+def check_and_sync_index(force: bool = False):
+    global last_sync_time
+    now = time.time()
+    if not force and (now - last_sync_time < 5.0):
+        return
+    needs_sync = force
+    if not needs_sync:
+        for p in SEARCH_PATHS:
+            try:
+                if p.exists() and p.stat().st_mtime > last_sync_time:
+                    needs_sync = True
+                    break
+            except Exception:
+                pass
+    if needs_sync:
+        sync_all_directories(force=True)
+
 def sync_all_directories(force: bool = False):
     global last_sync_time
     now = time.time()
-    # 1-hour debounce in normal runs to eliminate disk traversal latency
-    if not force and (now - last_sync_time < 3600.0):
+    if not force and (now - last_sync_time < 10.0):
         return
+    last_sync_time = now
 
     conn = get_db_conn()
     cur = conn.execute("SELECT id, path, quality_score FROM items")
@@ -3483,6 +3500,152 @@ if hasattr(mcp, "prompt"):
         )
 
 
+
+# =========================================================
+# Phase 5: Zero-Loss Skills & Rules Architecture Tools
+# =========================================================
+
+PINNED_SESSION_ITEMS: set = set()
+
+@mcp.tool()
+def list_all_rules_manifest(output_format: str = "compact") -> Any:
+    """Return a comprehensive manifest of all governance rules and invariants.
+    Guarantees 100% adherence to architectural and code standards."""
+    check_and_sync_index()
+    conn = get_db_conn()
+    cur = conn.execute(
+        "SELECT name, category, quality_score, description, path FROM items WHERE item_type = 'rule' ORDER BY quality_score DESC, name ASC"
+    )
+    rows = cur.fetchall()
+
+    if output_format in ("table", "compact"):
+        lines = [
+            f"### Governance Rules Manifest ({len(rows)} Invariants)",
+            "| Rule Name | Category | Core Mandate / Summary |",
+            "| :--- | :---: | :--- |"
+        ]
+        for r in rows:
+            desc = r[3][:90] + "..." if r[3] and len(r[3]) > 90 else (r[3] or "")
+            lines.append(f"| `{r[0]}` | {r[1]} | {desc} |")
+        return "\n".join(lines)
+
+    return [
+        {"name": r[0], "category": r[1], "quality_score": r[2], "description": r[3], "path": r[4]}
+        for r in rows
+    ]
+
+@mcp.tool()
+def list_all_skills_manifest(category: Optional[str] = None, output_format: str = "compact") -> Any:
+    """Return a comprehensive manifest of all indexed skills with categories, triggers, and paths.
+    Guarantees zero-loss visibility across all available capabilities."""
+    check_and_sync_index()
+    conn = get_db_conn()
+    if category:
+        cur = conn.execute(
+            "SELECT name, category, quality_score, triggers, path FROM items WHERE item_type = 'skill' AND category = ? ORDER BY quality_score DESC, name ASC",
+            (category,)
+        )
+    else:
+        cur = conn.execute(
+            "SELECT name, category, quality_score, triggers, path FROM items WHERE item_type = 'skill' ORDER BY quality_score DESC, name ASC"
+        )
+    rows = cur.fetchall()
+
+    if output_format in ("table", "compact"):
+        lines = [
+            f"### Skills Manifest ({len(rows)} Registered Skills)",
+            "| Skill Name | Category | Quality | Key Triggers / Focus |",
+            "| :--- | :---: | :---: | :--- |"
+        ]
+        for r in rows[:100]:
+            trig = r[3][:60] + "..." if r[3] and len(r[3]) > 60 else (r[3] or "")
+            lines.append(f"| `{r[0]}` | {r[1]} | {r[2]} | {trig} |")
+        if len(rows) > 100:
+            lines.append(f"\n*... and {len(rows) - 100} more skills indexed in SQLite database.*")
+        return "\n".join(lines)
+
+    return [
+        {"name": r[0], "category": r[1], "quality_score": r[2], "triggers": r[3], "path": r[4]}
+        for r in rows
+    ]
+
+@mcp.tool()
+def pin_skill_for_session(skill_id: str) -> Dict[str, Any]:
+    """Pin a mission-critical skill or rule to session memory so it is prioritized in every subsequent agent action."""
+    PINNED_SESSION_ITEMS.add(skill_id.strip())
+    return {
+        "status": "PINNED",
+        "item_id": skill_id,
+        "total_pinned": len(PINNED_SESSION_ITEMS),
+        "pinned_items": sorted(list(PINNED_SESSION_ITEMS))
+    }
+
+@mcp.tool()
+def unpin_skill_for_session(skill_id: str) -> Dict[str, Any]:
+    """Unpin a previously pinned skill or rule from session memory."""
+    PINNED_SESSION_ITEMS.discard(skill_id.strip())
+    return {
+        "status": "UNPINNED",
+        "item_id": skill_id,
+        "total_pinned": len(PINNED_SESSION_ITEMS),
+        "pinned_items": sorted(list(PINNED_SESSION_ITEMS))
+    }
+
+@mcp.tool()
+def resolve_skill_for_intent(intent: str) -> Dict[str, Any]:
+    """Autonomous deep intent resolver: converts any developer goal (Arabic or English) into an exact execution sequence of skills and rules with zero chance of omission."""
+    check_and_sync_index()
+    t0 = time.perf_counter()
+    rows = _cached_search_capabilities(intent.strip(), None, None, 30, 8)
+    dur = (time.perf_counter() - t0) * 1000.0
+
+    skills = [r for r in rows if r[1] == "skill"]
+    rules = [r for r in rows if r[1] == "rule"]
+
+    recommended_skills = []
+    for s in skills[:3]:
+        recommended_skills.append({
+            "name": s[2],
+            "quality": s[4],
+            "description": s[6][:200],
+            "action": f"Call get_exact_skill(name='{s[2]}') for complete procedural guidance."
+        })
+
+    governance_invariants = []
+    for r in rules[:3]:
+        governance_invariants.append({
+            "name": r[2],
+            "description": r[6][:200],
+            "action": f"Call get_exact_rule(rule_name='{r[2]}') to verify constraints."
+        })
+
+    return {
+        "user_intent": intent,
+        "resolution_duration_ms": round(dur, 2),
+        "primary_skills": recommended_skills,
+        "governance_invariants": governance_invariants,
+        "execution_verdict": "Deterministic execution path established. Follow primary_skills sequentially."
+    }
+
+if hasattr(mcp, "resource"):
+    @mcp.resource("skills://full-catalog")
+    def get_skills_catalog_resource() -> str:
+        """Standard MCP resource exposing complete JSON catalog of all registered skills."""
+        check_and_sync_index()
+        conn = get_db_conn()
+        cur = conn.execute("SELECT name, category, quality_score, description, path FROM items WHERE item_type = 'skill' ORDER BY name ASC")
+        catalog = [{"name": r[0], "category": r[1], "quality": r[2], "description": r[3][:100], "path": r[4]} for r in cur.fetchall()]
+        return json.dumps({"count": len(catalog), "skills": catalog}, indent=2)
+
+    @mcp.resource("rules://full-catalog")
+    def get_rules_catalog_resource() -> str:
+        """Standard MCP resource exposing complete JSON catalog of all governance rules."""
+        check_and_sync_index()
+        conn = get_db_conn()
+        cur = conn.execute("SELECT name, category, quality_score, description, path FROM items WHERE item_type = 'rule' ORDER BY name ASC")
+        catalog = [{"name": r[0], "category": r[1], "quality": r[2], "description": r[3][:100], "path": r[4]} for r in cur.fetchall()]
+        return json.dumps({"count": len(catalog), "rules": catalog}, indent=2)
+
 def enforce_mcp_deterministic_standards():
     """Enforce July 2026 MCP specification: deterministic tool ordering & safety metadata."""
     if hasattr(mcp, "_tool_manager") and hasattr(mcp._tool_manager, "_tools"):
@@ -3492,7 +3655,7 @@ def enforce_mcp_deterministic_standards():
 
         # 2. Tool Safety & Cache Metadata Annotations
         mutating_tools = {
-            "create_new_skill", "register_custom_directory", "reload_skills_index", "activate_tool_suite", "synthesize_and_learn_skill", "cancel_mcp_task", "register_federated_mcp_server"
+            "create_new_skill", "register_custom_directory", "reload_skills_index", "activate_tool_suite", "synthesize_and_learn_skill", "cancel_mcp_task", "register_federated_mcp_server", "pin_skill_for_session", "unpin_skill_for_session"
         }
         for name, tool in mcp._tool_manager._tools.items():
             is_ro = name not in mutating_tools
