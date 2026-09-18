@@ -28,7 +28,50 @@ SEARCH_PATHS = [
     Path("/root/.gemini/skills-catalog"),
 ]
 
+ARABIC_STOPWORDS = {
+    'من', 'الى', 'عن', 'على', 'في', 'حتى', 'مع', 'هذا', 'هذه', 'تم', 'كان', 'كانت',
+    'ان', 'انها', 'انه', 'بان', 'او', 'ثم', 'كل', 'بعض', 'غير', 'فقط', 'هو', 'هي',
+    'هم', 'هن', 'انت', 'انتم', 'انا', 'نحن', 'الي', 'اللي', 'التي', 'الذي', 'الذين',
+    'اللواتي', 'اللاتي', 'اذا', 'لو', 'لما', 'عند', 'عندما', 'حيث', 'كيف', 'ماذا',
+    'لماذا', 'هل', 'كم', 'اي', 'اية', 'ايها', 'ايتها', 'كلما', 'بين', 'بينما', 'لدى',
+    'دون', 'نحو', 'قبل', 'بعد', 'اثناء', 'خلال', 'فوق', 'تحت', 'وراء', 'امام', 'خلف',
+    'يمين', 'يسار', 'داخل', 'خارج', 'سوى', 'حاشا', 'خلا', 'عدا', 'ليس', 'ما', 'لا',
+    'لن', 'لم', 'لات', 'انما', 'لكن', 'بل', 'لكنما', 'سواء', 'اما', 'كذلك', 'ايضا',
+    'جدا', 'كثيرا', 'قليلا', 'دائما', 'ابدا', 'احيانا', 'طالما', 'بما', 'حسب',
+    # Iraqi conversational filler words
+    'هيج', 'هسة', 'هسه', 'ياخي', 'شبيك', 'لعد', 'توه', 'توني', 'بله', 'شلون', 'ليش',
+    'شنو', 'وين', 'شو', 'عندي', 'اريد', 'اطلبها', 'ضيفها', 'سويلي', 'ضيفلي', 'عدلي',
+    'كلش', 'هواي', 'شوية', 'حيل', 'مو', 'مجرد', 'يكدر', 'يكول', 'يعني', 'شوف', 'فهمت',
+    'بنفسه', 'عندنا', 'عدنا', 'بكل', 'مكان', 'جديدة', 'وبدون', 'مشاكل', 'الاشياء',
+    'مثلا', 'وبعدها', 'اللي', 'هيج كلام', 'كلام'
+}
+
 RAW_AR_STEM_MAP: Dict[str, str] = {
+    # --- AI Agents, Tool Calling & Service Orchestration ---
+    "ai agent": "ai-agent tool-calling function-calling agentic-bot autonomous-agent telegram-bot-builder",
+    "اي اي ايجنت": "ai-agent tool-calling function-calling agentic-bot autonomous-agent",
+    "ايجنت": "ai-agent autonomous-agent agentic-workflow tool-calling",
+    "مو مجرد شات": "ai-agent tool-calling function-calling autonomous-assistant reasoning telegram-bot-builder",
+    "يستدعي tool": "function-calling tool-use tools-orchestration tool-dispatch clean-architecture",
+    "يستدعي اداة": "function-calling tool-use tools-orchestration tool-dispatch clean-architecture",
+    "يستدعي ادوات": "function-calling tool-use tools-orchestration tool-dispatch clean-architecture",
+    "يستدعي الاداة": "function-calling tool-use tools-orchestration tool-dispatch clean-architecture",
+    "يستدعي ادوات البوت": "telegram-bot-builder tool-calling function-calling decoupled-services clean-architecture",
+    "ادوات البوت": "telegram-bot-builder bot-services tools-catalog function-calling",
+    "الخدمات هي اللي تنفذ": "clean-architecture decoupled-services tool-dispatcher ports-adapters service-layer",
+    "ما ينفذ بنفسه": "clean-architecture tool-calling separation-of-concerns decoupled-services ports-adapters",
+    "يطلب الرابط اذا ناقص": "slot-filling parameter-extraction dialogue-state-tracking validation error-handling",
+    "باراميتر ناقص": "slot-filling parameter-extraction validation schema dialogue-state-tracking",
+    "رابط ناقص": "slot-filling parameter-extraction validation schema",
+    "شلون يستخدم الخدمة": "conversational-agent help-system documentation telegram-bot",
+    "يشرحله": "conversational-agent help-system documentation interactive-guidance",
+    "نزلي هذا من الانستا": "instagram-downloader media-downloader video-download yt-dlp telegram-bot",
+    "نزلي من الانستا": "instagram-downloader media-downloader video-download yt-dlp telegram-bot",
+    "instagram downloader": "instagram-downloader media-downloader video-download yt-dlp telegram-bot",
+    "انستغرام داونلودر": "instagram-downloader media-downloader video-download yt-dlp telegram-bot",
+    "فكرة خدمة": "feature-design architecture modular-services clean-architecture telegram-bot-builder",
+    "خدمة": "service microservice handler clean-architecture module",
+    "خدمات": "services architecture modular clean-architecture service-layer",
     # --- Telegram Bots & Factory Architecture ---
     "بوت ميوزك فليكس": "telegram-music-bot audio-streaming rusttgcalls gotgcall gogram pytgcalls voice-chat webrtc ffmpeg playback rust go golang python flexmusic queue",
     "بوت ميوزك": "telegram-music-bot audio-streaming rusttgcalls gotgcall pytgcalls voice-chat webrtc ffmpeg playback rust go golang python",
@@ -699,6 +742,13 @@ def ensure_initialized():
 
 ensure_initialized()
 
+def clean_query_text(text: str) -> str:
+    # Strip tatweel/kashida
+    t = re.sub(r"[\u0640]", "", text)
+    # Split Arabic prefixes on Latin words e.g. الـAI -> AI, والـTool -> Tool
+    t = re.sub(r"\b(ال|وال|بال|كال|لل|فال)([a-zA-Z]+)", r"\2", t)
+    return t
+
 def extract_stems(norm_text: str) -> set:
     words = re.findall(r"[\u0621-\u064A]+", norm_text)
     stems = set(words)
@@ -717,23 +767,42 @@ def extract_stems(norm_text: str) -> set:
             stems.add(w[1:])
     return stems
 
-def expand_query(query: str) -> str:
-    norm = normalize_arabic(query)
+def extract_intent_tokens(query: str) -> List[str]:
+    q_clean = clean_query_text(query)
+    norm = normalize_arabic(q_clean)
     stems = extract_stems(norm)
-    expanded = query
-    matched_exps = set()
+
+    matched_exps = []
     for stem, exp in sorted(AR_STEM_MAP.items(), key=lambda x: len(x[0]), reverse=True):
         if " " in stem:
             if stem in norm:
-                for word in exp.split():
-                    matched_exps.add(word)
+                for w in exp.split():
+                    if w not in matched_exps:
+                        matched_exps.append(w)
         else:
             if stem in norm or stem in stems:
-                for word in exp.split():
-                    matched_exps.add(word)
-    if matched_exps:
-        expanded += " " + " ".join(matched_exps)
-    return expanded
+                for w in exp.split():
+                    if w not in matched_exps:
+                        matched_exps.append(w)
+
+    raw_words = [
+        w.lower() for w in re.findall(r"[\w]+", q_clean)
+        if len(w) > 1 and w.lower() not in ARABIC_STOPWORDS
+    ]
+
+    # Prioritize matched semantic intent tokens FIRST to prevent long text dilution
+    ordered = []
+    seen = set()
+    for t in matched_exps + raw_words:
+        if t not in seen:
+            seen.add(t)
+            ordered.append(t)
+
+    return ordered
+
+def expand_query(query: str) -> str:
+    tokens = extract_intent_tokens(query)
+    return " ".join(tokens)
 # In-memory LRU caching for ultra-low latency (< 0.1ms)
 @functools.lru_cache(maxsize=512)
 def _cached_exact_skill(name: str) -> str:
@@ -819,21 +888,12 @@ def clear_all_caches():
 
 @mcp.tool()
 def search_agent_capabilities(query: str, domain: Optional[str] = None, language: Optional[str] = None, min_quality: int = 40, limit: int = 8) -> List[Dict[str, Any]]:
-    full_query = expand_query(query).strip()
-    words = re.findall(r"[\w]+", full_query)
-    clean_tokens = []
-    seen = set()
-    for w in words:
-        wl = w.lower().strip()
-        if len(wl) > 1 and wl not in seen:
-            seen.add(wl)
-            clean_tokens.append(wl)
-
-    if not clean_tokens:
+    tokens = extract_intent_tokens(query)
+    if not tokens:
         return []
 
-    # Weighted query parts: prefix search with 25 tokens
-    fts_query_parts = [f'"{tok}"*' for tok in clean_tokens[:25]]
+    # Weighted query parts: prefix search prioritizing the top 28 intent tokens
+    fts_query_parts = [f'"{tok}"*' for tok in tokens[:28]]
     fts_query = " OR ".join(fts_query_parts)
 
     conn = get_db_conn()
