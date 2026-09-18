@@ -15,7 +15,7 @@ echo "========================================================="
 command -v python3 >/dev/null 2>&1 || {
     echo "[-] python3 is required. Installing..."
     if command -v apt-get >/dev/null 2>&1; then
-        apt-get update -qq && apt-get install -y -qq python3 python3-pip git curl sqlite3
+        apt-get update -qq && apt-get install -y -qq python3 python3-pip python3-yaml git curl sqlite3
     elif command -v yum >/dev/null 2>&1; then
         yum install -y -q python3 python3-pip git curl sqlite
     fi
@@ -30,7 +30,7 @@ command -v git >/dev/null 2>&1 || {
 
 echo "[+] Verifying Python dependencies (mcp, pyyaml)..."
 python3 -c "import mcp, yaml" >/dev/null 2>&1 || {
-    python3 -m pip install --quiet --break-system-packages mcp pyyaml 2>/dev/null || python3 -m pip install --quiet mcp pyyaml
+    python3 -m pip install --quiet --break-system-packages --ignore-installed mcp pyyaml 2>/dev/null ||     python3 -m pip install --quiet --ignore-installed mcp pyyaml 2>/dev/null ||     pip3 install --break-system-packages --ignore-installed mcp pyyaml
 }
 
 TMP_SOURCE=""
