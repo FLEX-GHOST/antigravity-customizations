@@ -172,17 +172,36 @@ def test_readme_dynamic_metrics():
     metrics = update_readme_metrics.get_current_metrics()
     readme_text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 
-    # Verify Telegram Bot API version & methods & types in badge
+    # 1. Verify Telegram Bot API version & methods & types in badge
     expected_tg_badge = f"Telegram%20Bot%20API-{metrics['tg_version']}%20({metrics['tg_methods']}%20Methods%20%7C%20{metrics['tg_types']}%20Types)"
     assert expected_tg_badge in readme_text, f"README missing current Telegram badge: {expected_tg_badge}"
 
-    # Verify Active MCP Tools badge
+    # 2. Verify Active MCP Tools badge
     expected_tools_badge = f"MCP%20Tools-{metrics['tools_count']}%20Tools"
     assert expected_tools_badge in readme_text, f"README missing tools count badge: {expected_tools_badge}"
 
-    # Verify Go version
+    # 3. Verify Go version
     expected_go = f"Go {metrics['go_version']}"
     assert expected_go in readme_text, f"README missing active Go version: {expected_go}"
+
+    # 4. Verify ASCII Architecture Diagram metrics
+    assert f"[Telegram Bot API {metrics['tg_version']}]" in readme_text
+    assert f"- {metrics['tg_methods']} Official Methods" in readme_text
+    assert f"- {metrics['tg_types']} Official Types" in readme_text
+
+    # 5. Verify Telegram reference section header
+    assert f"## Telegram Bot API {metrics['tg_version']} Master Reference" in readme_text
+
+    # 6. Verify method count in get_telegram_bot_api_spec
+    assert f"retrieval for all {metrics['tg_methods']} methods." in readme_text
+
+    # 7. Verify version in validate_telegram_payload
+    assert f"Bot API {metrics['tg_version']} / 9.4+ requests" in readme_text
+
+    # 8. Verify domain table method count sum
+    domain_total = sum(metrics.get("domain_counts", {}).values())
+    if domain_total > 0:
+        assert domain_total == metrics["tg_methods"], f"Domain counts sum {domain_total} != total methods {metrics['tg_methods']}"
 
     print(f"[PASS] README.md metrics & versions strictly match repository state ({metrics['tg_version']}, {metrics['tg_methods']} methods, {metrics['tg_types']} types, {metrics['tools_count']} tools).")
 

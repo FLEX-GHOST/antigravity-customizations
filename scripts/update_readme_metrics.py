@@ -3,7 +3,7 @@
 Dynamic README Metrics & Versions Synchronizer
 Automatically parses repository state (Telegram Bot API spec, Go toolchain version,
 MCP tool count, schemas, binary size) and updates README.md badges, diagrams,
-headers, and prose with 100% deterministic accuracy.
+headers, tables, and prose with 100% deterministic accuracy.
 """
 
 import os
@@ -15,6 +15,22 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 README_FILE = ROOT_DIR / "README.md"
 
+def categorize_method(name: str) -> str:
+    n = name.lower()
+    if "forumtopic" in n:
+        return "Forum & Topic Management"
+    if any(k in n for k in ["editmessagetext", "editmessagecaption", "editmessagemedia", "editmessagereplymarkup", "editmessagelivelocation", "stopmessagelivelocation", "deletemessage", "deletemessages"]):
+        return "Editing & Deletions"
+    if any(k in n for k in ["gift", "star", "invoice", "payment", "checkout", "subscriptioninvite"]):
+        return "Gifts, Stars & Payments"
+    if any(k in n for k in ["webhook", "getme", "logout", "close", "mycommands", "menubutton", "myname", "mydescription", "myshortdescription", "mydefaultadministratorrights", "customemojistickers", "getupdates"]):
+        return "Webhooks & Configuration"
+    if (n.startswith("send") and not any(k in n for k in ["chataction", "gift", "invoice"])) or any(k in n for k in ["forwardmessage", "forwardmessages", "copymessage", "copymessages", "stoppoll"]):
+        return "Messages & Media"
+    if any(k in n for k in ["chat", "userprofilephotos", "user", "boost", "stickerset"]):
+        return "Chat & Member Governance"
+    return "Telegram Business & Misc"
+
 def get_current_metrics():
     # 1. Telegram API metrics
     version_file = ROOT_DIR / "skills" / "telegram-bot-api-methods" / "references" / "version.json"
@@ -24,6 +40,7 @@ def get_current_metrics():
     tg_ver = "10.3"
     tg_methods = 185
     tg_types = 400
+    domain_counts = {}
     
     if version_file.exists():
         try:
@@ -36,6 +53,9 @@ def get_current_metrics():
         try:
             mdata = json.loads(methods_file.read_text(encoding="utf-8"))
             tg_methods = len(mdata)
+            for m in mdata:
+                dom = categorize_method(m)
+                domain_counts[dom] = domain_counts.get(dom, 0) + 1
         except Exception:
             pass
             
@@ -56,15 +76,21 @@ def get_current_metrics():
     skills_count = len([d for d in skills_dir.iterdir() if d.is_dir()]) if skills_dir.exists() else 0
     rules_count = len(list(rules_dir.glob("*.md"))) if rules_dir.exists() else 0
 
-    # 4. Go version
+    # 4. Go version from go.mod first (canonical), fallback to go version
     go_ver = "1.26.5"
-    try:
-        out = subprocess.check_output(["go", "version"], text=True)
-        m = re.search(r"go(\d+\.\d+(\.\d+)?)", out)
+    go_mod = ROOT_DIR / "mcp-servers" / "skills-engine" / "go.mod"
+    if go_mod.exists():
+        m = re.search(r"^go\s+([0-9.]+)", go_mod.read_text(encoding="utf-8"), re.M)
         if m:
             go_ver = m.group(1)
-    except Exception:
-        pass
+    else:
+        try:
+            out = subprocess.check_output(["go", "version"], text=True)
+            m = re.search(r"go(\d+\.\d+(\.\d+)?)", out)
+            if m:
+                go_ver = m.group(1)
+        except Exception:
+            pass
 
     # 5. Static binary size
     bin_path = ROOT_DIR / "mcp-servers" / "skills-engine" / "skills-engine"
@@ -77,6 +103,7 @@ def get_current_metrics():
         "tg_version": tg_ver,
         "tg_methods": tg_methods,
         "tg_types": tg_types,
+        "domain_counts": domain_counts,
         "tools_count": tools_count,
         "skills_count": skills_count,
         "rules_count": rules_count,
@@ -98,6 +125,7 @@ def update_readme(metrics: dict = None) -> bool:
     tg_ver = metrics["tg_version"]
     tg_m = metrics["tg_methods"]
     tg_t = metrics["tg_types"]
+    dom_counts = metrics.get("domain_counts", {})
     tools_cnt = metrics["tools_count"]
     go_ver = metrics["go_version"]
     bin_sz = metrics["bin_size"]
@@ -165,7 +193,45 @@ def update_readme(metrics: dict = None) -> bool:
         content
     )
 
-    # 8. MCP Tools Section Header & count
+    # 8. Domain Table Method Counts
+    if dom_counts:
+        content = re.sub(
+            r"\|\s+\*\*Messages\s+&\s+Media\*\*\s+\|\s+[0-9]+\s+\|",
+            f"| **Messages & Media** | {dom_counts.get('Messages & Media', 32)} |",
+            content
+        )
+        content = re.sub(
+            r"\|\s+\*\*Editing\s+&\s+Deletions\*\*\s+\|\s+[0-9]+\s+\|",
+            f"| **Editing & Deletions** | {dom_counts.get('Editing & Deletions', 12)} |",
+            content
+        )
+        content = re.sub(
+            r"\|\s+\*\*Chat\s+&\s+Member\s+Governance\*\*\s+\|\s+[0-9]+\s+\|",
+            f"| **Chat & Member Governance** | {dom_counts.get('Chat & Member Governance', 38)} |",
+            content
+        )
+        content = re.sub(
+            r"\|\s+\*\*Forum\s+&\s+Topic\s+Management\*\*\s+\|\s+[0-9]+\s+\|",
+            f"| **Forum & Topic Management** | {dom_counts.get('Forum & Topic Management', 12)} |",
+            content
+        )
+        content = re.sub(
+            r"\|\s+\*\*Gifts,\s+Stars\s+&\s+Payments\*\*\s+\|\s+[0-9]+\s+\|",
+            f"| **Gifts, Stars & Payments** | {dom_counts.get('Gifts, Stars & Payments', 16)} |",
+            content
+        )
+        content = re.sub(
+            r"\|\s+\*\*Webhooks\s+&\s+Configuration\*\*\s+\|\s+[0-9]+\s+\|",
+            f"| **Webhooks & Configuration** | {dom_counts.get('Webhooks & Configuration', 24)} |",
+            content
+        )
+        content = re.sub(
+            r"\|\s+\*\*Telegram\s+Business\s+&\s+Misc\*\*\s+\|\s+[0-9]+\s+\|",
+            f"| **Telegram Business & Misc** | {dom_counts.get('Telegram Business & Misc', 51)} |",
+            content
+        )
+
+    # 9. MCP Tools Section Header & count
     content = re.sub(
         r"##\s+Complete\s+MCP\s+Tool\s+Suite\s+\([0-9]+\s+Enterprise\s+Tools\)",
         f"## Complete MCP Tool Suite ({tools_cnt} Enterprise Tools)",
@@ -177,12 +243,17 @@ def update_readme(metrics: dict = None) -> bool:
         content
     )
     content = re.sub(
-        r"retrieval\s+for\s+all\s+[0-9]+\s+methods\.",
-        f"retrieval for all {tg_m} methods.",
+        r"- `get_telegram_bot_api_spec`:\s+Instant\s+parameter,\s+type,\s+and\s+Rust\s+code\s+retrieval\s+for\s+all\s+[0-9]+\s+methods\.",
+        f"- `get_telegram_bot_api_spec`: Instant parameter, type, and Rust code retrieval for all {tg_m} methods.",
+        content
+    )
+    content = re.sub(
+        r"- `validate_telegram_payload`:\s+Strict\s+offline\s+schema\s+&\s+payload\s+validator\s+for\s+Bot\s+API\s+[0-9.]+\s+/\s+9\.4\+\s+requests",
+        f"- `validate_telegram_payload`: Strict offline schema & payload validator for Bot API {tg_ver} / 9.4+ requests",
         content
     )
 
-    # 9. Go Architecture Section
+    # 10. Go Architecture Section
     content = re.sub(
         r"##\s+Go\s+[0-9.]+\s+Native\s+High-Performance\s+Architecture",
         f"## Go {go_ver} Native High-Performance Architecture",

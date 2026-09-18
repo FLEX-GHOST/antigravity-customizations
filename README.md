@@ -105,13 +105,13 @@ Full official specification with real-time sub-millisecond retrieval (< 0.2ms):
 
 | Domain | Methods Count | Core Capabilities |
 | :--- | :---: | :--- |
-| **Messages & Media** | 32 | `sendMessage`, `sendPhoto`, `sendAudio`, `sendVideo`, `sendVoice`, `sendDocument`, `sendPaidMedia`, `sendSticker`, `sendDice`, `sendGame` |
-| **Editing & Deletions** | 12 | `editMessageText`, `editMessageCaption`, `editMessageMedia`, `editMessageReplyMarkup`, `deleteMessage`, `deleteMessages` |
-| **Chat & Member Governance** | 38 | `banChatMember`, `unbanChatMember`, `restrictChatMember`, `promoteChatMember`, `setChatPermissions`, `createChatInviteLink`, `createChatSubscriptionInviteLink` |
-| **Forum & Topic Management** | 12 | `createForumTopic`, `editForumTopic`, `closeForumTopic`, `reopenForumTopic`, `deleteForumTopic`, `unpinAllForumTopicMessages` |
-| **Gifts, Stars & Payments** | 16 | `sendGift`, `getAvailableGifts`, `verifyUser`, `verifyChat`, `removeUserVerification`, `getStarTransactions`, `refundStarPayment` |
-| **Webhooks & Configuration** | 24 | `getMe`, `setWebhook`, `deleteWebhook`, `getWebhookInfo`, `getUpdates`, `setMyCommands`, `setChatMenuButton`, `setMyDefaultAdministratorRights` |
-| **Telegram Business & Misc** | 51 | `getBusinessConnection`, `setBusinessIntro`, `setMessageReaction`, `answerCallbackQuery`, `answerInlineQuery` |
+| **Messages & Media** | 28 | `sendMessage`, `sendPhoto`, `sendAudio`, `sendVideo`, `sendVoice`, `sendDocument`, `sendPaidMedia`, `sendSticker`, `sendDice`, `sendGame` |
+| **Editing & Deletions** | 9 | `editMessageText`, `editMessageCaption`, `editMessageMedia`, `editMessageReplyMarkup`, `deleteMessage`, `deleteMessages` |
+| **Chat & Member Governance** | 46 | `banChatMember`, `unbanChatMember`, `restrictChatMember`, `promoteChatMember`, `setChatPermissions`, `createChatInviteLink`, `createChatSubscriptionInviteLink` |
+| **Forum & Topic Management** | 13 | `createForumTopic`, `editForumTopic`, `closeForumTopic`, `reopenForumTopic`, `deleteForumTopic`, `unpinAllForumTopicMessages` |
+| **Gifts, Stars & Payments** | 21 | `sendGift`, `getAvailableGifts`, `verifyUser`, `verifyChat`, `removeUserVerification`, `getStarTransactions`, `refundStarPayment` |
+| **Webhooks & Configuration** | 22 | `getMe`, `setWebhook`, `deleteWebhook`, `getWebhookInfo`, `getUpdates`, `setMyCommands`, `setChatMenuButton`, `setMyDefaultAdministratorRights` |
+| **Telegram Business & Misc** | 46 | `getBusinessConnection`, `setBusinessIntro`, `setMessageReaction`, `answerCallbackQuery`, `answerInlineQuery` |
 
 ### Bot API 9.4+ Strict Styling Standard
 All button constructs adhere strictly to modern Telegram specifications:
