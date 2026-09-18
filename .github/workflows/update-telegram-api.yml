@@ -2,8 +2,8 @@ name: Auto-Sync Telegram Bot API Specification
 
 on:
   schedule:
-    # Run every 6 hours
-    - cron: '0 */6 * * *'
+    # Run every 3 hours
+    - cron: '0 */3 * * *'
   workflow_dispatch:
     inputs:
       force_sync:
@@ -42,14 +42,14 @@ jobs:
       - name: Commit and Push Changes if Updated
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
           if ! git diff --quiet; then
             VERSION=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('version', 'Unknown'))")
             git add skills/telegram-bot-api-methods/references/
             git commit -m "chore(telegram): auto-sync Telegram Bot API spec to ${VERSION} [skip ci]"
             git push origin main
-            echo "Successfully committed and pushed updated Telegram Bot API spec!"
+            echo "Successfully committed and pushed updated Telegram Bot API spec as github-actions[bot]!"
           else
             echo "No changes detected. Telegram Bot API specification is already up-to-date."
           fi
