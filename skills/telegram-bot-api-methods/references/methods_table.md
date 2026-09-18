@@ -1,6 +1,6 @@
-# Telegram Bot API Complete Methods Reference (Bot API 10.3)
+# Telegram Bot API Complete Methods Reference (10.3)
 
-**Official Specification Version**: `Bot API 10.3` (August 24, 2026)
+**Official Specification Version**: `10.3` (August 24, 2026)
 **Total Official Methods**: `185` | **Total Types**: `400`
 
 | # | Method Name | Return Type | Required Parameters | Summary |

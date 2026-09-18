@@ -1,18 +1,47 @@
 #!/usr/bin/env python3
 """
 Automated Telegram Bot API Specification Synchronizer
-Fetches the latest official Bot API specification, updates skills, references, and changelog.
+Fetches the latest official Bot API specification, updates skills, references,
+embedded Go data, re-compiles multi-arch binaries, and dynamically updates README badges and counts.
 """
 import urllib.request
 import json
 import os
 import sys
 import shutil
+import re
+import subprocess
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SKILL_DIR = ROOT_DIR / "skills" / "telegram-bot-api-methods"
+MCP_DIR = ROOT_DIR / "mcp-servers" / "skills-engine"
+README_FILE = ROOT_DIR / "README.md"
 SPEC_URL = "https://raw.githubusercontent.com/PaulSonOfLars/telegram-bot-api-spec/main/api.json"
+
+def update_readme_dynamically(new_version: str, methods_count: int, types_count: int):
+    if not README_FILE.exists():
+        return
+    with open(README_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    clean_ver = new_version.replace("Bot API", "").replace("Telegram", "").strip()
+
+    # 1. Update the Telegram Bot API badge
+    badge_pattern = r"Telegram%20Bot%20API-[^)]+%\s*20\([0-9]+%20Methods%20%7C%20[0-9]+%20Types\)|Telegram%20Bot%20API-[0-9.]+%20\([0-9]+%20Methods%20%7C%20[0-9]+%20Types\)"
+    new_badge = f"Telegram%20Bot%20API-{clean_ver}%20({methods_count}%20Methods%20%7C%20{types_count}%20Types)"
+    content = re.sub(badge_pattern, new_badge, content)
+
+    # 2. Update mentions of methods and types counts in text
+    content = re.sub(r"\b[0-9]+\s+methods\s+and\s+[0-9]+\s+types\b", f"{methods_count} methods and {types_count} types", content, flags=re.I)
+
+    # 3. Clean up any redundant "Bot API Bot API"
+    content = re.sub(r"Telegram\s+Bot\s+API\s+(Bot\s+API\s+)+", "Telegram Bot API ", content)
+    content = re.sub(r"Telegram\s+Bot\s+API\s+[0-9.]+", f"Telegram Bot API {clean_ver}", content)
+
+    with open(README_FILE, "w", encoding="utf-8") as f:
+        f.write(content)
+    print(f"[*] Dynamically updated README.md: Version -> {clean_ver}, Methods -> {methods_count}, Types -> {types_count}")
 
 def fetch_and_sync(force: bool = False):
     print(f"[*] Fetching latest Telegram Bot API specification from: {SPEC_URL}")
@@ -24,6 +53,8 @@ def fetch_and_sync(force: bool = False):
     new_methods = new_data.get("methods", {})
     new_types = new_data.get("types", {})
     new_release_date = new_data.get("release_date", "Unknown")
+
+    clean_ver = new_version.replace("Bot API", "").replace("Telegram", "").strip()
 
     refs_dir = SKILL_DIR / "references"
     refs_dir.mkdir(parents=True, exist_ok=True)
@@ -39,33 +70,34 @@ def fetch_and_sync(force: bool = False):
         except Exception:
             pass
 
-    if current_version == new_version and not force:
-        print(f"[✓] Telegram Bot API is already up-to-date ({new_version}). No changes needed.")
-        return False, new_version, len(new_methods), len(new_types)
+    if current_version == clean_ver and not force:
+        print(f"[✓] Telegram Bot API is already up-to-date ({clean_ver}). No changes needed.")
+        return False, clean_ver, len(new_methods), len(new_types)
 
-    print(f"[*] Updating from {current_version or 'initial'} -> {new_version} ({len(new_methods)} methods, {len(new_types)} types)")
+    print(f"[*] Updating from {current_version or 'initial'} -> {clean_ver} ({len(new_methods)} methods, {len(new_types)} types)")
 
-    # 1. Save raw JSON references
+    # 1. Save raw JSON references in skill directory
     with open(methods_file, "w", encoding="utf-8") as f:
         json.dump(new_methods, f, indent=2, ensure_ascii=False)
 
     with open(types_file, "w", encoding="utf-8") as f:
         json.dump(new_types, f, indent=2, ensure_ascii=False)
 
+    version_data = {
+        "version": clean_ver,
+        "release_date": new_release_date,
+        "total_methods": len(new_methods),
+        "total_types": len(new_types),
+        "updated_at": os.popen("date -u +'%Y-%m-%dT%H:%M:%SZ'").read().strip()
+    }
     with open(version_file, "w", encoding="utf-8") as f:
-        json.dump({
-            "version": new_version,
-            "release_date": new_release_date,
-            "total_methods": len(new_methods),
-            "total_types": len(new_types),
-            "updated_at": os.popen("date -u +'%Y-%m-%dT%H:%M:%SZ'").read().strip()
-        }, f, indent=2)
+        json.dump(version_data, f, indent=2)
 
     # 2. Re-generate methods markdown table
     table_lines = [
-        f"# Telegram Bot API Complete Methods Reference ({new_version})",
+        f"# Telegram Bot API Complete Methods Reference ({clean_ver})",
         "",
-        f"**Official Specification Version**: `{new_version}` ({new_release_date})",
+        f"**Official Specification Version**: `{clean_ver}` ({new_release_date})",
         f"**Total Official Methods**: `{len(new_methods)}` | **Total Types**: `{len(new_types)}`",
         "",
         "| # | Method Name | Return Type | Required Parameters | Summary |",
@@ -85,7 +117,29 @@ def fetch_and_sync(force: bool = False):
     with open(refs_dir / "methods_table.md", "w", encoding="utf-8") as f:
         f.write("\n".join(table_lines) + "\n")
 
-    # 3. Synchronize to runtime and workspace directories if accessible
+    # 3. Synchronize to Go embedded data directory
+    go_tg_dir = MCP_DIR / "data" / "telegram"
+    if go_tg_dir.exists():
+        shutil.copyfile(methods_file, go_tg_dir / "api_methods.json")
+        shutil.copyfile(types_file, go_tg_dir / "api_types.json")
+        shutil.copyfile(version_file, go_tg_dir / "version.json")
+        print(f"[*] Updated embedded Go data in {go_tg_dir}")
+
+    # 4. Dynamically update README.md badges and counts
+    update_readme_dynamically(clean_ver, len(new_methods), len(new_types))
+
+    # 5. Re-compile Go multi-arch binaries if go is installed
+    if shutil.which("go"):
+        print("[*] Re-compiling Go multi-architecture static binaries with new Telegram spec...")
+        try:
+            subprocess.run(["go", "build", "-ldflags=-s -w", "-o", "skills-engine", "."], cwd=MCP_DIR, check=True)
+            subprocess.run(["go", "build", "-ldflags=-s -w", "-o", "skills-engine-linux-arm64", "."], cwd=MCP_DIR, env={**os.environ, "GOOS": "linux", "GOARCH": "arm64", "CGO_ENABLED": "0"}, check=True)
+            subprocess.run(["go", "build", "-ldflags=-s -w", "-o", "skills-engine-linux-amd64", "."], cwd=MCP_DIR, env={**os.environ, "GOOS": "linux", "GOARCH": "amd64", "CGO_ENABLED": "0"}, check=True)
+            print("[✓] Re-compiled skills-engine, skills-engine-linux-arm64, and skills-engine-linux-amd64 successfully!")
+        except Exception as e:
+            print(f"[!] Re-compilation note: {e}")
+
+    # 6. Synchronize to runtime and workspace directories if accessible
     extra_dirs = [
         Path("/root/bots/factory/.agents/skills/telegram-bot-api-methods"),
         Path("/root/.gemini/config/skills/telegram-bot-api-methods"),
@@ -103,8 +157,8 @@ def fetch_and_sync(force: bool = False):
         except Exception:
             pass
 
-    print(f"[✓] Successfully synchronized Telegram Bot API to version {new_version}!")
-    return True, new_version, len(new_methods), len(new_types)
+    print(f"[✓] Successfully synchronized Telegram Bot API to version {clean_ver}!")
+    return True, clean_ver, len(new_methods), len(new_types)
 
 if __name__ == "__main__":
     force_run = "--force" in sys.argv

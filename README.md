@@ -53,7 +53,7 @@ cd ~/.gemini/antigravity-customizations
                                                               +-------------------------------+
                                                               |   SQLite WAL FTS5 Database    |
                                                               |    4,800+ Skills, Rules &     |
-                                                              |    185 Methods / 400 Types    |
+                                                              |    185 methods / 400 Types    |
                                                               +-------------------------------+
                                                                               |
                      +--------------------------------+-----------------------+-----------------------+

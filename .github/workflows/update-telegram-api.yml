@@ -25,6 +25,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Set up Go 1.26.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+          cache: true
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -46,10 +52,16 @@ jobs:
           
           if ! git diff --quiet; then
             VERSION=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('version', 'Unknown'))")
+            METHODS=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('total_methods', '185'))")
+            TYPES=$(python3 -c "import json; print(json.load(open('skills/telegram-bot-api-methods/references/version.json')).get('total_types', '400'))")
+            
             git add skills/telegram-bot-api-methods/references/
-            git commit -m "chore(telegram): auto-sync Telegram Bot API spec to ${VERSION} [skip ci]"
+            git add README.md
+            git add mcp-servers/skills-engine/
+            
+            git commit -m "chore(telegram): auto-sync Bot API to ${VERSION} (${METHODS} methods | ${TYPES} types) [skip ci]"
             git push origin main
-            echo "Successfully committed and pushed updated Telegram Bot API spec as github-actions[bot]!"
+            echo "Successfully committed and pushed updated Telegram Bot API spec, README badges, and Go binaries as github-actions[bot]!"
           else
             echo "No changes detected. Telegram Bot API specification is already up-to-date."
           fi
