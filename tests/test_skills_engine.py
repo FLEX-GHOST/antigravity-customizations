@@ -14,6 +14,7 @@ Covers:
 """
 
 import os
+import tempfile
 import sys
 import json
 import socket
@@ -61,9 +62,18 @@ def test_schemas_parity():
     print("[PASS] 57 Schemas parity verified across all tools.")
 
 def test_code_intelligence_tools():
-    # 1. extract_code_symbols
+    # 1. extract_code_symbols (Python, Java, Swift, C# polyglot test)
     s_res = server.extract_code_symbols(str(REPO_ROOT / "mcp-servers" / "skills-engine" / "server.py"))
     assert s_res["total_symbols"] > 10, f"Expected >10 symbols, got {s_res.get('total_symbols')}"
+
+    # Polyglot symbol extraction in workspace Swift file
+    t_swift = REPO_ROOT / "tests" / "sample_test.swift"
+    t_swift.write_text("actor PaymentCoordinator { func sync() async throws {} }\nstruct Receipt { let id: String }", encoding="utf-8")
+    try:
+        s_swift = server.extract_code_symbols(str(t_swift))
+        assert len(s_swift["symbols"]) == 2, f"Expected 2 Swift symbols, got {len(s_swift['symbols'])}"
+    finally:
+        t_swift.unlink(missing_ok=True)
 
     # 2. ast_structural_search
     search_res = server.ast_structural_search("def extract_code_symbols", str(REPO_ROOT / "mcp-servers" / "skills-engine"))
@@ -73,7 +83,7 @@ def test_code_intelligence_tools():
     blast_res = server.analyze_blast_radius("extract_code_symbols", str(REPO_ROOT / "mcp-servers" / "skills-engine"))
     assert blast_res["impact_level"] != "UNKNOWN", "Expected valid impact level"
 
-    # 4. fetch_api_reference (Telegram Builtin)
+    # 4. fetch_api_reference (Telegram + Multi-ecosystem)
     ref_tg = server.fetch_api_reference("sendPaidMedia", "telegram")
     assert ref_tg.get("name") == "sendPaidMedia"
 
@@ -82,7 +92,15 @@ def test_code_intelligence_tools():
     assert sandbox_res["status"] == "SUCCESS"
     assert sandbox_res["stdout"].strip() == "4"
 
-    print("[PASS] Autonomous Code Intelligence tools validated.")
+    # 6. Polyglot Skills Catalog Verification
+    conn = server.get_db_conn()
+    languages_cur = conn.execute("SELECT DISTINCT language FROM items").fetchall()
+    active_langs = {r[0] for r in languages_cur}
+    required_langs = {"python", "rust", "go", "typescript", "java", "kotlin", "swift", "csharp", "php", "ruby", "dart", "elixir", "zig", "haskell", "lua", "database", "bash", "cpp"}
+    missing = required_langs - active_langs
+    assert len(missing) == 0, f"Missing language skills in catalog: {missing}"
+
+    print(f"[PASS] Universal Polyglot Code Intelligence & {len(active_langs)} languages validated.")
 
 def test_core_telegram_tools():
     # 1. diagnose_telegram_error

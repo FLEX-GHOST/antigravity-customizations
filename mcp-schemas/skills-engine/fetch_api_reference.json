@@ -1,6 +1,6 @@
 {
   "name": "fetch_api_reference",
-  "description": "Retrieve live or cached API documentation, type signatures, and module specifications\n    for external libraries (Rust crates, Python packages, NPM modules, and Telegram Bot API).\n    Includes an offline cache to eliminate repeated latency and network dependencies.",
+  "description": "Retrieve live or cached API documentation, type signatures, and module specifications\n    for external libraries across all major package ecosystems:\n    Rust (crates.io), Python (PyPI), JavaScript/TypeScript (NPM), Go (proxy.golang.org),\n    Java/Kotlin (Maven Central), C#/.NET (NuGet), PHP (Packagist), Ruby (RubyGems), Dart/Flutter (Pub.dev),\n    and Telegram Bot API (10.3 Master Engine).\n    Includes an offline SQLite cache to eliminate repeated latency and network dependencies.",
   "inputSchema": {
     "properties": {
       "library_name": {

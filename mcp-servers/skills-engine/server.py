@@ -1047,23 +1047,53 @@ def extract_first_desc(content: str) -> str:
 
 def detect_language_from_text(name: str, content: str) -> str:
     n = name.lower()
-    c = content[:1500].lower()
+    c = content[:2000].lower()
     combined = n + " " + c
     if any(k in combined for k in ["rust", "cargo", "tokio", "diesel", "serde", "jemalloc"]):
         return "rust"
-    if any(k in combined for k in ["golang", "goroutine", "go.mod", "gin-gonic"]):
+    if any(k in combined for k in ["golang", "goroutine", "go.mod", "gin-gonic"]) or re.search(r"\bgo\b", n):
         return "go"
-    if any(k in combined for k in ["python", "pytest", "fastapi", "django", "pydantic"]):
+    if any(k in combined for k in ["python", "pytest", "fastapi", "django", "pydantic", "pip", "poetry"]):
         return "python"
-    if any(k in combined for k in ["typescript", "tsx", "next.js", "nextjs", "react", "tailwind", "vue", "svelte"]):
+    if any(k in combined for k in ["typescript", "tsx", "next.js", "nextjs", "react", "tailwind", "vue", "svelte", "javascript", "node.js", "npm"]):
         return "typescript"
-    if any(k in combined for k in ["docker", "kubernetes", "k8s", "helm", "devops"]):
-        return "devops"
-    if any(k in combined for k in ["sqlite", "postgres", "sql", "migration", "prisma"]):
+    if any(k in combined for k in ["java", "spring boot", "springboot", "maven", "gradle", "jvm", "hibernate", "jpa"]):
+        return "java"
+    if any(k in combined for k in ["kotlin", "coroutines", "android", "ktor", "jetpack", "kmp"]):
+        return "kotlin"
+    if any(k in combined for k in ["swift", "swiftui", "xcode", "cocoapods", "combine", "apple"]):
+        return "swift"
+    if any(k in combined for k in ["csharp", "c#", ".net", "dotnet", "asp.net", "entity framework", "linq"]):
+        return "csharp"
+    if any(k in combined for k in ["php", "laravel", "symfony", "composer", "wordpress", "swoole"]):
+        return "php"
+    if any(k in combined for k in ["ruby", "rails", "rspec", "bundler", "gem", "hotwire"]):
+        return "ruby"
+    if any(k in combined for k in ["dart", "flutter", "pubspec"]):
+        return "dart"
+    if any(k in combined for k in ["scala", "sbt", "zio", "cats effect", "akka", "pekko"]):
+        return "scala"
+    if any(k in combined for k in ["elixir", "erlang", "phoenix", "mix", "otp", "genserver"]):
+        return "elixir"
+    if any(k in combined for k in ["zig", "comptime", "build.zig"]):
+        return "zig"
+    if any(k in combined for k in ["haskell", "monad", "cabal", "ghc"]):
+        return "haskell"
+    if any(k in combined for k in ["lua", "luajit", "neovim", "redis"]):
+        return "lua"
+    if any(k in combined for k in ["sql", "postgres", "postgresql", "mysql", "sqlite", "database query", "explain analyze"]):
         return "database"
+    if any(k in combined for k in ["bash", "shell", "sh", "zsh", "posix"]):
+        return "bash"
+    if any(k in combined for k in ["c++", "cpp", "cmake", "clang", "g++", "c++20"]):
+        return "cpp"
+    if any(k in combined for k in ["julia", "sciml"]):
+        return "julia"
+    if any(k in combined for k in ["\br\b", "tidyverse", "ggplot", "cran", "data.table"]):
+        return "r"
+    if any(k in combined for k in ["docker", "kubernetes", "k8s", "helm", "devops", "terraform"]):
+        return "devops"
     return "general"
-
-last_sync_time = 0.0
 
 def check_and_sync_index(force: bool = False):
     global last_sync_time
@@ -4690,7 +4720,8 @@ def _init_api_cache_table():
 @mcp.tool()
 def extract_code_symbols(file_path: str, max_depth: int = 3) -> Dict[str, Any]:
     """Extract a structural architectural outline of symbols (functions, classes, structs, enums, traits, interfaces)
-    from a source file across Python, Rust, Go, TypeScript/JavaScript, and C/C++.
+    from a source file across 20+ programming languages: Python, Rust, Go, TypeScript/JavaScript, C/C++, Java, Kotlin,
+    Swift, C#, PHP, Ruby, Dart, Scala, Elixir, Zig, Lua, Shell, and SQL.
     Significantly reduces context window consumption by extracting AST signatures without function bodies."""
     t0 = time.perf_counter()
     safe_path = safe_path_resolve(file_path)
@@ -4706,6 +4737,9 @@ def extract_code_symbols(file_path: str, max_depth: int = 3) -> Dict[str, Any]:
     except Exception as e:
         return {"error": f"Failed to read file: {e}", "symbols": [], "total_symbols": 0}
 
+    lines = content.splitlines()
+
+    # ------------------ PYTHON ------------------
     if ext == ".py":
         try:
             tree = ast.parse(content, filename=str(p))
@@ -4761,105 +4795,51 @@ def extract_code_symbols(file_path: str, max_depth: int = 3) -> Dict[str, Any]:
         except SyntaxError as e:
             symbols.append({"error": f"Python syntax error at line {e.lineno}: {e.msg}"})
 
+    # ------------------ RUST ------------------
     elif ext == ".rs":
-        lines = content.splitlines()
         for idx, line in enumerate(lines):
             l_strip = line.strip()
             m_struct = re.match(r"^(pub(?:\([^\)]+\))?\s+)?struct\s+([A-Za-z0-9_]+)", l_strip)
             if m_struct:
-                symbols.append({
-                    "name": m_struct.group(2),
-                    "kind": "struct",
-                    "line": idx + 1,
-                    "visibility": m_struct.group(1).strip() if m_struct.group(1) else "private",
-                    "signature": l_strip.split("{")[0].strip()
-                })
+                symbols.append({"name": m_struct.group(2), "kind": "struct", "line": idx + 1, "visibility": m_struct.group(1).strip() if m_struct.group(1) else "private", "signature": l_strip.split("{")[0].strip()})
                 continue
             m_enum = re.match(r"^(pub(?:\([^\)]+\))?\s+)?enum\s+([A-Za-z0-9_]+)", l_strip)
             if m_enum:
-                symbols.append({
-                    "name": m_enum.group(2),
-                    "kind": "enum",
-                    "line": idx + 1,
-                    "visibility": m_enum.group(1).strip() if m_enum.group(1) else "private",
-                    "signature": l_strip.split("{")[0].strip()
-                })
+                symbols.append({"name": m_enum.group(2), "kind": "enum", "line": idx + 1, "visibility": m_enum.group(1).strip() if m_enum.group(1) else "private", "signature": l_strip.split("{")[0].strip()})
                 continue
             m_trait = re.match(r"^(pub(?:\([^\)]+\))?\s+)?trait\s+([A-Za-z0-9_]+)", l_strip)
             if m_trait:
-                symbols.append({
-                    "name": m_trait.group(2),
-                    "kind": "trait",
-                    "line": idx + 1,
-                    "visibility": m_trait.group(1).strip() if m_trait.group(1) else "private",
-                    "signature": l_strip.split("{")[0].strip()
-                })
+                symbols.append({"name": m_trait.group(2), "kind": "trait", "line": idx + 1, "visibility": m_trait.group(1).strip() if m_trait.group(1) else "private", "signature": l_strip.split("{")[0].strip()})
                 continue
             m_impl = re.match(r"^impl(?:\s*<[^>]+>)?\s+([A-Za-z0-9_:<>\s]+?)\s+(?:for\s+([A-Za-z0-9_:<>\s]+?)\s*)?\{", l_strip)
             if m_impl:
                 trait_or_struct = m_impl.group(1).strip()
                 for_struct = m_impl.group(2).strip() if m_impl.group(2) else None
                 sig = f"impl {trait_or_struct} for {for_struct}" if for_struct else f"impl {trait_or_struct}"
-                symbols.append({
-                    "name": for_struct or trait_or_struct,
-                    "kind": "impl",
-                    "line": idx + 1,
-                    "signature": sig
-                })
+                symbols.append({"name": for_struct or trait_or_struct, "kind": "impl", "line": idx + 1, "signature": sig})
                 continue
             m_fn = re.match(r"^(pub(?:\([^\)]+\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+([A-Za-z0-9_]+)\s*(?:<[^>]+>)?\s*\(([^\)]*)\)(?:\s*->\s*([^{;]+))?", l_strip)
             if m_fn:
-                symbols.append({
-                    "name": m_fn.group(2),
-                    "kind": "function",
-                    "line": idx + 1,
-                    "visibility": m_fn.group(1).strip() if m_fn.group(1) else "private",
-                    "signature": l_strip.split("{")[0].strip()
-                })
-                continue
-            m_type = re.match(r"^(pub(?:\([^\)]+\))?\s+)?type\s+([A-Za-z0-9_]+)", l_strip)
-            if m_type:
-                symbols.append({
-                    "name": m_type.group(2),
-                    "kind": "type_alias",
-                    "line": idx + 1,
-                    "signature": l_strip.split(";")[0].strip()
-                })
+                symbols.append({"name": m_fn.group(2), "kind": "function", "line": idx + 1, "visibility": m_fn.group(1).strip() if m_fn.group(1) else "private", "signature": l_strip.split("{")[0].strip()})
 
+    # ------------------ GO ------------------
     elif ext == ".go":
-        lines = content.splitlines()
         for idx, line in enumerate(lines):
             l_strip = line.strip()
             m_type = re.match(r"^type\s+([A-Za-z0-9_]+)\s+(struct|interface)", l_strip)
             if m_type:
-                symbols.append({
-                    "name": m_type.group(1),
-                    "kind": m_type.group(2),
-                    "line": idx + 1,
-                    "signature": l_strip.split("{")[0].strip()
-                })
+                symbols.append({"name": m_type.group(1), "kind": m_type.group(2), "line": idx + 1, "signature": l_strip.split("{")[0].strip()})
                 continue
             m_method = re.match(r"^func\s+\(([^\)]+)\)\s+([A-Za-z0-9_]+)\s*\(([^\)]*)\)(?:\s*(.+))?", l_strip)
             if m_method:
-                symbols.append({
-                    "name": m_method.group(2),
-                    "receiver": m_method.group(1).strip(),
-                    "kind": "method",
-                    "line": idx + 1,
-                    "signature": l_strip.split("{")[0].strip()
-                })
+                symbols.append({"name": m_method.group(2), "receiver": m_method.group(1).strip(), "kind": "method", "line": idx + 1, "signature": l_strip.split("{")[0].strip()})
                 continue
             m_func = re.match(r"^func\s+([A-Za-z0-9_]+)\s*\(([^\)]*)\)(?:\s*(.+))?", l_strip)
             if m_func:
-                symbols.append({
-                    "name": m_func.group(1),
-                    "kind": "function",
-                    "line": idx + 1,
-                    "signature": l_strip.split("{")[0].strip()
-                })
+                symbols.append({"name": m_func.group(1), "kind": "function", "line": idx + 1, "signature": l_strip.split("{")[0].strip()})
 
+    # ------------------ TYPESCRIPT / JAVASCRIPT ------------------
     elif ext in [".ts", ".tsx", ".js", ".jsx"]:
-        lines = content.splitlines()
         for idx, line in enumerate(lines):
             l_strip = line.strip()
             m_class = re.match(r"^(?:export\s+)?(?:default\s+)?class\s+([A-Za-z0-9_]+)", l_strip)
@@ -4881,6 +4861,166 @@ def extract_code_symbols(file_path: str, max_depth: int = 3) -> Dict[str, Any]:
             m_const_fn = re.match(r"^(?:export\s+)?const\s+([A-Za-z0-9_]+)\s*=\s*(?:async\s*)?\([^\)]*\)\s*=>", l_strip)
             if m_const_fn:
                 symbols.append({"name": m_const_fn.group(1), "kind": "arrow_function", "line": idx + 1, "signature": l_strip.split("=>")[0].strip() + "=>"})
+
+    # ------------------ JAVA ------------------
+    elif ext == ".java":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_type = re.match(r"^(?:public|protected|private)?\s*(?:static)?\s*(?:final)?\s*(?:sealed|non-sealed)?\s*(class|interface|enum|record)\s+([A-Za-z0-9_]+)", l)
+            if m_type:
+                symbols.append({"name": m_type.group(2), "kind": m_type.group(1), "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_method = re.match(r"^(?:public|protected|private)?\s*(?:static)?\s*(?:final)?\s*(?:synchronized)?\s*([A-Za-z0-9_<>\[\]]+)\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)", l)
+            if m_method and m_method.group(2) not in ["if", "for", "while", "switch", "catch"]:
+                symbols.append({"name": m_method.group(2), "kind": "method", "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ KOTLIN ------------------
+    elif ext in [".kt", ".kts"]:
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_class = re.match(r"^(?:open|sealed|data|enum|annotation|abstract)?\s*(class|interface|object)\s+([A-Za-z0-9_]+)", l)
+            if m_class:
+                symbols.append({"name": m_class.group(2), "kind": m_class.group(1), "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_fun = re.match(r"^(?:(?:public|private|internal|protected)\s+)?(?:inline|suspend|override)?\s*fun\s+(?:<[^>]+>\s+)?([A-Za-z0-9_]+)\s*\(([^)]*)\)(?:\s*:\s*([^{=]+))?", l)
+            if m_fun:
+                symbols.append({"name": m_fun.group(1), "kind": "function", "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ SWIFT ------------------
+    elif ext == ".swift":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_type = re.match(r"^(?:public|private|fileprivate|internal|open)?\s*(?:final)?\s*(class|struct|protocol|enum|actor|extension)\s+([A-Za-z0-9_]+)", l)
+            if m_type:
+                symbols.append({"name": m_type.group(2), "kind": m_type.group(1), "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_func = re.match(r"^(?:(?:public|private|fileprivate|internal|open)\s+)?(?:static|override|mutating)?\s*func\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)(?:\s*(?:async|throws)\s*)*(?:\s*->\s*([^{]+))?", l)
+            if m_func:
+                symbols.append({"name": m_func.group(1), "kind": "function", "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ C# ------------------
+    elif ext == ".cs":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_type = re.match(r"^(?:public|private|protected|internal)?\s*(?:static)?\s*(?:sealed|abstract)?\s*(?:readonly)?\s*(class|interface|struct|record|enum)\s+([A-Za-z0-9_]+)", l)
+            if m_type:
+                symbols.append({"name": m_type.group(2), "kind": m_type.group(1), "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_method = re.match(r"^(?:public|private|protected|internal)?\s*(?:static)?\s*(?:virtual|override|async)?\s*([A-Za-z0-9_<>\[\]?]+)\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)", l)
+            if m_method and m_method.group(2) not in ["if", "for", "foreach", "while", "using"]:
+                symbols.append({"name": m_method.group(2), "kind": "method", "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ PHP ------------------
+    elif ext == ".php":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_type = re.match(r"^(?:abstract|final|readonly)?\s*(class|interface|trait|enum)\s+([A-Za-z0-9_]+)", l)
+            if m_type:
+                symbols.append({"name": m_type.group(2), "kind": m_type.group(1), "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_fn = re.match(r"^(?:public|protected|private)?\s*(?:static)?\s*function\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)", l)
+            if m_fn:
+                symbols.append({"name": m_fn.group(1), "kind": "function", "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ RUBY ------------------
+    elif ext == ".rb":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_mod = re.match(r"^(?:class|module)\s+([A-Za-z0-9_:]+)", l)
+            if m_mod:
+                symbols.append({"name": m_mod.group(1), "kind": "class_or_module", "line": idx + 1, "signature": l})
+                continue
+            m_def = re.match(r"^def\s+([A-Za-z0-9_!?.=]+)(?:\s*\(([^)]*)\))?", l)
+            if m_def:
+                symbols.append({"name": m_def.group(1), "kind": "method", "line": idx + 1, "signature": l})
+
+    # ------------------ DART ------------------
+    elif ext == ".dart":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_type = re.match(r"^(?:abstract|sealed|base|interface)?\s*(class|mixin|enum|extension)\s+([A-Za-z0-9_]+)", l)
+            if m_type:
+                symbols.append({"name": m_type.group(2), "kind": m_type.group(1), "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_fn = re.match(r"^(?:[A-Za-z0-9_<>\[\]?]+\s+)?([A-Za-z0-9_]+)\s*\(([^)]*)\)(?:\s*async\s*)?\s*\{", l)
+            if m_fn and m_fn.group(1) not in ["if", "for", "while", "switch"]:
+                symbols.append({"name": m_fn.group(1), "kind": "function", "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ SCALA ------------------
+    elif ext == ".scala":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_type = re.match(r"^(?:case\s+)?(class|trait|object|enum)\s+([A-Za-z0-9_]+)", l)
+            if m_type:
+                symbols.append({"name": m_type.group(2), "kind": m_type.group(1), "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_def = re.match(r"^def\s+([A-Za-z0-9_=+*!/?-]+)", l)
+            if m_def:
+                symbols.append({"name": m_def.group(1), "kind": "def", "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ ELIXIR ------------------
+    elif ext in [".ex", ".exs"]:
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_mod = re.match(r"^defmodule\s+([A-Za-z0-9_.]+)", l)
+            if m_mod:
+                symbols.append({"name": m_mod.group(1), "kind": "module", "line": idx + 1, "signature": l.split("do")[0].strip()})
+                continue
+            m_fn = re.match(r"^(def|defp|defmacro)\s+([A-Za-z0-9_?!]+)(?:\(([^)]*)\))?", l)
+            if m_fn:
+                symbols.append({"name": m_fn.group(2), "kind": m_fn.group(1), "line": idx + 1, "signature": l.split("do")[0].strip()})
+
+    # ------------------ ZIG ------------------
+    elif ext == ".zig":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_fn = re.match(r"^(?:pub\s+)?fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)", l)
+            if m_fn:
+                symbols.append({"name": m_fn.group(1), "kind": "function", "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_const = re.match(r"^pub\s+const\s+([A-Za-z0-9_]+)\s*=\s*(struct|enum|union)", l)
+            if m_const:
+                symbols.append({"name": m_const.group(1), "kind": m_const.group(2), "line": idx + 1, "signature": l.split("{")[0].strip()})
+
+    # ------------------ LUA ------------------
+    elif ext == ".lua":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_fn = re.match(r"^(?:local\s+)?function\s+([A-Za-z0-9_.:]+)\s*\(([^)]*)\)", l)
+            if m_fn:
+                symbols.append({"name": m_fn.group(1), "kind": "function", "line": idx + 1, "signature": l})
+
+    # ------------------ BASH / SHELL ------------------
+    elif ext in [".sh", ".bash", ".zsh"]:
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_fn = re.match(r"^(?:function\s+)?([A-Za-z0-9_-]+)\s*\(\)\s*\{?", l)
+            if m_fn and m_fn.group(1) not in ["if", "while", "for"]:
+                symbols.append({"name": m_fn.group(1), "kind": "shell_function", "line": idx + 1, "signature": f"{m_fn.group(1)}()"})
+
+    # ------------------ SQL ------------------
+    elif ext == ".sql":
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_table = re.match(r"^CREATE\s+(?:OR\s+REPLACE\s+)?(?:TABLE|VIEW|MATERIALIZED\s+VIEW)\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z0-9_.\"]+)", l, re.I)
+            if m_table:
+                symbols.append({"name": m_table.group(1), "kind": "table_or_view", "line": idx + 1, "signature": l.split("(")[0].strip()})
+                continue
+            m_proc = re.match(r"^CREATE\s+(?:OR\s+REPLACE\s+)?(?:FUNCTION|PROCEDURE)\s+([A-Za-z0-9_.\"]+)", l, re.I)
+            if m_proc:
+                symbols.append({"name": m_proc.group(1), "kind": "function_or_proc", "line": idx + 1, "signature": l.split("RETURNS")[0].strip()})
+
+    # ------------------ C / C++ ------------------
+    elif ext in [".c", ".cpp", ".h", ".hpp", ".cc", ".cxx"]:
+        for idx, line in enumerate(lines):
+            l = line.strip()
+            m_type = re.match(r"^(?:class|struct|enum|union)\s+([A-Za-z0-9_]+)", l)
+            if m_type:
+                symbols.append({"name": m_type.group(1), "kind": "type", "line": idx + 1, "signature": l.split("{")[0].strip()})
+                continue
+            m_fn = re.match(r"^(?:[A-Za-z0-9_*&:<>]+\s+)+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*(?:const)?\s*(?:noexcept)?\s*\{", l)
+            if m_fn and m_fn.group(1) not in ["if", "for", "while", "switch", "catch"]:
+                symbols.append({"name": m_fn.group(1), "kind": "function", "line": idx + 1, "signature": l.split("{")[0].strip()})
 
     dur = round((time.perf_counter() - t0) * 1000.0, 2)
     return {
@@ -5258,8 +5398,11 @@ def analyze_blast_radius(symbol_name: str, project_dir: str, target_file: Option
 @mcp.tool()
 def fetch_api_reference(library_name: str, language: str, symbol: Optional[str] = None, version: Optional[str] = None) -> Dict[str, Any]:
     """Retrieve live or cached API documentation, type signatures, and module specifications
-    for external libraries (Rust crates, Python packages, NPM modules, and Telegram Bot API).
-    Includes an offline cache to eliminate repeated latency and network dependencies."""
+    for external libraries across all major package ecosystems:
+    Rust (crates.io), Python (PyPI), JavaScript/TypeScript (NPM), Go (proxy.golang.org),
+    Java/Kotlin (Maven Central), C#/.NET (NuGet), PHP (Packagist), Ruby (RubyGems), Dart/Flutter (Pub.dev),
+    and Telegram Bot API (10.3 Master Engine).
+    Includes an offline SQLite cache to eliminate repeated latency and network dependencies."""
     t0 = time.perf_counter()
     lang = language.lower().strip()
     lib = library_name.strip()
@@ -5296,10 +5439,9 @@ def fetch_api_reference(library_name: str, language: str, symbol: Optional[str] 
                     "documentation": c.get("documentation") or f"https://docs.rs/{lib}/{c.get('max_version')}",
                     "repository": c.get("repository"),
                     "downloads": c.get("downloads"),
-                    "recent_downloads": c.get("recent_downloads"),
                 }
         except Exception as e:
-            data_result = {"error": f"Failed fetching crate info from crates.io: {e}", "name": lib, "language": "rust"}
+            data_result = {"error": f"Failed fetching crate info: {e}", "name": lib, "language": "rust"}
 
     elif lang in ["python", "pypi"]:
         url = f"https://pypi.org/pypi/{lib}/json"
@@ -5315,8 +5457,6 @@ def fetch_api_reference(library_name: str, language: str, symbol: Optional[str] 
                     "summary": info.get("summary"),
                     "documentation": info.get("project_urls", {}).get("Documentation") or info.get("home_page"),
                     "author": info.get("author"),
-                    "requires_python": info.get("requires_python"),
-                    "classifiers": info.get("classifiers", [])[:5]
                 }
         except Exception as e:
             data_result = {"error": f"Failed fetching package from PyPI: {e}", "name": lib, "language": "python"}
@@ -5334,10 +5474,100 @@ def fetch_api_reference(library_name: str, language: str, symbol: Optional[str] 
                     "description": res_json.get("description"),
                     "homepage": res_json.get("homepage"),
                     "repository": res_json.get("repository", {}).get("url") if isinstance(res_json.get("repository"), dict) else res_json.get("repository"),
-                    "types": res_json.get("types") or res_json.get("typings"),
                 }
         except Exception as e:
             data_result = {"error": f"Failed fetching npm package: {e}", "name": lib, "language": "npm"}
+
+    elif lang in ["go", "golang"]:
+        url = f"https://proxy.golang.org/{lib}/@latest"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                data_result = {
+                    "name": lib,
+                    "language": "go",
+                    "version": res_json.get("Version"),
+                    "time": res_json.get("Time"),
+                    "documentation": f"https://pkg.go.dev/{lib}"
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching go package: {e}", "name": lib, "language": "go"}
+
+    elif lang in ["csharp", "dotnet", "nuget"]:
+        url = f"https://azuresearch-usnc.nuget.org/query?q={lib}&take=1"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                items = res_json.get("data", [])
+                item = items[0] if items else {}
+                data_result = {
+                    "name": item.get("id") or lib,
+                    "language": "csharp",
+                    "version": item.get("version"),
+                    "description": item.get("description"),
+                    "authors": item.get("authors"),
+                    "projectUrl": item.get("projectUrl"),
+                    "totalDownloads": item.get("totalDownloads")
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching NuGet package: {e}", "name": lib, "language": "csharp"}
+
+    elif lang in ["php", "packagist", "composer"]:
+        clean_lib = lib if "/" in lib else f"{lib}/{lib}"
+        url = f"https://packagist.org/packages/{clean_lib}.json"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                pkg = res_json.get("package", {})
+                data_result = {
+                    "name": pkg.get("name") or lib,
+                    "language": "php",
+                    "description": pkg.get("description"),
+                    "repository": pkg.get("repository"),
+                    "downloads": pkg.get("downloads", {}).get("total")
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching Packagist package: {e}", "name": lib, "language": "php"}
+
+    elif lang in ["ruby", "rubygems", "gem"]:
+        url = f"https://rubygems.org/api/v1/gems/{lib}.json"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                data_result = {
+                    "name": res_json.get("name") or lib,
+                    "language": "ruby",
+                    "version": res_json.get("version"),
+                    "info": res_json.get("info"),
+                    "homepage": res_json.get("homepage_uri"),
+                    "documentation": res_json.get("documentation_uri"),
+                    "downloads": res_json.get("downloads")
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching RubyGem: {e}", "name": lib, "language": "ruby"}
+
+    elif lang in ["dart", "flutter", "pub"]:
+        url = f"https://pub.dev/api/packages/{lib}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                latest = res_json.get("latest", {})
+                pubspec = latest.get("pubspec", {})
+                data_result = {
+                    "name": res_json.get("name") or lib,
+                    "language": "dart",
+                    "version": latest.get("version"),
+                    "description": pubspec.get("description"),
+                    "homepage": pubspec.get("homepage") or pubspec.get("repository"),
+                    "documentation": f"https://pub.dev/packages/{lib}"
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching Pub.dev package: {e}", "name": lib, "language": "dart"}
 
     elif lang in ["telegram", "tg"]:
         spec = get_telegram_bot_api_spec(lib)
@@ -5349,7 +5579,7 @@ def fetch_api_reference(library_name: str, language: str, symbol: Optional[str] 
         }
 
     else:
-        data_result = {"error": f"Unsupported language ecosystem '{language}'. Supported: rust, python, npm, telegram.", "name": lib}
+        data_result = {"error": f"Unsupported language ecosystem '{language}'. Supported: rust, python, npm, go, csharp, php, ruby, dart, telegram.", "name": lib}
 
     if "error" not in data_result:
         try:
