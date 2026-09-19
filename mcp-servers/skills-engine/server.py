@@ -1095,6 +1095,8 @@ def detect_language_from_text(name: str, content: str) -> str:
         return "devops"
     return "general"
 
+last_sync_time: float = 0.0
+
 def check_and_sync_index(force: bool = False):
     global last_sync_time
     now = time.time()
@@ -1152,10 +1154,10 @@ def sync_all_directories(force: bool = False):
 
                 meta, body = extract_meta(content)
                 desc = clean_description(str(meta.get("description") or ""), content)
-                trigs = meta.get("triggers", [])
+                trigs = meta.get("triggers") or meta.get("tags") or []
                 trigs_str = " ".join(str(t) for t in trigs) if isinstance(trigs, list) else str(trigs)
                 lang = meta.get("language") or detect_language_from_text(name, content)
-                cat = meta.get("category") or "skill"
+                cat = meta.get("category") or meta.get("domain") or "skill"
 
                 clean_content = content.encode('utf-8', 'ignore').decode('utf-8', 'ignore')
                 clean_desc = desc.encode('utf-8', 'ignore').decode('utf-8', 'ignore')
@@ -1257,10 +1259,10 @@ def index_single_file(path: Path):
 
         meta, body = extract_meta(content)
         desc = clean_description(str(meta.get("description") or ""), content)
-        trigs = meta.get("triggers", [])
+        trigs = meta.get("triggers") or meta.get("tags") or []
         trigs_str = " ".join(str(t) for t in trigs) if isinstance(trigs, list) else str(trigs)
         lang = meta.get("language") or detect_language_from_text(name, content)
-        cat = meta.get("category") or ("skill" if is_skill else "rule")
+        cat = meta.get("category") or meta.get("domain") or ("skill" if is_skill else "rule")
 
         conn = get_db_conn()
         conn.execute(

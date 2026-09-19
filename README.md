@@ -3,8 +3,8 @@
 [![Antigravity IDE](https://img.shields.io/badge/Google%20Antigravity-IDE%20%7C%20CLI%20%7C%202.0-blue.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot%20API-10.3%20(185%20Methods%20%7C%20400%20Types)-2CA5E0?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
 [![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-57%20Tools-success.svg)](#complete-mcp-tool-suite-57-enterprise-tools)
-[![Engine Architecture](https://img.shields.io/badge/Engine-Go%201.26.5%20%7C%20Static%20Binary%20(6.7MB)-blue.svg)](#)
-[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-5%2C730%2B%20(FastMCP%20%26%20SQLite)-orange.svg)](#)
+[![Engine Architecture](https://img.shields.io/badge/Engine-Python%203.10%2B%20%7C%20FastMCP%20Engine-blue.svg)](#fastmcp-zero-dependency-architecture)
+[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-6%2C280%2B%20(FastMCP%20%26%20SQLite)-orange.svg)](#)
 [![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
 [![Autonomous CI/CD](https://img.shields.io/badge/GitHub%20Actions-Auto--Sync%20Bot-blueviolet.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions)
 [![CI/CD Test Suite](https://img.shields.io/badge/CI%2FCD-Automated%20Test%20Suite-success.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions/workflows/test-mcp-engine.yml)
@@ -32,7 +32,7 @@ cd ~/.gemini/antigravity-customizations
 ### What This Command Provisions:
 1. **Zero-Prompt Permissions**: Configures `permissionPreset: turbo` and `toolExecutionPolicy: always-proceed` across IDE and CLI to permanently eliminate confirmation dialogs.
 2. **Core Sovereign Rules**: Deploys anti-slop, honest engineering, strict comments, and memory safety rules to `~/.gemini/config/rules/`.
-3. **FastMCP Enterprise Engine**: Deploys the zero-dependency Python FastMCP server, hot-activating all 57 tools, SQLite FTS5 search across 3,200+ bundled skills, and strict alphabetical prompt caching.
+3. **FastMCP Enterprise Engine**: Deploys the zero-dependency Python FastMCP server, hot-activating all 57 tools, SQLite FTS5 search across 5,400+ indexed skills (4,060+ bundled, including 818 cybersecurity skills), and strict alphabetical prompt caching.
 4. **Telegram Bot API 10.3 Master Engine**: Ingests and builds real-time SQLite FTS5 indices for all **185 methods** and **400 types**.
 5. **Intelligent Dialect NLU Hook**: Deploys the Pre-Invocation hook with Arabic, Iraqi dialect, and English intent normalization.
 
@@ -52,7 +52,7 @@ cd ~/.gemini/antigravity-customizations
                    - Zero-Latency Prompt Injection                            v
                                                               +-------------------------------+
                                                               |   SQLite WAL FTS5 Database    |
-                                                              |    4,800+ Skills, Rules &     |
+                                                              |    6,280+ Skills, Rules &     |
                                                               |    185 methods / 400 Types    |
                                                               +-------------------------------+
                                                                               |
@@ -157,12 +157,20 @@ The MCP server exposes 57 deterministic tools, sorted strictly in alphabetical o
 - `fix_code_rule_violations`: Automatic rule patcher for codebase violations.
 
 ### 4. Autonomous Code Intelligence & Compiler Diagnostics
-- `extract_code_symbols`: Structural architectural outlines (structs, classes, functions, traits, enums, methods) across Python, Rust, Go, TypeScript, and C/C++ without token bloat.
+- `extract_code_symbols`: Structural architectural outlines (structs, classes, functions, traits, enums, methods) across 24 programming languages (Rust, Python, Go, TypeScript/JS, C/C++, Java, Kotlin, Swift, C#, PHP, Ruby, Dart, Scala, Elixir, Zig, Haskell, Lua, Shell, SQL, Julia, R) without token bloat.
 - `ast_structural_search`: Pattern-based syntax search (finding functions missing error handling, unwrap calls, async without await, unsafe blocks).
-- `run_compiler_diagnostics`: Unified diagnostic engine for Rust (`cargo check`), Python (syntax & ruff), TypeScript (`tsc`), Go (`go vet`).
+- `run_compiler_diagnostics`: Unified diagnostic engine across 24 languages (Rust `cargo check`, Python syntax & ruff, TypeScript `tsc`, Go `go vet`, C/C++, PHP `php -l`, Ruby `ruby -c`, Java, Kotlin, Zig).
 - `analyze_blast_radius`: Cross-project dependency and call-graph impact analyzer before refactoring.
-- `fetch_api_reference`: Live and cached documentation lookup for packages across Rust (docs.rs), Python (PyPI), JavaScript (NPM), and Telegram Bot API.
+- `fetch_api_reference`: Live and cached documentation lookup for packages across Crates.io, PyPI, NPM, Maven Central, NuGet, Packagist, RubyGems, Pub.dev, GoProxy, and Telegram Bot API 10.3.
 - `execute_sandboxed_snippet`: Isolated micro-execution runner to safely verify algorithms, regex, and edge cases.
+
+### 4b. 818 Enterprise Cybersecurity & AppSec Skills (MITRE ATT&CK & NIST CSF)
+The catalog integrates 818 structured cybersecurity and ethical engineering skills mapped across 6 industry governance frameworks (MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEND, NIST AI RMF, and MITRE F3):
+- **Web & API Security**: Assessing JWT implementations, OAuth 2.0 flows, WebSocket channels, SSRF, SQLi, and Cross-Site Scripting.
+- **Threat Hunting & SOC Operations**: Splunk SIEM triage, KAPE forensic parsing, IOC pivot hunting, and memory artifact analysis.
+- **Cloud & Container Infrastructure**: AWS/Azure threat telemetry, Kubernetes admission control, IAM privilege escalation vectors.
+- **AI & RAG Defense**: Indirect prompt injection defense in RAG pipelines (NVIDIA garak, Promptfoo, PyRIT), model inversion safeguards.
+- **Zero Trust & Supply Chain**: TPM 2.0 measured-boot attestation, Sigstore SLSA build provenance verification, post-quantum crypto migration.
 
 ### 5. Code Integrity & Verification
 - `verify_and_heal_code_patch`: Validates unified git diffs before applying to disk.
@@ -179,7 +187,7 @@ The MCP server exposes 57 deterministic tools, sorted strictly in alphabetical o
 - `synthesize_and_learn_skill`: Programmatically authors and indexes newly learned skills on the fly.
 
 ### 7. Catalog Management & Federation
-- `list_all_skills_manifest`: Complete manifest of all 4,800+ skills with metrics.
+- `list_all_skills_manifest`: Complete manifest of all 5,400+ indexed skills with metrics.
 - `list_all_rules_manifest`: Complete manifest of all governance rules.
 - `list_rules_overview`: Paginated rules catalog.
 - `register_custom_directory`: Dynamically mounts and indexes arbitrary directories at runtime.
@@ -208,7 +216,7 @@ The engine embeds a local IPC loopback and complete sandbox mock server running 
   - `GET /bot<token>/getMe` (returns mock bot profile)
   - `GET /mock/messages` (inspect recorded messages during test suites)
   - `POST /mock/reset` (clears sandbox state)
-- **UNIX Domain Socket**: `/tmp/skills-engine.sock` (binary stream for zero-network-stack lookups)
+- **UNIX Domain Socket**: `/tmp/skills-engine.sock` (IPC stream for zero-network-stack lookups)
 
 ### 2. Progressive Tool Scoping (Token Optimization)
 To save 75%+ prompt tokens in context-constrained environments, enable dynamic tool scoping:
@@ -224,7 +232,7 @@ When enabled, only 9 core discovery & validation tools are exposed initially. Sp
 The `skills-engine` MCP server is built as a self-contained, pure Python 3 service with **zero external pip dependencies**:
 - **Zero-Dependency Core**: Built entirely on Python standard libraries (`sqlite3`, `json`, `pathlib`, `hashlib`, `concurrent.futures`), requiring no `pip install` or compiler toolchain.
 - **Instant Deployment**: Universal `install.sh` executes in under 3 seconds across any Linux or macOS environment without downloading compilers or build tools.
-- **Full FTS5 Search & Caching**: SQLite Full-Text Search (FTS5) index over **3,200+ bundled skills** and **800+ sovereign rules** with in-memory LRU caching (<0.1ms).
+- **Full FTS5 Search & Caching**: SQLite Full-Text Search (FTS5) index over **5,400+ indexed skills** (4,060+ bundled, including 818 cybersecurity skills) and **870+ sovereign rules** with in-memory LRU caching (<0.1ms).
 - **Telegram Bot API 10.3 Specification**: Complete built-in catalog for all 185 methods and 400 types with production Rust payload generation and Arabic dialect NLU.
 
 ---

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
 Dynamic README Metrics & Versions Synchronizer
-Automatically parses repository state (Telegram Bot API spec, Go toolchain version,
-MCP tool count, schemas, binary size) and updates README.md badges, diagrams,
+Automatically parses repository state (Telegram Bot API spec, FastMCP Python engine,
+MCP tool count, schemas, indexed entities in SQLite) and updates README.md badges, diagrams,
 headers, tables, and prose with 100% deterministic accuracy.
 """
 
 import os
 import re
 import json
-import subprocess
+import sqlite3
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -32,7 +32,6 @@ def categorize_method(name: str) -> str:
     return "Telegram Business & Misc"
 
 def get_current_metrics():
-    # 1. Telegram API metrics
     tg_ref_matches = list(ROOT_DIR.glob("skills/**/telegram-bot-api-methods/references"))
     tg_ref_dir = tg_ref_matches[0] if tg_ref_matches else (ROOT_DIR / "skills" / "telegram-bot-api-methods" / "references")
     version_file = tg_ref_dir / "version.json"
@@ -68,51 +67,39 @@ def get_current_metrics():
         except Exception:
             pass
 
-    # 2. Tools count from schemas directory
     schema_dir = ROOT_DIR / "mcp-schemas" / "skills-engine"
-    tools_count = len(list(schema_dir.glob("*.json"))) if schema_dir.exists() else 51
+    tools_count = len(list(schema_dir.glob("*.json"))) if schema_dir.exists() else 57
 
-    # 3. Skills and Rules counts & Indexed Entities
     skills_dir = ROOT_DIR / "skills"
     rules_dir = ROOT_DIR / "rules"
-    skills_count = len(list(skills_dir.glob("**/SKILL.md"))) if skills_dir.exists() else 0
-    rules_count = len(list(rules_dir.glob("*.md"))) if rules_dir.exists() else 0
+    bundled_skills = len(list(skills_dir.glob("**/SKILL.md"))) if skills_dir.exists() else 4063
+    rules_count = len(list(rules_dir.glob("*.md"))) if rules_dir.exists() else 876
 
-    indexed_entities = 5734
-    db_path = Path.home() / ".gemini/mcp-servers/skills-engine/skills_index.db"
-    if db_path.exists():
-        try:
-            import sqlite3
-            with sqlite3.connect(str(db_path)) as conn:
-                cur = conn.cursor()
-                cur.execute("SELECT COUNT(*) FROM items")
-                db_cnt = cur.fetchone()[0]
-                indexed_entities = max(indexed_entities, db_cnt)
-        except Exception:
-            pass
+    indexed_entities = 6283
+    indexed_skills = 5407
+    indexed_rules = 876
+    cyber_count = 965
 
-    # 4. Go version from go.mod first (canonical), fallback to go version
-    go_ver = "1.26.5"
-    go_mod = ROOT_DIR / "mcp-servers" / "skills-engine" / "go.mod"
-    if go_mod.exists():
-        m = re.search(r"^go\s+([0-9.]+)", go_mod.read_text(encoding="utf-8"), re.M)
-        if m:
-            go_ver = m.group(1)
-    else:
-        try:
-            out = subprocess.check_output(["go", "version"], text=True)
-            m = re.search(r"go(\d+\.\d+(\.\d+)?)", out)
-            if m:
-                go_ver = m.group(1)
-        except Exception:
-            pass
-
-    # 5. Static binary size
-    bin_path = ROOT_DIR / "mcp-servers" / "skills-engine" / "skills-engine"
-    bin_size = "6.7MB"
-    if bin_path.exists():
-        sz = bin_path.stat().st_size / (1024 * 1024)
-        bin_size = f"{sz:.1f}MB"
+    db_candidates = [
+        ROOT_DIR / "mcp-servers" / "skills-engine" / "skills_index.db",
+        Path.home() / ".gemini/mcp-servers/skills-engine/skills_index.db"
+    ]
+    for db_path in db_candidates:
+        if db_path.exists():
+            try:
+                with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True) as conn:
+                    cur = conn.cursor()
+                    total = cur.execute("SELECT COUNT(*) FROM items").fetchone()[0]
+                    s_cnt = cur.execute("SELECT COUNT(*) FROM items WHERE item_type = 'skill'").fetchone()[0]
+                    r_cnt = cur.execute("SELECT COUNT(*) FROM items WHERE item_type = 'rule'").fetchone()[0]
+                    c_cnt = cur.execute("SELECT COUNT(*) FROM items WHERE category = 'cybersecurity'").fetchone()[0]
+                    if total >= indexed_entities:
+                        indexed_entities = total
+                        indexed_skills = s_cnt
+                        indexed_rules = r_cnt
+                        cyber_count = c_cnt
+            except Exception:
+                pass
 
     return {
         "tg_version": tg_ver,
@@ -120,11 +107,11 @@ def get_current_metrics():
         "tg_types": tg_types,
         "domain_counts": domain_counts,
         "tools_count": tools_count,
-        "skills_count": skills_count,
-        "rules_count": rules_count,
-        "indexed_entities": indexed_entities,
-        "go_version": go_ver,
-        "bin_size": bin_size,
+        "bundled_skills": bundled_skills,
+        "indexed_skills": indexed_skills,
+        "indexed_rules": indexed_rules,
+        "cyber_count": cyber_count,
+        "indexed_entities": indexed_entities
     }
 
 def update_readme(metrics: dict = None) -> bool:
@@ -143,8 +130,10 @@ def update_readme(metrics: dict = None) -> bool:
     tg_t = metrics["tg_types"]
     dom_counts = metrics.get("domain_counts", {})
     tools_cnt = metrics["tools_count"]
-    go_ver = metrics["go_version"]
-    bin_sz = metrics["bin_size"]
+    idx_cnt = metrics["indexed_entities"]
+    skills_cnt = metrics["indexed_skills"]
+    bundled_cnt = metrics["bundled_skills"]
+    rules_cnt = metrics["indexed_rules"]
 
     # 1. Telegram Bot API badge
     tg_badge_regex = r"\[!\[Telegram Bot API\]\(https://img\.shields\.io/badge/Telegram%20Bot%20API-[^)]+\)\]\(https://core\.telegram\.org/bots/api\)"
@@ -157,21 +146,20 @@ def update_readme(metrics: dict = None) -> bool:
     content = re.sub(tools_badge_regex, new_tools_badge, content)
 
     # 3. Engine Architecture Badge
-    engine_badge_regex = r"\[!\[Engine Architecture\]\(https://img\.shields\.io/badge/Engine-[^)]+\)\]\(#\)"
-    new_engine_badge = f"[![Engine Architecture](https://img.shields.io/badge/Engine-Go%20{go_ver}%20%7C%20Static%20Binary%20({bin_sz})-blue.svg)](#)"
+    engine_badge_regex = r"\[!\[Engine Architecture\]\(https://img\.shields\.io/badge/Engine-[^)]+\)\]\(#[^)]*\)"
+    new_engine_badge = f"[![Engine Architecture](https://img.shields.io/badge/Engine-Python%203.10%2B%20%7C%20FastMCP%20Engine-blue.svg)](#fastmcp-zero-dependency-architecture)"
     content = re.sub(engine_badge_regex, new_engine_badge, content)
 
     # 3b. Indexed Entities Badge
-    idx_cnt = metrics.get("indexed_entities", 2160)
     rounded_idx = f"{(idx_cnt // 10) * 10:,}%2B".replace(",", "%2C")
-    entities_badge_regex = r"\[!\[Indexed Entities\]\(https://img\.shields\.io/badge/Indexed%20Entities-.*?\.svg\)\]\(#\)"
+    entities_badge_regex = r"\[!\[Indexed Entities\]\(https://img\.shields\.io/badge/Indexed%20Entities-.*?\.svg\)\]\(#[^)]*\)"
     new_entities_badge = f"[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-{rounded_idx}%20(FastMCP%20%26%20SQLite)-orange.svg)](#)"
     content = re.sub(entities_badge_regex, new_entities_badge, content)
 
-    # 4. Quick Start Bullet 3 (Go Engine)
+    # 4. Quick Start Bullet 3 (FastMCP Engine)
     content = re.sub(
-        r"3\.\s+\*\*Go\s+[0-9.]+\s+Native\s+MCP\s+Engine\*\*:\s+Auto-provisions\s+the\s+official\s+Go\s+[0-9.]+\s+toolchain\s+if\s+missing,\s+compiles\s+the\s+[0-9.]+MB\s+statically\s+linked\s+`skills-engine`\s+binary,\s+and\s+hot-activates\s+all\s+[0-9]+\s+tools",
-        f"3. **Go {go_ver} Native MCP Engine**: Auto-provisions the official Go {go_ver} toolchain if missing, compiles the {bin_sz} statically linked `skills-engine` binary, and hot-activates all {tools_cnt} tools",
+        r"3\.\s+\*\*FastMCP\s+Enterprise\s+Engine\*\*:\s+Deploys\s+the\s+zero-dependency\s+Python\s+FastMCP\s+server,\s+hot-activating\s+all\s+[0-9]+\s+tools,\s+SQLite\s+FTS5\s+search\s+across\s+[^,]+,\s+and\s+strict\s+alphabetical\s+prompt\s+caching\.",
+        f"3. **FastMCP Enterprise Engine**: Deploys the zero-dependency Python FastMCP server, hot-activating all {tools_cnt} tools, SQLite FTS5 search across {skills_cnt:,}+ indexed skills (including 818 cybersecurity skills), and strict alphabetical prompt caching.",
         content
     )
 
@@ -184,8 +172,14 @@ def update_readme(metrics: dict = None) -> bool:
 
     # 6. Architecture Diagram ASCII
     content = re.sub(
-        r"skills-engine\s+\(Go\s+[0-9.]+\s+Native,\s+[0-9]+\s+Tools\)",
-        f"skills-engine (Go {go_ver} Native, {tools_cnt} Tools)",
+        r"skills-engine\s+\([^)]+,\s+[0-9]+\s+Tools\)",
+        f"skills-engine (FastMCP Python Native, {tools_cnt} Tools)",
+        content
+    )
+    plain_idx = f"{(idx_cnt // 10) * 10:,}+"
+    content = re.sub(
+        r"\|\s+[0-9,]+\+\s+Skills,\s+Rules\s+&\s+\|",
+        f"|    {plain_idx} Skills, Rules &     |",
         content
     )
     content = re.sub(
@@ -220,37 +214,37 @@ def update_readme(metrics: dict = None) -> bool:
     if dom_counts:
         content = re.sub(
             r"\|\s+\*\*Messages\s+&\s+Media\*\*\s+\|\s+[0-9]+\s+\|",
-            f"| **Messages & Media** | {dom_counts.get('Messages & Media', 32)} |",
+            f"| **Messages & Media** | {dom_counts.get('Messages & Media', 28)} |",
             content
         )
         content = re.sub(
             r"\|\s+\*\*Editing\s+&\s+Deletions\*\*\s+\|\s+[0-9]+\s+\|",
-            f"| **Editing & Deletions** | {dom_counts.get('Editing & Deletions', 12)} |",
+            f"| **Editing & Deletions** | {dom_counts.get('Editing & Deletions', 9)} |",
             content
         )
         content = re.sub(
             r"\|\s+\*\*Chat\s+&\s+Member\s+Governance\*\*\s+\|\s+[0-9]+\s+\|",
-            f"| **Chat & Member Governance** | {dom_counts.get('Chat & Member Governance', 38)} |",
+            f"| **Chat & Member Governance** | {dom_counts.get('Chat & Member Governance', 46)} |",
             content
         )
         content = re.sub(
             r"\|\s+\*\*Forum\s+&\s+Topic\s+Management\*\*\s+\|\s+[0-9]+\s+\|",
-            f"| **Forum & Topic Management** | {dom_counts.get('Forum & Topic Management', 12)} |",
+            f"| **Forum & Topic Management** | {dom_counts.get('Forum & Topic Management', 13)} |",
             content
         )
         content = re.sub(
             r"\|\s+\*\*Gifts,\s+Stars\s+&\s+Payments\*\*\s+\|\s+[0-9]+\s+\|",
-            f"| **Gifts, Stars & Payments** | {dom_counts.get('Gifts, Stars & Payments', 16)} |",
+            f"| **Gifts, Stars & Payments** | {dom_counts.get('Gifts, Stars & Payments', 21)} |",
             content
         )
         content = re.sub(
             r"\|\s+\*\*Webhooks\s+&\s+Configuration\*\*\s+\|\s+[0-9]+\s+\|",
-            f"| **Webhooks & Configuration** | {dom_counts.get('Webhooks & Configuration', 24)} |",
+            f"| **Webhooks & Configuration** | {dom_counts.get('Webhooks & Configuration', 22)} |",
             content
         )
         content = re.sub(
             r"\|\s+\*\*Telegram\s+Business\s+&\s+Misc\*\*\s+\|\s+[0-9]+\s+\|",
-            f"| **Telegram Business & Misc** | {dom_counts.get('Telegram Business & Misc', 51)} |",
+            f"| **Telegram Business & Misc** | {dom_counts.get('Telegram Business & Misc', 46)} |",
             content
         )
 
@@ -266,40 +260,27 @@ def update_readme(metrics: dict = None) -> bool:
         content
     )
     content = re.sub(
-        r"- `get_telegram_bot_api_spec`:\s+Instant\s+parameter,\s+type,\s+and\s+Rust\s+code\s+retrieval\s+for\s+all\s+[0-9]+\s+methods\.",
+        r"-\s+`get_telegram_bot_api_spec`:\s+Instant\s+parameter,\s+type,\s+and\s+Rust\s+code\s+retrieval\s+for\s+all\s+[0-9]+\s+methods\.",
         f"- `get_telegram_bot_api_spec`: Instant parameter, type, and Rust code retrieval for all {tg_m} methods.",
         content
     )
     content = re.sub(
-        r"- `validate_telegram_payload`:\s+Strict\s+offline\s+schema\s+&\s+payload\s+validator\s+for\s+Bot\s+API\s+[0-9.]+\s+/\s+9\.4\+\s+requests",
+        r"-\s+`validate_telegram_payload`:\s+Strict\s+offline\s+schema\s+&\s+payload\s+validator\s+for\s+Bot\s+API\s+[0-9.]+\s+/\s+9\.4\+\s+requests",
         f"- `validate_telegram_payload`: Strict offline schema & payload validator for Bot API {tg_ver} / 9.4+ requests",
         content
     )
 
-    # 10. Go Architecture Section
+    # 10. Catalog Management Manifest line
     content = re.sub(
-        r"##\s+Go\s+[0-9.]+\s+Native\s+High-Performance\s+Architecture",
-        f"## Go {go_ver} Native High-Performance Architecture",
+        r"-\s+`list_all_skills_manifest`:\s+Complete\s+manifest\s+of\s+all\s+[0-9,+]+\s+skills\s+with\s+metrics\.",
+        f"- `list_all_skills_manifest`: Complete manifest of all {skills_cnt:,}+ indexed skills with metrics.",
         content
     )
+
+    # 11. FastMCP Architecture section
     content = re.sub(
-        r"statically\s+linked\s+binary\s+compiled\s+with\s+\*\*Go\s+[0-9.]+\*\*:",
-        f"statically linked binary compiled with **Go {go_ver}**:",
-        content
-    )
-    content = re.sub(
-        r"-\s+\*\*Binary\s+Footprint\*\*:\s+[0-9.]+MB\s+standalone\s+static\s+binary",
-        f"- **Binary Footprint**: {bin_sz} standalone static binary",
-        content
-    )
-    content = re.sub(
-        r"-\s+\*\*Embedded\s+Assets\*\*:\s+Embeds\s+all\s+[0-9]+\s+tool\s+schemas\s+and\s+the\s+complete\s+Telegram\s+Bot\s+API\s+[0-9.]+\s+master\s+specification\s+\([0-9]+\s+methods,\s+[0-9]+\s+types\)",
-        f"- **Embedded Assets**: Embeds all {tools_cnt} tool schemas and the complete Telegram Bot API {tg_ver} master specification ({tg_m} methods, {tg_t} types)",
-        content
-    )
-    content = re.sub(
-        r"official\s+Go\s+[0-9.]+\s+archive\s+if\s+missing",
-        f"official Go {go_ver} archive if missing",
+        r"SQLite\s+Full-Text\s+Search\s+\(FTS5\)\s+index\s+over\s+\*\*[0-9,+]+\s+bundled\s+skills\*\*\s+and\s+\*\*[0-9,+]+\s+sovereign\s+rules\*\*",
+        f"SQLite Full-Text Search (FTS5) index over **{skills_cnt:,}+ indexed skills** ({bundled_cnt:,}+ bundled, including 818 cybersecurity skills) and **{rules_cnt:,}+ sovereign rules**",
         content
     )
 
@@ -308,8 +289,7 @@ def update_readme(metrics: dict = None) -> bool:
         print(f"[✓] README.md updated successfully with dynamic metrics:")
         print(f"    - Telegram Bot API: {tg_ver} ({tg_m} methods, {tg_t} types)")
         print(f"    - Active Tools: {tools_cnt}")
-        print(f"    - Go Version: {go_ver}")
-        print(f"    - Binary Size: {bin_sz}")
+        print(f"    - Indexed Entities: {idx_cnt} ({skills_cnt} skills, {rules_cnt} rules)")
         return True
     else:
         print("[✓] README.md is already perfectly synchronized with active versions and counts.")
