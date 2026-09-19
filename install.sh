@@ -157,7 +157,7 @@ try:
     import server
     if not os.path.exists('${DB_TARGET}') or os.path.getsize('${DB_TARGET}') < 10000000:
         server.sync_all_directories(force=True)
-    server.sync_telegram_bot_api_upstream(force=True)
+        server.sync_telegram_bot_api_upstream(force=True)
     conn = server.get_db_conn()
     total = conn.execute('SELECT count(*) FROM items').fetchone()[0]
     conn.close()
