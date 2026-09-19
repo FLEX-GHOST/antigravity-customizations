@@ -65,7 +65,7 @@ cp -rf "${SOURCE_DIR}/mcp-servers/skills-engine/"* "${MCP_SERVERS_DIR}/skills-en
 
 
 # 6. Configure MCP server
-echo "[-] Configuring MCP server (Python FastMCP Engine with 57 tools)..."
+echo "[-] Configuring MCP server (Python FastMCP Engine with 61 tools)..."
 cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
 {
   "mcpServers": {
@@ -125,8 +125,8 @@ if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
     cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"* "${HOME_DIR}/.gemini/antigravity-cli/mcp/skills-engine/" 2>/dev/null || true
 fi
 
-# 9. Deploy pre-indexed high-speed knowledge base (5,730+ vetted entities & 185 Telegram methods)
-echo "[-] Deploying pre-indexed knowledge base (5,730+ verified entities)..."
+# 9. Deploy pre-indexed high-speed knowledge base (6,361+ vetted entities, 61 tools & 185 Telegram methods)
+echo "[-] Deploying pre-indexed knowledge base (6,361+ verified entities & 61 tools)..."
 DB_RELEASE_URL="https://github.com/FLEX-GHOST/antigravity-customizations/releases/latest/download/skills_index.db.gz"
 DB_TARGET="${MCP_SERVERS_DIR}/skills-engine/skills_index.db"
 
