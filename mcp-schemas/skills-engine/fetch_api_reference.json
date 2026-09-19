@@ -1,0 +1,46 @@
+{
+  "name": "fetch_api_reference",
+  "description": "Retrieve live or cached API documentation, type signatures, and module specifications\n    for external libraries (Rust crates, Python packages, NPM modules, and Telegram Bot API).\n    Includes an offline cache to eliminate repeated latency and network dependencies.",
+  "inputSchema": {
+    "properties": {
+      "library_name": {
+        "title": "Library Name",
+        "type": "string"
+      },
+      "language": {
+        "title": "Language",
+        "type": "string"
+      },
+      "symbol": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Symbol"
+      },
+      "version": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Version"
+      }
+    },
+    "required": [
+      "library_name",
+      "language"
+    ],
+    "title": "fetch_api_referenceArguments",
+    "type": "object"
+  }
+}

@@ -65,7 +65,7 @@ cp -rf "${SOURCE_DIR}/mcp-servers/skills-engine/"* "${MCP_SERVERS_DIR}/skills-en
 
 
 # 6. Configure MCP server
-echo "[-] Configuring MCP server (Python FastMCP Engine with 51 tools)..."
+echo "[-] Configuring MCP server (Python FastMCP Engine with 57 tools)..."
 cat << 'EOF_MCP' > "${CONFIG_DIR}/mcp_config.json"
 {
   "mcpServers": {
@@ -121,6 +121,8 @@ for p in [
 # 8. Deploy schemas
 if [ -d "${SOURCE_DIR}/mcp-schemas/skills-engine" ]; then
     cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"* "${MCP_SCHEMAS_DIR}/"
+    mkdir -p "${HOME_DIR}/.gemini/antigravity-cli/mcp/skills-engine"
+    cp -rf "${SOURCE_DIR}/mcp-schemas/skills-engine/"* "${HOME_DIR}/.gemini/antigravity-cli/mcp/skills-engine/" 2>/dev/null || true
 fi
 
 # 9. Deploy pre-indexed high-speed knowledge base (5,730+ vetted entities & 185 Telegram methods)

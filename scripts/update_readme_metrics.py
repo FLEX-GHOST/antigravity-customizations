@@ -153,7 +153,7 @@ def update_readme(metrics: dict = None) -> bool:
 
     # 2. MCP Tools Badge
     tools_badge_regex = r"\[!\[Active MCP Tools\]\(https://img\.shields\.io/badge/MCP%20Tools-[^)]+\)\]\(#complete-mcp-tool-suite-[0-9]+-enterprise-tools\)"
-    new_tools_badge = f"[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-{tools_cnt}%20Tools%20(Go%20{go_ver}%20Native)-success.svg)](#complete-mcp-tool-suite-{tools_cnt}-enterprise-tools)"
+    new_tools_badge = f"[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-{tools_cnt}%20Tools-success.svg)](#complete-mcp-tool-suite-{tools_cnt}-enterprise-tools)"
     content = re.sub(tools_badge_regex, new_tools_badge, content)
 
     # 3. Engine Architecture Badge

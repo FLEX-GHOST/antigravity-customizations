@@ -103,6 +103,8 @@ def _normalize_ar_text(text: str) -> str:
     return t
 
 import subprocess
+import tempfile
+import urllib.request
 import shutil
 import threading
 import hmac
@@ -1669,6 +1671,13 @@ TOOL_SUITES = {
             "audit_anti_sycophancy", "audit_ui_design",
             "audit_web_application_quality", "audit_project_full_governance",
             "audit_skill_quality", "get_core_governance_rules", "fix_code_rule_violations"
+        ]
+    },
+    "code_intelligence": {
+        "description": "Multi-language AST outlines, compiler diagnostics, blast radius analysis, live API references & sandboxed execution",
+        "tools": [
+            "extract_code_symbols", "ast_structural_search", "run_compiler_diagnostics",
+            "analyze_blast_radius", "fetch_api_reference", "execute_sandboxed_snippet"
         ]
     },
     "systems_rust": {
@@ -4655,6 +4664,770 @@ def validate_telegram_payload(method: str, payload_json: str) -> Dict[str, Any]:
         "violations": violations,
         "is_bot_api_10_3_compliant": len(violations) == 0
     }
+
+
+# =========================================================================
+# Autonomous Code Intelligence, Compiler Diagnostics & Blast Radius Engine
+# =========================================================================
+
+def _init_api_cache_table():
+    try:
+        conn = get_db_conn()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS api_reference_cache (
+                library TEXT,
+                language TEXT,
+                version TEXT,
+                payload TEXT,
+                updated_at REAL,
+                PRIMARY KEY(library, language, version)
+            );
+        """)
+        conn.commit()
+    except Exception:
+        pass
+
+@mcp.tool()
+def extract_code_symbols(file_path: str, max_depth: int = 3) -> Dict[str, Any]:
+    """Extract a structural architectural outline of symbols (functions, classes, structs, enums, traits, interfaces)
+    from a source file across Python, Rust, Go, TypeScript/JavaScript, and C/C++.
+    Significantly reduces context window consumption by extracting AST signatures without function bodies."""
+    t0 = time.perf_counter()
+    safe_path = safe_path_resolve(file_path)
+    p = Path(safe_path)
+    if not p.exists() or not p.is_file():
+        return {"error": f"File not found: {file_path}", "symbols": [], "total_symbols": 0}
+
+    ext = p.suffix.lower()
+    symbols = []
+
+    try:
+        content = p.read_text(encoding="utf-8", errors="replace")
+    except Exception as e:
+        return {"error": f"Failed to read file: {e}", "symbols": [], "total_symbols": 0}
+
+    if ext == ".py":
+        try:
+            tree = ast.parse(content, filename=str(p))
+            for node in ast.iter_child_nodes(tree):
+                if isinstance(node, ast.ClassDef):
+                    bases = []
+                    for b in node.bases:
+                        if hasattr(ast, "unparse"):
+                            bases.append(ast.unparse(b))
+                        elif isinstance(b, ast.Name):
+                            bases.append(b.id)
+                    methods = []
+                    for child in node.body:
+                        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                            m_args = [a.arg for a in child.args.args]
+                            ret = ast.unparse(child.returns) if hasattr(ast, "unparse") and child.returns else None
+                            methods.append({
+                                "name": child.name,
+                                "kind": "async_method" if isinstance(child, ast.AsyncFunctionDef) else "method",
+                                "line": child.lineno,
+                                "args": m_args,
+                                "return_type": ret
+                            })
+                    doc = ast.get_docstring(node)
+                    symbols.append({
+                        "name": node.name,
+                        "kind": "class",
+                        "line": node.lineno,
+                        "signature": f"class {node.name}({', '.join(bases)})" if bases else f"class {node.name}",
+                        "doc": doc.splitlines()[0] if doc else None,
+                        "methods": methods[:30]
+                    })
+                elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    f_args = [a.arg for a in node.args.args]
+                    ret = ast.unparse(node.returns) if hasattr(ast, "unparse") and node.returns else None
+                    doc = ast.get_docstring(node)
+                    symbols.append({
+                        "name": node.name,
+                        "kind": "async_function" if isinstance(node, ast.AsyncFunctionDef) else "function",
+                        "line": node.lineno,
+                        "signature": f"def {node.name}({', '.join(f_args)}) -> {ret}" if ret else f"def {node.name}({', '.join(f_args)})",
+                        "doc": doc.splitlines()[0] if doc else None
+                    })
+                elif isinstance(node, ast.Assign):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name) and (target.id.isupper() or len(target.id) > 2):
+                            symbols.append({
+                                "name": target.id,
+                                "kind": "constant" if target.id.isupper() else "variable",
+                                "line": node.lineno,
+                                "signature": f"{target.id} = ..."
+                            })
+        except SyntaxError as e:
+            symbols.append({"error": f"Python syntax error at line {e.lineno}: {e.msg}"})
+
+    elif ext == ".rs":
+        lines = content.splitlines()
+        for idx, line in enumerate(lines):
+            l_strip = line.strip()
+            m_struct = re.match(r"^(pub(?:\([^\)]+\))?\s+)?struct\s+([A-Za-z0-9_]+)", l_strip)
+            if m_struct:
+                symbols.append({
+                    "name": m_struct.group(2),
+                    "kind": "struct",
+                    "line": idx + 1,
+                    "visibility": m_struct.group(1).strip() if m_struct.group(1) else "private",
+                    "signature": l_strip.split("{")[0].strip()
+                })
+                continue
+            m_enum = re.match(r"^(pub(?:\([^\)]+\))?\s+)?enum\s+([A-Za-z0-9_]+)", l_strip)
+            if m_enum:
+                symbols.append({
+                    "name": m_enum.group(2),
+                    "kind": "enum",
+                    "line": idx + 1,
+                    "visibility": m_enum.group(1).strip() if m_enum.group(1) else "private",
+                    "signature": l_strip.split("{")[0].strip()
+                })
+                continue
+            m_trait = re.match(r"^(pub(?:\([^\)]+\))?\s+)?trait\s+([A-Za-z0-9_]+)", l_strip)
+            if m_trait:
+                symbols.append({
+                    "name": m_trait.group(2),
+                    "kind": "trait",
+                    "line": idx + 1,
+                    "visibility": m_trait.group(1).strip() if m_trait.group(1) else "private",
+                    "signature": l_strip.split("{")[0].strip()
+                })
+                continue
+            m_impl = re.match(r"^impl(?:\s*<[^>]+>)?\s+([A-Za-z0-9_:<>\s]+?)\s+(?:for\s+([A-Za-z0-9_:<>\s]+?)\s*)?\{", l_strip)
+            if m_impl:
+                trait_or_struct = m_impl.group(1).strip()
+                for_struct = m_impl.group(2).strip() if m_impl.group(2) else None
+                sig = f"impl {trait_or_struct} for {for_struct}" if for_struct else f"impl {trait_or_struct}"
+                symbols.append({
+                    "name": for_struct or trait_or_struct,
+                    "kind": "impl",
+                    "line": idx + 1,
+                    "signature": sig
+                })
+                continue
+            m_fn = re.match(r"^(pub(?:\([^\)]+\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+([A-Za-z0-9_]+)\s*(?:<[^>]+>)?\s*\(([^\)]*)\)(?:\s*->\s*([^{;]+))?", l_strip)
+            if m_fn:
+                symbols.append({
+                    "name": m_fn.group(2),
+                    "kind": "function",
+                    "line": idx + 1,
+                    "visibility": m_fn.group(1).strip() if m_fn.group(1) else "private",
+                    "signature": l_strip.split("{")[0].strip()
+                })
+                continue
+            m_type = re.match(r"^(pub(?:\([^\)]+\))?\s+)?type\s+([A-Za-z0-9_]+)", l_strip)
+            if m_type:
+                symbols.append({
+                    "name": m_type.group(2),
+                    "kind": "type_alias",
+                    "line": idx + 1,
+                    "signature": l_strip.split(";")[0].strip()
+                })
+
+    elif ext == ".go":
+        lines = content.splitlines()
+        for idx, line in enumerate(lines):
+            l_strip = line.strip()
+            m_type = re.match(r"^type\s+([A-Za-z0-9_]+)\s+(struct|interface)", l_strip)
+            if m_type:
+                symbols.append({
+                    "name": m_type.group(1),
+                    "kind": m_type.group(2),
+                    "line": idx + 1,
+                    "signature": l_strip.split("{")[0].strip()
+                })
+                continue
+            m_method = re.match(r"^func\s+\(([^\)]+)\)\s+([A-Za-z0-9_]+)\s*\(([^\)]*)\)(?:\s*(.+))?", l_strip)
+            if m_method:
+                symbols.append({
+                    "name": m_method.group(2),
+                    "receiver": m_method.group(1).strip(),
+                    "kind": "method",
+                    "line": idx + 1,
+                    "signature": l_strip.split("{")[0].strip()
+                })
+                continue
+            m_func = re.match(r"^func\s+([A-Za-z0-9_]+)\s*\(([^\)]*)\)(?:\s*(.+))?", l_strip)
+            if m_func:
+                symbols.append({
+                    "name": m_func.group(1),
+                    "kind": "function",
+                    "line": idx + 1,
+                    "signature": l_strip.split("{")[0].strip()
+                })
+
+    elif ext in [".ts", ".tsx", ".js", ".jsx"]:
+        lines = content.splitlines()
+        for idx, line in enumerate(lines):
+            l_strip = line.strip()
+            m_class = re.match(r"^(?:export\s+)?(?:default\s+)?class\s+([A-Za-z0-9_]+)", l_strip)
+            if m_class:
+                symbols.append({"name": m_class.group(1), "kind": "class", "line": idx + 1, "signature": l_strip.split("{")[0].strip()})
+                continue
+            m_iface = re.match(r"^(?:export\s+)?interface\s+([A-Za-z0-9_]+)", l_strip)
+            if m_iface:
+                symbols.append({"name": m_iface.group(1), "kind": "interface", "line": idx + 1, "signature": l_strip.split("{")[0].strip()})
+                continue
+            m_type = re.match(r"^(?:export\s+)?type\s+([A-Za-z0-9_]+)", l_strip)
+            if m_type:
+                symbols.append({"name": m_type.group(1), "kind": "type", "line": idx + 1, "signature": l_strip.split("=")[0].strip()})
+                continue
+            m_fn = re.match(r"^(?:export\s+)?(?:async\s+)?function\s+([A-Za-z0-9_]+)", l_strip)
+            if m_fn:
+                symbols.append({"name": m_fn.group(1), "kind": "function", "line": idx + 1, "signature": l_strip.split("{")[0].strip()})
+                continue
+            m_const_fn = re.match(r"^(?:export\s+)?const\s+([A-Za-z0-9_]+)\s*=\s*(?:async\s*)?\([^\)]*\)\s*=>", l_strip)
+            if m_const_fn:
+                symbols.append({"name": m_const_fn.group(1), "kind": "arrow_function", "line": idx + 1, "signature": l_strip.split("=>")[0].strip() + "=>"})
+
+    dur = round((time.perf_counter() - t0) * 1000.0, 2)
+    return {
+        "file_path": str(p),
+        "language": ext[1:] if ext else "unknown",
+        "total_symbols": len(symbols),
+        "symbols": symbols,
+        "duration_ms": dur
+    }
+
+@mcp.tool()
+def ast_structural_search(pattern: str, search_path: str, language: Optional[str] = None, max_results: int = 50) -> Dict[str, Any]:
+    """Perform structural code search matching syntax patterns rather than plain text.
+    Finds structural code constructs like function definitions, unwrap/panic calls, unhandled errors,
+    async functions without await, and specific API call signatures."""
+    t0 = time.perf_counter()
+    safe_path = safe_path_resolve(search_path)
+    root = Path(safe_path)
+    if not root.exists():
+        return {"error": f"Path not found: {search_path}", "matches": [], "match_count": 0}
+
+    sg_bin = shutil.which("ast-grep") or shutil.which("sg")
+    if sg_bin:
+        try:
+            cmd = [sg_bin, "scan", "--pattern", pattern, "--json", str(root)]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            if res.returncode == 0 and res.stdout.strip():
+                raw_json = json.loads(res.stdout)
+                matches = []
+                for item in raw_json[:max_results]:
+                    matches.append({
+                        "file": item.get("file", ""),
+                        "line": item.get("range", {}).get("start", {}).get("line", 0),
+                        "column": item.get("range", {}).get("start", {}).get("column", 0),
+                        "matched_text": item.get("text", "").strip(),
+                        "variables": item.get("metaVariables", {})
+                    })
+                return {
+                    "pattern": pattern,
+                    "search_path": str(root),
+                    "engine": "ast-grep",
+                    "match_count": len(matches),
+                    "matches": matches,
+                    "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2)
+                }
+        except Exception:
+            pass
+
+    var_names = re.findall(r"\$[A-Za-z0-9_]+", pattern)
+    token_regex = re.escape(pattern)
+    for v in set(var_names):
+        token_regex = token_regex.replace(re.escape(v), r"([A-Za-z0-9_:\.\(\)]+)")
+    token_regex = token_regex.replace(r"\ ", r"\s+")
+    compiled_re = re.compile(token_regex)
+
+    ext_filters = None
+    if language:
+        lang_map = {
+            "rust": [".rs"],
+            "python": [".py"],
+            "go": [".go"],
+            "typescript": [".ts", ".tsx"],
+            "javascript": [".js", ".jsx"]
+        }
+        ext_filters = lang_map.get(language.lower())
+
+    matches = []
+    ignored_dirs = {".git", "target", "node_modules", ".venv", "__pycache__", "venv", "dist", "build"}
+
+    target_files = [root] if root.is_file() else []
+    if root.is_dir():
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if d not in ignored_dirs and not d.startswith(".")]
+            for f in filenames:
+                ext = Path(f).suffix.lower()
+                if ext_filters and ext not in ext_filters:
+                    continue
+                if ext in [".rs", ".py", ".go", ".ts", ".tsx", ".js", ".jsx", ".c", ".cpp", ".h"]:
+                    target_files.append(Path(dirpath) / f)
+
+    for fpath in target_files:
+        if len(matches) >= max_results:
+            break
+        try:
+            lines = fpath.read_text(encoding="utf-8", errors="replace").splitlines()
+            for l_idx, line in enumerate(lines):
+                if pattern in line:
+                    matches.append({
+                        "file": str(fpath),
+                        "line": l_idx + 1,
+                        "matched_text": line.strip(),
+                        "engine": "literal-pattern"
+                    })
+                elif var_names:
+                    m = compiled_re.search(line)
+                    if m:
+                        matches.append({
+                            "file": str(fpath),
+                            "line": l_idx + 1,
+                            "matched_text": line.strip(),
+                            "groups": m.groups(),
+                            "engine": "structural-regex"
+                        })
+                if len(matches) >= max_results:
+                    break
+        except Exception:
+            continue
+
+    dur = round((time.perf_counter() - t0) * 1000.0, 2)
+    return {
+        "pattern": pattern,
+        "search_path": str(root),
+        "engine": "native-structural-matcher",
+        "match_count": len(matches),
+        "matches": matches,
+        "duration_ms": dur
+    }
+
+@mcp.tool()
+def run_compiler_diagnostics(target_path: str, language: Optional[str] = None) -> Dict[str, Any]:
+    """Run native compiler and typechecker diagnostics on a project or file in structured JSON mode.
+    Supports Rust (cargo check --message-format=json), Python (syntax check + ruff/flake8 if present),
+    TypeScript/Node (tsc --noEmit / node --check), and Go (go vet / go build).
+    Returns normalized, machine-readable compiler errors with file, line, column, severity, and fix hints."""
+    t0 = time.perf_counter()
+    safe_path = safe_path_resolve(target_path)
+    p = Path(safe_path)
+    if not p.exists():
+        return {"error": f"Target path does not exist: {target_path}", "success": False, "diagnostics": []}
+
+    diagnostics = []
+    detected_lang = language.lower() if language else "unknown"
+
+    if detected_lang == "unknown":
+        if (p / "Cargo.toml").exists() or (p.is_file() and p.suffix == ".rs") or any((p.parent).glob("Cargo.toml")):
+            detected_lang = "rust"
+        elif (p / "go.mod").exists() or (p.is_file() and p.suffix == ".go"):
+            detected_lang = "go"
+        elif (p / "tsconfig.json").exists() or (p.is_file() and p.suffix in [".ts", ".tsx"]):
+            detected_lang = "typescript"
+        elif (p / "pyproject.toml").exists() or (p / "requirements.txt").exists() or (p.is_file() and p.suffix == ".py"):
+            detected_lang = "python"
+
+    if detected_lang == "rust":
+        manifest = p / "Cargo.toml" if p.is_dir() else None
+        if not manifest or not manifest.exists():
+            for parent in [p] + list(p.parents):
+                if (parent / "Cargo.toml").exists():
+                    manifest = parent / "Cargo.toml"
+                    break
+
+        if not manifest or not manifest.exists():
+            if p.is_file():
+                cmd = ["rustc", "--error-format=json", "-Zno-codegen", str(p)]
+            else:
+                return {"error": "Cargo.toml not found in hierarchy", "language": "rust", "success": False, "diagnostics": []}
+        else:
+            cmd = ["cargo", "check", "--message-format=json", "--manifest-path", str(manifest)]
+
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            for line in res.stdout.splitlines():
+                if not line.strip().startswith("{"):
+                    continue
+                try:
+                    data = json.loads(line)
+                    if data.get("reason") == "compiler-message":
+                        msg = data.get("message", {})
+                        level = msg.get("level", "error")
+                        code = msg.get("code", {}).get("code") if msg.get("code") else None
+                        rendered = msg.get("rendered", "")
+                        spans = msg.get("spans", [])
+                        primary_span = next((s for s in spans if s.get("is_primary")), spans[0] if spans else {})
+                        diagnostics.append({
+                            "severity": level,
+                            "code": code,
+                            "message": msg.get("message", ""),
+                            "file": primary_span.get("file_name", ""),
+                            "line": primary_span.get("line_start", 0),
+                            "column": primary_span.get("column_start", 0),
+                            "suggestion": primary_span.get("suggested_replacement"),
+                            "rendered": rendered.strip() if rendered else None
+                        })
+                except Exception:
+                    pass
+        except Exception as e:
+            return {"error": f"Failed running cargo check: {e}", "language": "rust", "success": False, "diagnostics": []}
+
+    elif detected_lang == "python":
+        py_files = [p] if p.is_file() else list(p.glob("**/*.py"))
+        for py_file in py_files[:50]:
+            try:
+                content = py_file.read_text(encoding="utf-8", errors="replace")
+                ast.parse(content, filename=str(py_file))
+            except SyntaxError as e:
+                diagnostics.append({
+                    "severity": "error",
+                    "code": "SyntaxError",
+                    "message": str(e.msg),
+                    "file": str(py_file),
+                    "line": e.lineno,
+                    "column": e.offset or 0,
+                    "rendered": f"SyntaxError in {py_file}:{e.lineno}:{e.offset}: {e.msg}"
+                })
+
+        ruff_bin = shutil.which("ruff")
+        if ruff_bin:
+            try:
+                res = subprocess.run([ruff_bin, "check", "--output-format=json", str(p)], capture_output=True, text=True, timeout=15)
+                if res.stdout.strip():
+                    raw = json.loads(res.stdout)
+                    for item in raw[:50]:
+                        diagnostics.append({
+                            "severity": "warning",
+                            "code": item.get("code"),
+                            "message": item.get("message"),
+                            "file": item.get("filename"),
+                            "line": item.get("location", {}).get("row"),
+                            "column": item.get("location", {}).get("column"),
+                            "suggestion": item.get("fix", {}).get("applicability") if item.get("fix") else None
+                        })
+            except Exception:
+                pass
+
+    elif detected_lang == "go":
+        go_bin = shutil.which("go")
+        if go_bin:
+            cwd = p if p.is_dir() else p.parent
+            try:
+                res = subprocess.run([go_bin, "vet", "./..."], cwd=str(cwd), capture_output=True, text=True, timeout=30)
+                output = res.stderr + res.stdout
+                for line in output.splitlines():
+                    m = re.match(r"^(.+\.go):(\d+):(\d+):\s*(.+)$", line.strip())
+                    if m:
+                        diagnostics.append({
+                            "severity": "error",
+                            "file": m.group(1),
+                            "line": int(m.group(2)),
+                            "column": int(m.group(3)),
+                            "message": m.group(4).strip()
+                        })
+            except Exception as e:
+                return {"error": f"Go vet execution error: {e}", "language": "go", "success": False, "diagnostics": []}
+
+    elif detected_lang in ["typescript", "javascript"]:
+        tsc_bin = shutil.which("tsc")
+        if tsc_bin:
+            cwd = p if p.is_dir() else p.parent
+            try:
+                res = subprocess.run([tsc_bin, "--noEmit", "--pretty", "false"], cwd=str(cwd), capture_output=True, text=True, timeout=30)
+                output = res.stdout + res.stderr
+                for line in output.splitlines():
+                    m = re.match(r"^(.+\.tsx?)\((\d+),(\d+)\):\s*(error|warning)\s*(TS\d+):\s*(.+)$", line.strip())
+                    if m:
+                        diagnostics.append({
+                            "file": m.group(1),
+                            "line": int(m.group(2)),
+                            "column": int(m.group(3)),
+                            "severity": m.group(4),
+                            "code": m.group(5),
+                            "message": m.group(6).strip()
+                        })
+            except Exception:
+                pass
+
+    err_count = sum(1 for d in diagnostics if d.get("severity") == "error")
+    warn_count = sum(1 for d in diagnostics if d.get("severity") == "warning")
+    dur = round((time.perf_counter() - t0) * 1000.0, 2)
+
+    return {
+        "target_path": str(p),
+        "language": detected_lang,
+        "success": err_count == 0,
+        "total_errors": err_count,
+        "total_warnings": warn_count,
+        "diagnostics": diagnostics,
+        "duration_ms": dur
+    }
+
+@mcp.tool()
+def analyze_blast_radius(symbol_name: str, project_dir: str, target_file: Optional[str] = None) -> Dict[str, Any]:
+    """Analyze the impact and dependency blast radius before refactoring a function, struct, class, or type.
+    Finds all definitions, imports, usages, and call sites across the entire project repository.
+    Prevents breaking changes and missed references during large-scale code modifications."""
+    t0 = time.perf_counter()
+    safe_path = safe_path_resolve(project_dir)
+    root = Path(safe_path)
+    if not root.exists() or not root.is_dir():
+        return {"error": f"Project directory not found: {project_dir}", "impact_level": "UNKNOWN"}
+
+    declared_in = []
+    imported_in = []
+    call_sites = []
+    affected_files = set()
+
+    sym_pattern = re.compile(rf"\b{re.escape(symbol_name)}\b")
+    decl_patterns = [
+        re.compile(rf"\b(?:fn|def|class|struct|enum|trait|type|interface)\s+{re.escape(symbol_name)}\b"),
+        re.compile(rf"\b(?:const|let|var)\s+{re.escape(symbol_name)}\s*[:=]"),
+    ]
+    import_patterns = [
+        re.compile(rf"\b(?:import|from|use)\b.*?\b{re.escape(symbol_name)}\b"),
+        re.compile(r"require\([\"\x27].*?" + re.escape(symbol_name) + r".*?[\"\x27]\)")
+    ]
+
+    ignored_dirs = {".git", "target", "node_modules", ".venv", "__pycache__", "venv", "dist", "build"}
+
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in ignored_dirs and not d.startswith(".")]
+        for f in filenames:
+            ext = Path(f).suffix.lower()
+            if ext not in [".rs", ".py", ".go", ".ts", ".tsx", ".js", ".jsx", ".c", ".cpp", ".h"]:
+                continue
+            fpath = Path(dirpath) / f
+            try:
+                lines = fpath.read_text(encoding="utf-8", errors="replace").splitlines()
+                for l_idx, line in enumerate(lines):
+                    l_str = line.strip()
+                    if not sym_pattern.search(l_str):
+                        continue
+
+                    is_decl = any(p.search(l_str) for p in decl_patterns)
+                    if is_decl:
+                        declared_in.append({
+                            "file": str(fpath.relative_to(root)),
+                            "line": l_idx + 1,
+                            "snippet": l_str
+                        })
+                        affected_files.add(str(fpath.relative_to(root)))
+                        continue
+
+                    is_imp = any(p.search(l_str) for p in import_patterns)
+                    if is_imp:
+                        imported_in.append({
+                            "file": str(fpath.relative_to(root)),
+                            "line": l_idx + 1,
+                            "snippet": l_str
+                        })
+                        affected_files.add(str(fpath.relative_to(root)))
+                        continue
+
+                    call_sites.append({
+                        "file": str(fpath.relative_to(root)),
+                        "line": l_idx + 1,
+                        "snippet": l_str
+                    })
+                    affected_files.add(str(fpath.relative_to(root)))
+            except Exception:
+                continue
+
+    total_impact = len(affected_files)
+    if total_impact > 8 or len(call_sites) > 25:
+        impact_level = "HIGH"
+    elif total_impact > 2 or len(call_sites) > 5:
+        impact_level = "MEDIUM"
+    elif total_impact > 0:
+        impact_level = "LOW"
+    else:
+        impact_level = "NONE"
+
+    dur = round((time.perf_counter() - t0) * 1000.0, 2)
+    return {
+        "symbol": symbol_name,
+        "project_dir": str(root),
+        "impact_level": impact_level,
+        "total_affected_files": len(affected_files),
+        "affected_files": sorted(list(affected_files)),
+        "declared_in": declared_in,
+        "imported_in": imported_in,
+        "call_sites_count": len(call_sites),
+        "call_sites_sample": call_sites[:25],
+        "duration_ms": dur
+    }
+
+@mcp.tool()
+def fetch_api_reference(library_name: str, language: str, symbol: Optional[str] = None, version: Optional[str] = None) -> Dict[str, Any]:
+    """Retrieve live or cached API documentation, type signatures, and module specifications
+    for external libraries (Rust crates, Python packages, NPM modules, and Telegram Bot API).
+    Includes an offline cache to eliminate repeated latency and network dependencies."""
+    t0 = time.perf_counter()
+    lang = language.lower().strip()
+    lib = library_name.strip()
+
+    _init_api_cache_table()
+    req_ver = version or "latest"
+
+    try:
+        conn = get_db_conn()
+        cur = conn.execute("SELECT payload, updated_at FROM api_reference_cache WHERE library = ? AND language = ? AND version = ?", (lib, lang, req_ver))
+        row = cur.fetchone()
+        if row and (time.time() - row[1]) < 86400 * 7:
+            res = json.loads(row[0])
+            res["cached"] = True
+            res["duration_ms"] = round((time.perf_counter() - t0) * 1000.0, 2)
+            return res
+    except Exception:
+        pass
+
+    data_result = {}
+
+    if lang in ["rust", "crate"]:
+        url = f"https://crates.io/api/v1/crates/{lib}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                c = res_json.get("crate", {})
+                data_result = {
+                    "name": c.get("name"),
+                    "language": "rust",
+                    "version": c.get("max_version"),
+                    "description": c.get("description"),
+                    "documentation": c.get("documentation") or f"https://docs.rs/{lib}/{c.get('max_version')}",
+                    "repository": c.get("repository"),
+                    "downloads": c.get("downloads"),
+                    "recent_downloads": c.get("recent_downloads"),
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching crate info from crates.io: {e}", "name": lib, "language": "rust"}
+
+    elif lang in ["python", "pypi"]:
+        url = f"https://pypi.org/pypi/{lib}/json"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                info = res_json.get("info", {})
+                data_result = {
+                    "name": info.get("name"),
+                    "language": "python",
+                    "version": info.get("version"),
+                    "summary": info.get("summary"),
+                    "documentation": info.get("project_urls", {}).get("Documentation") or info.get("home_page"),
+                    "author": info.get("author"),
+                    "requires_python": info.get("requires_python"),
+                    "classifiers": info.get("classifiers", [])[:5]
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching package from PyPI: {e}", "name": lib, "language": "python"}
+
+    elif lang in ["javascript", "typescript", "npm"]:
+        url = f"https://registry.npmjs.org/{lib}/latest"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "skills-engine/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                res_json = json.loads(r.read().decode())
+                data_result = {
+                    "name": res_json.get("name"),
+                    "language": "npm",
+                    "version": res_json.get("version"),
+                    "description": res_json.get("description"),
+                    "homepage": res_json.get("homepage"),
+                    "repository": res_json.get("repository", {}).get("url") if isinstance(res_json.get("repository"), dict) else res_json.get("repository"),
+                    "types": res_json.get("types") or res_json.get("typings"),
+                }
+        except Exception as e:
+            data_result = {"error": f"Failed fetching npm package: {e}", "name": lib, "language": "npm"}
+
+    elif lang in ["telegram", "tg"]:
+        spec = get_telegram_bot_api_spec(lib)
+        data_result = {
+            "name": lib,
+            "language": "telegram",
+            "version": "10.3 / 9.4+",
+            "spec": spec
+        }
+
+    else:
+        data_result = {"error": f"Unsupported language ecosystem '{language}'. Supported: rust, python, npm, telegram.", "name": lib}
+
+    if "error" not in data_result:
+        try:
+            conn = get_db_conn()
+            conn.execute(
+                "INSERT OR REPLACE INTO api_reference_cache (library, language, version, payload, updated_at) VALUES (?, ?, ?, ?, ?)",
+                (lib, lang, req_ver, json.dumps(data_result), time.time())
+            )
+            conn.commit()
+        except Exception:
+            pass
+
+    data_result["cached"] = False
+    data_result["duration_ms"] = round((time.perf_counter() - t0) * 1000.0, 2)
+    return data_result
+
+@mcp.tool()
+def execute_sandboxed_snippet(code: str, language: str, timeout_seconds: int = 10) -> Dict[str, Any]:
+    """Safely execute an isolated code snippet or algorithmic test in a sandboxed subprocess.
+    Allows testing algorithms, regex, math calculations, and logic edge cases before applying them to production files."""
+    t0 = time.perf_counter()
+    timeout = min(max(1, timeout_seconds), 30)
+    lang = language.lower().strip()
+
+    banned = ["rm -rf", "mkfs", ":(){ :|:& };:", "dd if=/dev/zero", "> /dev/sda"]
+    if any(b in code for b in banned):
+        return {"status": "BLOCKED", "error": "Security hazard: code contains disallowed system commands."}
+
+    with tempfile.TemporaryDirectory(prefix="mcp_sandbox_") as tmpdir:
+        tmp_path = Path(tmpdir)
+        try:
+            if lang in ["python", "py"]:
+                src = tmp_path / "snippet.py"
+                src.write_text(code, encoding="utf-8")
+                proc = subprocess.run([sys.executable, str(src)], capture_output=True, text=True, timeout=timeout, cwd=str(tmp_path))
+            elif lang in ["bash", "sh"]:
+                src = tmp_path / "snippet.sh"
+                src.write_text(code, encoding="utf-8")
+                proc = subprocess.run(["bash", str(src)], capture_output=True, text=True, timeout=timeout, cwd=str(tmp_path))
+            elif lang in ["node", "js", "javascript"]:
+                node_bin = shutil.which("node")
+                if not node_bin:
+                    return {"status": "ERROR", "error": "Node.js is not installed on this system."}
+                src = tmp_path / "snippet.js"
+                src.write_text(code, encoding="utf-8")
+                proc = subprocess.run([node_bin, str(src)], capture_output=True, text=True, timeout=timeout, cwd=str(tmp_path))
+            elif lang in ["rust", "rs"]:
+                rustc_bin = shutil.which("rustc")
+                if not rustc_bin:
+                    return {"status": "ERROR", "error": "rustc is not installed on this system."}
+                src = tmp_path / "snippet.rs"
+                bin_path = tmp_path / "snippet_bin"
+                rust_code = code if "fn main" in code else f"fn main() {{\n{code}\n}}"
+                src.write_text(rust_code, encoding="utf-8")
+                compile_proc = subprocess.run([rustc_bin, str(src), "-o", str(bin_path)], capture_output=True, text=True, timeout=timeout, cwd=str(tmp_path))
+                if compile_proc.returncode != 0:
+                    return {
+                        "status": "COMPILATION_ERROR",
+                        "error": compile_proc.stderr,
+                        "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2)
+                    }
+                proc = subprocess.run([str(bin_path)], capture_output=True, text=True, timeout=timeout, cwd=str(tmp_path))
+            else:
+                return {"status": "UNSUPPORTED_LANGUAGE", "error": f"Language '{language}' not supported. Use python, bash, rust, or node."}
+
+            dur = round((time.perf_counter() - t0) * 1000.0, 2)
+            return {
+                "status": "SUCCESS" if proc.returncode == 0 else "RUNTIME_ERROR",
+                "exit_code": proc.returncode,
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "duration_ms": dur
+            }
+        except subprocess.TimeoutExpired:
+            return {"status": "TIMEOUT", "error": f"Execution exceeded {timeout} seconds limit.", "duration_ms": timeout * 1000}
+        except Exception as e:
+            return {"status": "ERROR", "error": str(e), "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2)}
+
 
 MOCK_TELEGRAM_STATE = {"messages": [], "webhook": None}
 

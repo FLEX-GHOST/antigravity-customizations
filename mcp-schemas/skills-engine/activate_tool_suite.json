@@ -1,6 +1,6 @@
 {
   "name": "activate_tool_suite",
-  "description": "Dynamically activate a specialized tool suite (telegram, architecture, quality, catalog).",
+  "description": "Dynamically activate a specialized tool suite (telegram, governance, systems_rust, agentic_memory, search_catalog, all).",
   "inputSchema": {
     "properties": {
       "suite_name": {

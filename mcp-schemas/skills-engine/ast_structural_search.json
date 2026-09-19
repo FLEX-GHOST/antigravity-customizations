@@ -1,0 +1,39 @@
+{
+  "name": "ast_structural_search",
+  "description": "Perform structural code search matching syntax patterns rather than plain text.\n    Finds structural code constructs like function definitions, unwrap/panic calls, unhandled errors,\n    async functions without await, and specific API call signatures.",
+  "inputSchema": {
+    "properties": {
+      "pattern": {
+        "title": "Pattern",
+        "type": "string"
+      },
+      "search_path": {
+        "title": "Search Path",
+        "type": "string"
+      },
+      "language": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Language"
+      },
+      "max_results": {
+        "default": 50,
+        "title": "Max Results",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "pattern",
+      "search_path"
+    ],
+    "title": "ast_structural_searchArguments",
+    "type": "object"
+  }
+}

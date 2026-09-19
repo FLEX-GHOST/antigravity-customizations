@@ -1,0 +1,27 @@
+{
+  "name": "execute_sandboxed_snippet",
+  "description": "Safely execute an isolated code snippet or algorithmic test in a sandboxed subprocess.\n    Allows testing algorithms, regex, math calculations, and logic edge cases before applying them to production files.",
+  "inputSchema": {
+    "properties": {
+      "code": {
+        "title": "Code",
+        "type": "string"
+      },
+      "language": {
+        "title": "Language",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 10,
+        "title": "Timeout Seconds",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "code",
+      "language"
+    ],
+    "title": "execute_sandboxed_snippetArguments",
+    "type": "object"
+  }
+}

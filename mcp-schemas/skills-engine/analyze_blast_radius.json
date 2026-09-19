@@ -1,0 +1,34 @@
+{
+  "name": "analyze_blast_radius",
+  "description": "Analyze the impact and dependency blast radius before refactoring a function, struct, class, or type.\n    Finds all definitions, imports, usages, and call sites across the entire project repository.\n    Prevents breaking changes and missed references during large-scale code modifications.",
+  "inputSchema": {
+    "properties": {
+      "symbol_name": {
+        "title": "Symbol Name",
+        "type": "string"
+      },
+      "project_dir": {
+        "title": "Project Dir",
+        "type": "string"
+      },
+      "target_file": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Target File"
+      }
+    },
+    "required": [
+      "symbol_name",
+      "project_dir"
+    ],
+    "title": "analyze_blast_radiusArguments",
+    "type": "object"
+  }
+}

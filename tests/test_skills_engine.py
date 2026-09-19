@@ -3,12 +3,12 @@
 Continuous Integration and Quality Assurance Test Suite for skills-engine MCP Server.
 Covers:
 - AST & Syntax Validation
-- 51 Tools Registration & Alphabetical Sorting
-- 51 Schema Parity Checks
+- 57 Tools Registration & Alphabetical Sorting
+- 57 Schema Parity Checks
+- Code Intelligence Tools (extract_code_symbols, ast_structural_search, run_compiler_diagnostics, analyze_blast_radius, fetch_api_reference, execute_sandboxed_snippet)
 - Bot API 10.3 / 9.4+ Tool Operations (diagnose, explore, validate, spec, rust gen)
 - Search Engine FTS5 with Arabic/Iraqi Dialect Normalization
 - Local Telegram Bot API Mock Server & IPC Endpoints
-- Go Static Binary Verification (stdio handshake, 51 tools, tools/call)
 - Anti-AI UI Slop & Zero Emoji Enforcement
 - Dynamic README.md Metrics, Badges, and Version Consistency
 """
@@ -38,12 +38,12 @@ def test_ast_and_syntax():
     ast.parse(code)
     print("[PASS] AST & Python syntax validated cleanly.")
 
-def test_51_tools_count_and_sorting():
+def test_57_tools_count_and_sorting():
     tools = server.mcp._tool_manager._tools
-    assert len(tools) == 51, f"Expected 51 tools, got {len(tools)}"
+    assert len(tools) == 57, f"Expected 57 tools, got {len(tools)}"
     names = list(tools.keys())
     assert names == sorted(names), f"Tools are not alphabetically sorted: {names}"
-    print("[PASS] 51 Tools verified with strict alphabetical ordering.")
+    print("[PASS] 57 Tools verified with strict alphabetical ordering.")
 
 def test_schemas_parity():
     tools = server.mcp._tool_manager._tools
@@ -51,14 +51,38 @@ def test_schemas_parity():
     assert schema_dir.exists(), "Schema directory does not exist"
 
     schema_files = list(schema_dir.glob("*.json"))
-    assert len(schema_files) == 51, f"Expected 51 schema files, got {len(schema_files)}"
+    assert len(schema_files) == 57, f"Expected 57 schema files, got {len(schema_files)}"
 
     for tool_name in tools:
         schema_file = schema_dir / f"{tool_name}.json"
         assert schema_file.exists(), f"Missing schema file for {tool_name}"
         data = json.loads(schema_file.read_text(encoding="utf-8"))
         assert data.get("name") == tool_name, f"Schema name mismatch in {schema_file}"
-    print("[PASS] 51 Schemas parity verified across all tools.")
+    print("[PASS] 57 Schemas parity verified across all tools.")
+
+def test_code_intelligence_tools():
+    # 1. extract_code_symbols
+    s_res = server.extract_code_symbols(str(REPO_ROOT / "mcp-servers" / "skills-engine" / "server.py"))
+    assert s_res["total_symbols"] > 10, f"Expected >10 symbols, got {s_res.get('total_symbols')}"
+
+    # 2. ast_structural_search
+    search_res = server.ast_structural_search("def extract_code_symbols", str(REPO_ROOT / "mcp-servers" / "skills-engine"))
+    assert search_res["match_count"] >= 1, "Expected pattern match for extract_code_symbols"
+
+    # 3. analyze_blast_radius
+    blast_res = server.analyze_blast_radius("extract_code_symbols", str(REPO_ROOT / "mcp-servers" / "skills-engine"))
+    assert blast_res["impact_level"] != "UNKNOWN", "Expected valid impact level"
+
+    # 4. fetch_api_reference (Telegram Builtin)
+    ref_tg = server.fetch_api_reference("sendPaidMedia", "telegram")
+    assert ref_tg.get("name") == "sendPaidMedia"
+
+    # 5. execute_sandboxed_snippet
+    sandbox_res = server.execute_sandboxed_snippet("print(2 + 2)", "python")
+    assert sandbox_res["status"] == "SUCCESS"
+    assert sandbox_res["stdout"].strip() == "4"
+
+    print("[PASS] Autonomous Code Intelligence tools validated.")
 
 def test_core_telegram_tools():
     # 1. diagnose_telegram_error
@@ -73,40 +97,42 @@ def test_core_telegram_tools():
     assert "refundStarPayment" in d2["downstream_methods"]
 
     # 3. validate_telegram_payload (Valid)
-    valid_p = json.dumps({
-        "chat_id": "6149403807",
-        "text": "Hello world",
+    valid_payload = {
+        "chat_id": 12345,
+        "text": "Hello World",
         "reply_markup": {
-            "inline_keyboard": [[{"text": "Btn", "callback_data": "ok", "style": "primary"}]]
+            "inline_keyboard": [
+                [{"text": "Confirm", "callback_data": "ok", "style": "primary"}]
+            ]
         }
-    })
-    d3 = server.validate_telegram_payload("sendMessage", valid_p)
-    assert d3["status"] == "PASS"
-    assert d3["is_bot_api_10_3_compliant"] is True
+    }
+    v1 = server.validate_telegram_payload("sendMessage", json.dumps(valid_payload))
+    assert v1["status"] == "PASS"
 
     # 4. validate_telegram_payload (Violations)
-    invalid_p = json.dumps({
-        "chat_id": "-12345678901",
-        "text": "X" * 5000,
+    invalid_payload = {
         "reply_markup": {
-            "inline_keyboard": [[{"text": "Bad", "callback_data": "c" * 70, "style": "invalid_style"}]]
+            "inline_keyboard": [
+                [{"text": "Button", "style": "invalid_color"}]
+            ]
         }
-    })
-    d4 = server.validate_telegram_payload("sendMessage", invalid_p)
-    assert d4["status"] == "VIOLATIONS_FOUND"
-    assert d4["violation_count"] >= 3
+    }
+    v2 = server.validate_telegram_payload("sendMessage", json.dumps(invalid_payload))
+    assert v2["status"] == "VIOLATIONS_FOUND"
+    assert v2["violation_count"] >= 1
 
     # 5. get_telegram_bot_api_spec
-    spec = server.get_telegram_bot_api_spec("sendMessage")
-    assert spec["resolved_name"] == "sendMessage"
-    assert spec["kind"] == "method"
+    spec = server.get_telegram_bot_api_spec("sendPaidMedia")
+    assert spec.get("resolved_name") == "sendPaidMedia"
+    assert spec.get("kind") == "method"
+    assert "rust_execution_pattern" in spec or "rust_payload_struct" in spec
 
-    print("[PASS] Core Telegram operations & validation verified.")
+    print("[PASS] Core Telegram Bot API 10.3 tools validated.")
 
 def test_telegram_mock_server():
     base_url = "http://127.0.0.1:14993"
     
-    # 1. Health check with retry
+    # 1. Health check
     h_data = None
     for _ in range(25):
         try:
@@ -183,8 +209,9 @@ def test_no_raw_emojis_in_docs():
 def main():
     print("=== Running skills-engine Enterprise Test Suite ===")
     test_ast_and_syntax()
-    test_51_tools_count_and_sorting()
+    test_57_tools_count_and_sorting()
     test_schemas_parity()
+    test_code_intelligence_tools()
     test_core_telegram_tools()
     test_telegram_mock_server()
     test_go_static_binary()

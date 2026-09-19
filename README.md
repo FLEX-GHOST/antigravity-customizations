@@ -2,7 +2,7 @@
 
 [![Antigravity IDE](https://img.shields.io/badge/Google%20Antigravity-IDE%20%7C%20CLI%20%7C%202.0-blue.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot%20API-10.3%20(185%20Methods%20%7C%20400%20Types)-2CA5E0?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
-[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-51%20Tools%20(Go%201.26.5%20Native)-success.svg)](#complete-mcp-tool-suite-51-enterprise-tools)
+[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-57%20Tools-success.svg)](#complete-mcp-tool-suite-57-enterprise-tools)
 [![Engine Architecture](https://img.shields.io/badge/Engine-Go%201.26.5%20%7C%20Static%20Binary%20(6.7MB)-blue.svg)](#)
 [![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-5%2C730%2B%20(FastMCP%20%26%20SQLite)-orange.svg)](#)
 [![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
@@ -32,7 +32,7 @@ cd ~/.gemini/antigravity-customizations
 ### What This Command Provisions:
 1. **Zero-Prompt Permissions**: Configures `permissionPreset: turbo` and `toolExecutionPolicy: always-proceed` across IDE and CLI to permanently eliminate confirmation dialogs.
 2. **Core Sovereign Rules**: Deploys anti-slop, honest engineering, strict comments, and memory safety rules to `~/.gemini/config/rules/`.
-3. **FastMCP Enterprise Engine**: Deploys the zero-dependency Python FastMCP server, hot-activating all 51 tools, SQLite FTS5 search across 3,200+ bundled skills, and strict alphabetical prompt caching.
+3. **FastMCP Enterprise Engine**: Deploys the zero-dependency Python FastMCP server, hot-activating all 57 tools, SQLite FTS5 search across 3,200+ bundled skills, and strict alphabetical prompt caching.
 4. **Telegram Bot API 10.3 Master Engine**: Ingests and builds real-time SQLite FTS5 indices for all **185 methods** and **400 types**.
 5. **Intelligent Dialect NLU Hook**: Deploys the Pre-Invocation hook with Arabic, Iraqi dialect, and English intent normalization.
 
@@ -47,7 +47,7 @@ cd ~/.gemini/antigravity-customizations
                                +-------------------------------------------------------+
                                       |                                       |
                    [Pre-Invocation Interceptor]                      [Model Context Protocol]
-                   - Arabic & Iraqi Dialect NLU                      skills-engine (FastMCP Python Native, 51 Tools)
+                   - Arabic & Iraqi Dialect NLU                      skills-engine (FastMCP Python Native, 57 Tools)
                    - Pre-loaded Method Spec                                   |
                    - Zero-Latency Prompt Injection                            v
                                                               +-------------------------------+
@@ -121,9 +121,9 @@ All button constructs adhere strictly to modern Telegram specifications:
 
 ---
 
-## Complete MCP Tool Suite (51 Enterprise Tools)
+## Complete MCP Tool Suite (57 Enterprise Tools)
 
-The MCP server exposes 51 deterministic tools, sorted strictly in alphabetical order to maximize LLM prompt caching hit rates (>95%):
+The MCP server exposes 57 deterministic tools, sorted strictly in alphabetical order to maximize LLM prompt caching hit rates (>95%):
 
 ### 1. Telegram & Microservice Operations
 - `get_telegram_bot_api_spec`: Instant parameter, type, and Rust code retrieval for all 185 methods.
@@ -156,13 +156,21 @@ The MCP server exposes 51 deterministic tools, sorted strictly in alphabetical o
 - `audit_skill_quality`: Programmatic quality scoring (length, structure, examples, stubs).
 - `fix_code_rule_violations`: Automatic rule patcher for codebase violations.
 
-### 4. Code Integrity & Verification
+### 4. Autonomous Code Intelligence & Compiler Diagnostics
+- `extract_code_symbols`: Structural architectural outlines (structs, classes, functions, traits, enums, methods) across Python, Rust, Go, TypeScript, and C/C++ without token bloat.
+- `ast_structural_search`: Pattern-based syntax search (finding functions missing error handling, unwrap calls, async without await, unsafe blocks).
+- `run_compiler_diagnostics`: Unified diagnostic engine for Rust (`cargo check`), Python (syntax & ruff), TypeScript (`tsc`), Go (`go vet`).
+- `analyze_blast_radius`: Cross-project dependency and call-graph impact analyzer before refactoring.
+- `fetch_api_reference`: Live and cached documentation lookup for packages across Rust (docs.rs), Python (PyPI), JavaScript (NPM), and Telegram Bot API.
+- `execute_sandboxed_snippet`: Isolated micro-execution runner to safely verify algorithms, regex, and edge cases.
+
+### 5. Code Integrity & Verification
 - `verify_and_heal_code_patch`: Validates unified git diffs before applying to disk.
 - `verify_python_ast`: Validates Python code syntax and catches compilation errors.
 - `benchmark_search_performance`: Benchmarks SQLite FTS5 latency and query execution plans.
 - `simulate_bot_pipeline`: End-to-end behavioral pipeline simulator.
 
-### 5. Workflows, Pinning & Agent Learning
+### 6. Workflows, Pinning & Agent Learning
 - `activate_tool_suite`: Batch activation of domain-specific tool suites.
 - `list_available_suites`: Catalog of pre-configured tool bundles.
 - `pin_skill_for_session`: Locks priority skills into session memory.
@@ -170,7 +178,7 @@ The MCP server exposes 51 deterministic tools, sorted strictly in alphabetical o
 - `plan_agentic_workflow`: Generates structured, multi-phase execution plans.
 - `synthesize_and_learn_skill`: Programmatically authors and indexes newly learned skills on the fly.
 
-### 6. Catalog Management & Federation
+### 7. Catalog Management & Federation
 - `list_all_skills_manifest`: Complete manifest of all 4,800+ skills with metrics.
 - `list_all_rules_manifest`: Complete manifest of all governance rules.
 - `list_rules_overview`: Paginated rules catalog.

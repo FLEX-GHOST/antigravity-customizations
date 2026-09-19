@@ -1,0 +1,22 @@
+{
+  "name": "extract_code_symbols",
+  "description": "Extract a structural architectural outline of symbols (functions, classes, structs, enums, traits, interfaces)\n    from a source file across Python, Rust, Go, TypeScript/JavaScript, and C/C++.\n    Significantly reduces context window consumption by extracting AST signatures without function bodies.",
+  "inputSchema": {
+    "properties": {
+      "file_path": {
+        "title": "File Path",
+        "type": "string"
+      },
+      "max_depth": {
+        "default": 3,
+        "title": "Max Depth",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "file_path"
+    ],
+    "title": "extract_code_symbolsArguments",
+    "type": "object"
+  }
+}
