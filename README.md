@@ -2,9 +2,9 @@
 
 [![Antigravity IDE](https://img.shields.io/badge/Google%20Antigravity-IDE%20%7C%20CLI%20%7C%202.0-blue.svg)](https://github.com/FLEX-GHOST/antigravity-customizations)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot%20API-10.3%20(185%20Methods%20%7C%20400%20Types)-2CA5E0?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
-[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-57%20Tools-success.svg)](#complete-mcp-tool-suite-57-enterprise-tools)
+[![Active MCP Tools](https://img.shields.io/badge/MCP%20Tools-61%20Tools-success.svg)](#complete-mcp-tool-suite-61-enterprise-tools)
 [![Engine Architecture](https://img.shields.io/badge/Engine-Python%203.10%2B%20%7C%20FastMCP%20Engine-blue.svg)](#fastmcp-zero-dependency-architecture)
-[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-6%2C360%2B%20(FastMCP%20%26%20SQLite)-orange.svg)](#)
+[![Indexed Entities](https://img.shields.io/badge/Indexed%20Entities-6%2C390%2B%20(FastMCP%20%26%20SQLite)-orange.svg)](#)
 [![Zero-Prompt Policy](https://img.shields.io/badge/Execution%20Policy-Turbo%20%7C%20Always--Proceed-brightgreen.svg)](#quick-start-one-command-installation)
 [![Autonomous CI/CD](https://img.shields.io/badge/GitHub%20Actions-Auto--Sync%20Bot-blueviolet.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions)
 [![CI/CD Test Suite](https://img.shields.io/badge/CI%2FCD-Automated%20Test%20Suite-success.svg)](https://github.com/FLEX-GHOST/antigravity-customizations/actions/workflows/test-mcp-engine.yml)
@@ -47,12 +47,12 @@ cd ~/.gemini/antigravity-customizations
                                +-------------------------------------------------------+
                                       |                                       |
                    [Pre-Invocation Interceptor]                      [Model Context Protocol]
-                   - Arabic & Iraqi Dialect NLU                      skills-engine (FastMCP Python Native, 57 Tools)
+                   - Arabic & Iraqi Dialect NLU                      skills-engine (FastMCP Python Native, 61 Tools)
                    - Pre-loaded Method Spec                                   |
                    - Zero-Latency Prompt Injection                            v
                                                               +-------------------------------+
                                                               |   SQLite WAL FTS5 Database    |
-                                                              |    6,360+ Skills, Rules &     |
+                                                              |    6,390+ Skills, Rules &     |
                                                               |    185 methods / 400 Types    |
                                                               +-------------------------------+
                                                                               |
@@ -121,9 +121,9 @@ All button constructs adhere strictly to modern Telegram specifications:
 
 ---
 
-## Complete MCP Tool Suite (57 Enterprise Tools)
+## Complete MCP Tool Suite (61 Enterprise Tools)
 
-The MCP server exposes 57 deterministic tools, sorted strictly in alphabetical order to maximize LLM prompt caching hit rates (>95%):
+The MCP server exposes 61 deterministic tools, sorted strictly in alphabetical order to maximize LLM prompt caching hit rates (>95%):
 
 ### 1. Telegram & Microservice Operations
 - `get_telegram_bot_api_spec`: Instant parameter, type, and Rust code retrieval for all 185 methods.

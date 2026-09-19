@@ -1,0 +1,22 @@
+{
+  "name": "index_workspace_call_graph",
+  "description": "Index workspace call-graph, definitions, and caller-callee dependencies across Rust, Python, TypeScript, and Go.",
+  "inputSchema": {
+    "properties": {
+      "workspace_root": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Workspace Root"
+      }
+    },
+    "title": "index_workspace_call_graphArguments",
+    "type": "object"
+  }
+}

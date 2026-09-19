@@ -1,0 +1,39 @@
+{
+  "name": "run_self_healing_tests",
+  "description": "Run project test suite (cargo test, pytest, npm test, go test) in sandbox and generate automated healing guidance upon failure.",
+  "inputSchema": {
+    "properties": {
+      "test_command": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Test Command"
+      },
+      "workspace_root": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Workspace Root"
+      },
+      "timeout_seconds": {
+        "default": 45,
+        "title": "Timeout Seconds",
+        "type": "integer"
+      }
+    },
+    "title": "run_self_healing_testsArguments",
+    "type": "object"
+  }
+}

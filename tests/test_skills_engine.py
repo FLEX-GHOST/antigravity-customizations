@@ -3,11 +3,11 @@
 Continuous Integration and Quality Assurance Test Suite for skills-engine MCP Server.
 Covers:
 - AST & Syntax Validation
-- 57 Tools Registration & Alphabetical Sorting
-- 57 Schema Parity Checks
-- Code Intelligence Tools (extract_code_symbols, ast_structural_search, run_compiler_diagnostics, analyze_blast_radius, fetch_api_reference, execute_sandboxed_snippet)
+- 61 Tools Registration & Alphabetical Sorting
+- 61 Schema Parity Checks
+- Code Intelligence & LSP-Lite Tools (extract_code_symbols, ast_structural_search, index_workspace_call_graph, query_symbol_references, run_self_healing_tests, run_code_quality_linter, run_compiler_diagnostics, analyze_blast_radius, fetch_api_reference, execute_sandboxed_snippet)
 - Bot API 10.3 / 9.4+ Tool Operations (diagnose, explore, validate, spec, rust gen)
-- Search Engine FTS5 with Arabic/Iraqi Dialect Normalization
+- Hybrid Search Engine with Reciprocal Rank Fusion (RRF) & Arabic/Iraqi Dialect Normalization
 - Local Telegram Bot API Mock Server & IPC Endpoints
 - Anti-AI UI Slop & Zero Emoji Enforcement
 - Dynamic README.md Metrics, Badges, and Version Consistency
@@ -39,12 +39,12 @@ def test_ast_and_syntax():
     ast.parse(code)
     print("[PASS] AST & Python syntax validated cleanly.")
 
-def test_57_tools_count_and_sorting():
+def test_61_tools_count_and_sorting():
     tools = server.mcp._tool_manager._tools
-    assert len(tools) == 57, f"Expected 57 tools, got {len(tools)}"
+    assert len(tools) == 61, f"Expected 61 tools, got {len(tools)}"
     names = list(tools.keys())
     assert names == sorted(names), f"Tools are not alphabetically sorted: {names}"
-    print("[PASS] 57 Tools verified with strict alphabetical ordering.")
+    print("[PASS] 61 Tools verified with strict alphabetical ordering.")
 
 def test_schemas_parity():
     tools = server.mcp._tool_manager._tools
@@ -52,16 +52,16 @@ def test_schemas_parity():
     assert schema_dir.exists(), "Schema directory does not exist"
 
     schema_files = list(schema_dir.glob("*.json"))
-    assert len(schema_files) == 57, f"Expected 57 schema files, got {len(schema_files)}"
+    assert len(schema_files) == 61, f"Expected 61 schema files, got {len(schema_files)}"
 
     for tool_name in tools:
         schema_file = schema_dir / f"{tool_name}.json"
         assert schema_file.exists(), f"Missing schema file for {tool_name}"
         data = json.loads(schema_file.read_text(encoding="utf-8"))
         assert data.get("name") == tool_name, f"Schema name mismatch in {schema_file}"
-    print("[PASS] 57 Schemas parity verified across all tools.")
+    print("[PASS] 61 Schemas parity verified across all tools.")
 
-def test_code_intelligence_tools():
+def test_code_intelligence_and_lsp_tools():
     # 1. extract_code_symbols (Python, Java, Swift, C# polyglot test)
     s_res = server.extract_code_symbols(str(REPO_ROOT / "mcp-servers" / "skills-engine" / "server.py"))
     assert s_res["total_symbols"] > 10, f"Expected >10 symbols, got {s_res.get('total_symbols')}"
@@ -79,20 +79,42 @@ def test_code_intelligence_tools():
     search_res = server.ast_structural_search("def extract_code_symbols", str(REPO_ROOT / "mcp-servers" / "skills-engine"))
     assert search_res["match_count"] >= 1, "Expected pattern match for extract_code_symbols"
 
-    # 3. analyze_blast_radius
+    # 3. index_workspace_call_graph & query_symbol_references (LSP-Lite)
+    graph_res = server.index_workspace_call_graph(str(REPO_ROOT))
+    assert graph_res["status"] == "SUCCESS", f"Failed to index workspace call graph: {graph_res}"
+    assert graph_res["metrics"]["files_indexed"] > 0, "No files indexed in call graph"
+
+    sym_res = server.query_symbol_references("extract_code_symbols", str(REPO_ROOT))
+    assert sym_res["found"] is True, "Failed to locate symbol 'extract_code_symbols'"
+    assert sym_res["definitions_count"] >= 1, "Expected definition for 'extract_code_symbols'"
+
+    # 4. run_self_healing_tests
+    test_run = server.run_self_healing_tests(test_command="python3 -c 'print(\"ok\")'", workspace_root=str(REPO_ROOT))
+    assert test_run["status"] == "PASSED", f"Self-healing test runner failed: {test_run}"
+
+    # 5. run_code_quality_linter
+    lint_run = server.run_code_quality_linter(workspace_root=str(REPO_ROOT))
+    assert lint_run["status"] in ("PASSED", "WARNINGS_FOUND"), f"Unexpected linter status: {lint_run}"
+
+    # 6. Hybrid Search with RRF
+    rrf_res = server.search_agent_capabilities("reverse engineering apk endpoints", limit=3)
+    assert len(rrf_res) >= 1, "Expected RRF search results"
+    assert rrf_res[0]["quality_score"] >= 80, "Expected high quality score for top result"
+
+    # 7. analyze_blast_radius
     blast_res = server.analyze_blast_radius("extract_code_symbols", str(REPO_ROOT / "mcp-servers" / "skills-engine"))
     assert blast_res["impact_level"] != "UNKNOWN", "Expected valid impact level"
 
-    # 4. fetch_api_reference (Telegram + Multi-ecosystem)
+    # 8. fetch_api_reference (Telegram + Multi-ecosystem)
     ref_tg = server.fetch_api_reference("sendPaidMedia", "telegram")
     assert ref_tg.get("name") == "sendPaidMedia"
 
-    # 5. execute_sandboxed_snippet
+    # 9. execute_sandboxed_snippet
     sandbox_res = server.execute_sandboxed_snippet("print(2 + 2)", "python")
     assert sandbox_res["status"] == "SUCCESS"
     assert sandbox_res["stdout"].strip() == "4"
 
-    # 6. Polyglot Skills Catalog Verification
+    # 10. Polyglot Skills Catalog Verification
     conn = server.get_db_conn()
     languages_cur = conn.execute("SELECT DISTINCT language FROM items").fetchall()
     active_langs = {r[0] for r in languages_cur}
@@ -100,7 +122,7 @@ def test_code_intelligence_tools():
     missing = required_langs - active_langs
     assert len(missing) == 0, f"Missing language skills in catalog: {missing}"
 
-    print(f"[PASS] Universal Polyglot Code Intelligence & {len(active_langs)} languages validated.")
+    print(f"[PASS] Universal Polyglot Code Intelligence, LSP-Lite, and {len(active_langs)} languages validated.")
 
 def test_core_telegram_tools():
     # 1. diagnose_telegram_error
@@ -227,9 +249,9 @@ def test_no_raw_emojis_in_docs():
 def main():
     print("=== Running skills-engine Enterprise Test Suite ===")
     test_ast_and_syntax()
-    test_57_tools_count_and_sorting()
+    test_61_tools_count_and_sorting()
     test_schemas_parity()
-    test_code_intelligence_tools()
+    test_code_intelligence_and_lsp_tools()
     test_core_telegram_tools()
     test_telegram_mock_server()
     test_go_static_binary()

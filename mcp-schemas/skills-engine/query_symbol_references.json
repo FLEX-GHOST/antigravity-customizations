@@ -1,0 +1,29 @@
+{
+  "name": "query_symbol_references",
+  "description": "Query all definitions, callers, callees, and usage references for a specific code symbol across the workspace.",
+  "inputSchema": {
+    "properties": {
+      "symbol_name": {
+        "title": "Symbol Name",
+        "type": "string"
+      },
+      "workspace_root": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Workspace Root"
+      }
+    },
+    "required": [
+      "symbol_name"
+    ],
+    "title": "query_symbol_referencesArguments",
+    "type": "object"
+  }
+}

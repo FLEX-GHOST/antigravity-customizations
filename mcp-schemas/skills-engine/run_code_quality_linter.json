@@ -1,0 +1,42 @@
+{
+  "name": "run_code_quality_linter",
+  "description": "Execute zero-config multi-language code quality linters (Cargo Clippy, Ruff, Biome, Go Vet) and return structured diagnostics.",
+  "inputSchema": {
+    "properties": {
+      "files": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Files"
+      },
+      "workspace_root": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Workspace Root"
+      },
+      "fix": {
+        "default": false,
+        "title": "Fix",
+        "type": "boolean"
+      }
+    },
+    "title": "run_code_quality_linterArguments",
+    "type": "object"
+  }
+}
